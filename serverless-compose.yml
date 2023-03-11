@@ -1,0 +1,9 @@
+
+services:
+
+  liveChecker:
+    path: services/liveChecker
+
+  testService:
+    path: services/test
+    

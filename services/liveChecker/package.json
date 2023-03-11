@@ -1,0 +1,17 @@
+{
+  "name": "livechecker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "liveChecker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1332.0",
+    "chrome-aws-lambda": "^10.1.0",
+    "moment": "^2.29.4"
+  }
+}

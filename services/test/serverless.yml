@@ -1,0 +1,13 @@
+service: griffin-test-service
+
+
+provider:
+  name: aws
+
+functions:
+  Test:
+    handler: test.test
+    events:
+      - http:
+          path: /
+          method: get

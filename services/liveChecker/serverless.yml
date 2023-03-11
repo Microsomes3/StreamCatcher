@@ -1,0 +1,183 @@
+service: griffin-livechecker-service
+
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  environment:
+    LIVE_CHECKER_TABLE: !Ref LiveCheckerTable
+    AWS_REGION_T: !Ref AWS::Region
+    YOUTUBERS_TO_CHECK_TABLE: !Ref YoutubersToCheckTable
+    YOUTUBERS_TO_CHECK_QUEUEUrl: !GetAtt YoutubersToCheckQueue.QueueUrl
+    CALLBACK_URLS_FOR_LIVE_YOUTUBERS_TABLE: !Ref CallBackUrlsForLiveYoutubers
+    AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE: !Ref AggregateCurrentYoutuberLive
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt LiveCheckerTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt YoutubersToCheckTable.Arn
+
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt AggregateCurrentYoutuberLive.Arn
+
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt YoutubersToCheckQueue.Arn
+  
+    
+
+  
+
+resources:
+  Resources:
+    AggregateCurrentYoutuberLive:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: AggregateCurrentYoutuberLive
+        AttributeDefinitions:
+          - AttributeName: youtubeusername
+            AttributeType: S
+        KeySchema:
+          - AttributeName: youtubeusername
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    LiveCheckerTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: LiveCheckerTable
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+          
+    
+    YoutubersToCheckTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: YoutubersToCheckTable
+        AttributeDefinitions:
+          - AttributeName: youtubeusername
+            AttributeType: S
+        KeySchema:
+          - AttributeName: youtubeusername
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    
+    CallBackUrlsForLiveYoutubers:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CallBackUrlsForLiveYoutubers
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    
+    DeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: DeadLetterQueue
+        VisibilityTimeout: 90
+        MessageRetentionPeriod: 345600
+        ReceiveMessageWaitTimeSeconds: 20
+
+    YoutubersToCheckQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: YoutubersToCheckQueue
+        VisibilityTimeout: 90
+        MessageRetentionPeriod: 345600
+        ReceiveMessageWaitTimeSeconds: 20
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+          maxReceiveCount: 3
+
+functions:
+  OnLiveCheckerInsert:
+    handler: onLiveCheckerInsert.onLiveCheckerInsert
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - LiveCheckerTable
+              - StreamArn
+          batchSize: 10
+          startingPosition: TRIM_HORIZON
+  AddCallBackUrl:
+    handler: addCallbackWhenYoutuberLive.addCallbackWhenYoutuberLive
+    events:
+      - http:
+          path: /addCallBackUrl
+          method: post
+  ProcessYoutubersToCheckQueue:
+    handler: processYoutubersToCheck.processYoutubersToCheck
+    timeout: 90
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - YoutubersToCheckQueue
+              - Arn
+          batchSize: 1
+          enabled: true
+  ScheduleYoutubersToCheck:
+    handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
+    events:
+      - schedule: rate(5 minutes)
+  AddYoutuberUsername:
+    handler: addYoutuberUsername.addYoutuberUsername
+    events:
+      - http:
+          path: /addYoutuberUsername
+          method: post
+
+  GetLiveStatuses:
+    handler: getLiveStatuses.getLiveStatusesFromDB
+    events:
+      - http:
+          path: /getLiveStatuses
+          method: get
+
+  CheckLiveStatusFromYoutube:
+    handler: liveChecker.getLiveStatus
+    timeout: 90
+    events:
+      - http:
+          path: /checkLiveFromYoutube
+          method: get
+  
