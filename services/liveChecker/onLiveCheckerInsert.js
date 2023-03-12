@@ -1,5 +1,7 @@
 const aws = require("aws-sdk");
 
+const moment = require('moment');
+
 const documentWriter = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T
 });
@@ -22,8 +24,9 @@ module.exports.onLiveCheckerInsert= async (event)=>{
         const params = {
             TableName: process.env.AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE,
             Item: {
-                id: channel,
+                youtubeusername: channel,
                 isLive: isLive,
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
             },
         };
 

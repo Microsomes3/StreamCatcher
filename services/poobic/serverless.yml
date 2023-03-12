@@ -3,3 +3,12 @@ service: griffin-poobic-service
 
 provider:
   name: aws
+
+
+functions:
+  callbackGriffinIsLive:
+    handler: callbackGriffinIsLive.handler
+    events:
+      - http:
+          path: /callbackGriffinIsLive
+          method: post

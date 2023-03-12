@@ -3,7 +3,7 @@ services:
 
   liveChecker:
     path: services/liveChecker
+  
+  poobic:
+    path: services/poobic
 
-  testService:
-    path: services/test
-    

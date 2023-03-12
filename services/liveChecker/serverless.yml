@@ -48,11 +48,16 @@ provider:
         - sqs:DeleteMessage
         - sqs:GetQueueUrl
       Resource: !GetAtt YoutubersToCheckQueue.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt CallBackUrlsForLiveYoutubers.Arn
   
-    
-
-  
-
 resources:
   Resources:
     AggregateCurrentYoutuberLive:
@@ -80,9 +85,6 @@ resources:
         BillingMode: PAY_PER_REQUEST
         StreamSpecification:
           StreamViewType: NEW_IMAGE
-
-          
-    
     YoutubersToCheckTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -127,6 +129,20 @@ resources:
           maxReceiveCount: 3
 
 functions:
+  GetCallbackByYoutubeUsername:
+    handler: getCallbacksByUsername.getCallbacksByUsername
+    events:
+      - http:
+          path: /getCallbackByYoutubeUsername
+          method: get
+  AllAggregateCurrentYoutuberLive:
+    handler: allAggregateCurrentYoutuberLive.allAggregateCurrentYoutuberLive
+    events:
+      - http:
+          path: /allAggregateCurrentYoutuberLive
+          method: get
+  # ErrorChecker:
+  #   handler: errorChecker.errorChecker
   OnLiveCheckerInsert:
     handler: onLiveCheckerInsert.onLiveCheckerInsert
     events:
@@ -147,6 +163,7 @@ functions:
   ProcessYoutubersToCheckQueue:
     handler: processYoutubersToCheck.processYoutubersToCheck
     timeout: 90
+    memorySize: 700
     events:
       - sqs:
           arn:
@@ -175,7 +192,7 @@ functions:
 
   CheckLiveStatusFromYoutube:
     handler: liveChecker.getLiveStatus
-    timeout: 90
+    timeout: 30
     events:
       - http:
           path: /checkLiveFromYoutube
