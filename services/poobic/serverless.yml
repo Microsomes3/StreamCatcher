@@ -1,0 +1,5 @@
+service: griffin-poobic-service
+
+
+provider:
+  name: aws
