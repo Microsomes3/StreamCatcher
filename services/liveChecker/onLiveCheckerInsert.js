@@ -26,6 +26,7 @@ module.exports.onLiveCheckerInsert= async (event)=>{
             Item: {
                 youtubeusername: channel,
                 isLive: isLive,
+                liveLink: newImage.liveLink.S,
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
             },
         };

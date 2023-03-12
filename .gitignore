@@ -1,5 +1,9 @@
 node_modules/*
 .serverless/
 
-services/poobic
+services/poobic/node_modules
+services/poobic/.serverless/
 node_modules/
+
+
+node_modules

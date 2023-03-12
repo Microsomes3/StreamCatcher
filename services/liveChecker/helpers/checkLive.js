@@ -15,6 +15,17 @@ const checkLIVE = async (username) => {
 
         let page = await browser.newPage();
 
+
+        await page.setRequestInterception(true);
+
+        page.on('request', (request) => {
+            if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
         await page.goto('https://youtube.com/'+username,{
             waitUntil: "networkidle2"
         });
@@ -43,17 +54,27 @@ const checkLIVE = async (username) => {
             }
         })
 
+        const liveLink = await page.evaluate(() => {
+            try{
+               return document.querySelector("#video-title").getAttribute("href")
+            }catch(e){
+                return "<none>"
+            }
+        })
+
         if (isLive) {
             toReturn = {
                 isLive: true,
                 status: "live",
                 channel: username,
+                liveLink: liveLink,
             };
         } else {
             toReturn = {
                 isLive: false,
                 status: "not live",
                 channel: username,
+                liveLink: liveLink,
             };
         }
 

@@ -1,39 +1,24 @@
 const aws = require("aws-sdk");
+const { getAllCallbacks } = require("./helpers/getAllCallbacks.js");
 
 
 module.exports.getCallbacksByUsername = async (event) => {
 
     try {
-        const username = "@griffingaming"
-        const documentReader = new aws.DynamoDB.DocumentClient({
-            region: process.env.AWS_REGION_T
-        });
+        const username = event.queryStringParameters.user;
 
-        const params = {
-            TableName: process.env.CALLBACK_URLS_FOR_LIVE_YOUTUBERS_TABLE,
-            IndexName: 'username-index',
-            KeyConditionExpression: "username = :username",
-            ExpressionAttributeValues: {
-                ":username": username,
-            },
-        };
-        //scan
-
-        const result= await documentReader.query(params).promise();
-        
+        const result = await getAllCallbacks(username);
+      
         return {
             statusCode: 200,
-            body: JSON.stringify({
-                params: params,
-                result: result,
-                event: event,
-            }),
+            body: result
         }
     } catch (e) {
         return {
             statusCode: 400,
             body: JSON.stringify({
                 message: "Missing username",
+                event: event,
                 error: e,
             }),
         }

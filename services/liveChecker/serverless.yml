@@ -50,13 +50,12 @@ provider:
       Resource: !GetAtt YoutubersToCheckQueue.Arn
     - Effect: Allow
       Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
+        - dynamodb:*
       Resource: !GetAtt CallBackUrlsForLiveYoutubers.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/CallBackUrlsForLiveYoutubers/index/username-index"
   
 resources:
   Resources:

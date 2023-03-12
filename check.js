@@ -1,25 +1,40 @@
-const aws = require("aws-sdk");
+const axios = require('axios');
+const cheerio = require('cheerio');
+const fs = require('fs');
+const checkLIVE = async (username) => {
+  try {
+    const response = await axios.get(`https://www.youtube.com/${username}`);
+    const $ = cheerio.load(response.data);
 
+    console.log($('title').text());
 
-const documentReader = new aws.DynamoDB.DocumentClient({
-    region: "us-east-1"
-});
+    fs.writeFileSync('test.html', response.data);
 
-const params = {
-    TableName: "CallBackUrlsForLiveYoutubers",
-    IndexName: 'username-index',
-    KeyConditionExpression: "username = :username",
-    ExpressionAttributeValues: {
-        ":username": "@griffingaming",
-    },
+    const cookieBanner = $('.SGW9xe').text().trim();
+
+    if (cookieBanner === 'Before you continue to YouTube') {
+        console.log('cookie banner');
+      await axios.post('https://www.youtube.com/cookie_policy', { 
+        hitbox: { 
+          clicks: { 
+            'cookie-policy-accept': '1'
+          }
+        }
+      });
+    }
+    const isLive = true;
+    const toReturn = {
+      isLive,
+      status: isLive ? 'live' : 'not live',
+      channel: username,
+    };
+    return toReturn;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
 };
 
+checkLIVE("@CreepsMcPasta").then((res) => console.log(res));
 
-(async ()=>{
-
-    const result = await documentReader.query(params).promise();
-
-
-    console.log(result);
-
-})();
+module.exports.checkLIVE = checkLIVE;
