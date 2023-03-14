@@ -1,0 +1,39 @@
+service: griffin-recordservice-service
+
+
+provider:
+  name: aws
+  environment:
+    RECORD_REQUEST_TABLE: !Ref RecordRequestTable
+    AWS_REGION_T: !Ref AWS::Region
+
+resources:
+  Resources:
+    RecordRequestTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: RecordRequestTable
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+functions:
+  getAllRecordRequests:
+    handler: getAllRecordRequests.handler
+    events:
+      - http:
+          path: /recordRequests
+          method: get
+          cors: true
+  recordRequest:
+    handler: addRecordRequest.handler
+    events:
+      - http:
+          path: /recordRequest
+          method: post
+          cors: true
+      
