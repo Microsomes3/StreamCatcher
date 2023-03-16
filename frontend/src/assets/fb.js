@@ -7,20 +7,16 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyA9bNOJuKHxzqpFvrsWQan-GVnKNgvFQjs",
+  apiKey: "AIzaSyCKCihPOJ5er9fsl85BOtNQabKYi9y_9cE",
   authDomain: "streamcatcherui.firebaseapp.com",
   projectId: "streamcatcherui",
   storageBucket: "streamcatcherui.appspot.com",
   messagingSenderId: "716651623898",
-  appId: "1:716651623898:web:00a20d1229b32cdc877ce3",
-  measurementId: "G-LPEJZ9NVQL"
+  appId: "1:716651623898:web:a34fd39d690c6c92877ce3",
+  measurementId: "G-8B1EBXZ46P"
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-module.exports = {
-    app,
-    analytics
-}
