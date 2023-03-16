@@ -6,8 +6,31 @@ provider:
   environment:
     RECORD_REQUEST_TABLE: !Ref RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt RecordRequestTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
 
 resources:
+  Outputs:
+    RecordRequestTable:
+      Value: !Ref RecordRequestTable
+      Export:
+        Name: RecordRequestTable
+    RecordRequestTableArn:
+      Value: !GetAtt RecordRequestTable.Arn
+      Export:
+        Name: RecordRequestTableArn
   Resources:
     RecordRequestTable:
       Type: AWS::DynamoDB::Table
@@ -16,12 +39,31 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: username
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: username-index
+            KeySchema:
+              - AttributeName: username
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+      
+    
+    
 
 functions:
+  getRecordRequestByUser:
+    handler: getRecordRequestByUser.handler
+    events:
+      - http:
+          path: /recordRequest/{username}
+          method: get
+          cors: true
   getAllRecordRequests:
     handler: getAllRecordRequests.handler
     events:

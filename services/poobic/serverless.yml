@@ -3,6 +3,7 @@ service: griffin-poobic-service
 
 provider:
   name: aws
+  memorySize: 128
 
 
 functions:

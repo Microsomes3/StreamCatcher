@@ -23,16 +23,22 @@ module.exports.getLiveStatusesFromDB = async (event) => {
            islive: item.isLive,
            username: item.youtubeusername,
            lastUpdated: moment(item.updatedAt).fromNow(),
+           liveLink: item.liveLink,
+           link: `https://youtube.com${item.liveLink}&ab_channel=${item.youtubeusername.split("@")[1]}`
         })
     })
 
-    for(let i = 0; i < items.length; i++){
-        const callbacks = await getAllCallbacks(items[i].username);
-        items[i].callbacks = callbacks;
-    }
+    // for(let i = 0; i < items.length; i++){
+    //     const callbacks = await getAllCallbacks(items[i].username);
+    //     items[i].callbacks = callbacks;
+    // }
 
     return {
         statusCode: 200,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true,
+        },
         body: JSON.stringify({
             youtubers: items,
         }),

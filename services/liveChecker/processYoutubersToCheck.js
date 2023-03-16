@@ -2,7 +2,7 @@ const aws = require("aws-sdk");
 const moment = require("moment");
 const axios = require("axios");
 
-const { checkLIVE } = require('./helpers/checkLive');
+const { checkMultiLive } = require('./helpers/checkLive');
 
 const { getAllCallbacks } = require("./helpers/getAllCallbacks.js");
 
@@ -18,33 +18,37 @@ function uuidv4() {
     });
 }
 
-module.exports.processYoutubersToCheck = async (event) => {
+function processLiveStatus(liveStatus) {
+    return new Promise(async (resolve, reject) => {
+        try {
 
-    const username = event.Records[0].body;
+            const username = liveStatus.username;
 
-    // const username = "@GriffinGaming";
+            if (liveStatus.isLive) {
+                const callbacks = await getAllCallbacks(username);
 
-    const liveStatus = await checkLIVE(username);
+                for (let i = 0; i < callbacks.results.length; i++) {
 
-    console.log(liveStatus);
+                    const curl = callbacks.results[i].callbackUrl;
 
-    // if (liveStatus.isLive) {
-    //     const callbacks = await getAllCallbacks(username);
+                    await axios.post(curl, {
+                        username: username,
+                        isLive: liveStatus.isLive,
+                        liveStatus: liveStatus,
+                    }, {
+                        timeout: 7000,
+                    }).catch((err) => {
+                        console.log(err);
+                    }
+                    );
+                }
 
-    //     for (let i = 0; i < callbacks.length; i++) {
-    //         //post with 7 seconds timeout
-    //         await axios.post(callbacks[i].callbackUrl, {
-    //             username: username,
-    //             isLive: liveStatus.isLive,
-    //             liveStatus: liveStatus,
-    //         }, {
-    //             timeout: 7000,
-    //         }).catch((err) => {
-    //             console.log(err);
-    //         }
-    //         );
-    //     }
-    // }
+
+            }
+        } catch (e) {
+
+            console.log("error", e);
+        }
 
         const params = {
             TableName: process.env.LIVE_CHECKER_TABLE,
@@ -52,7 +56,7 @@ module.exports.processYoutubersToCheck = async (event) => {
                 id: uuidv4(),
                 createdAt: moment().unix(),
                 updatedAt: moment().unix(),
-                channel: username,
+                channel: liveStatus.username,
                 status: JSON.stringify(liveStatus),
                 isLive: liveStatus.isLive,
                 liveLink: liveStatus.liveLink,
@@ -61,15 +65,51 @@ module.exports.processYoutubersToCheck = async (event) => {
 
         await documentWriter.put(params).promise();
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Go Serverless v1.0! Your function executed successfully!',
-                liveStatus: liveStatus,
-            }),
+    })
+}
 
+
+function sendRecordServiceCallback(liveStatus) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            axios.post(process.env.CALLBACK_FOR_RECORD_SERVICE, {
+                username: liveStatus.username,
+                isLive: liveStatus.isLive,
+                liveStatus: liveStatus,
+            });
+            resolve();
+        } catch (e) {
+            console.log(e);
+            reject(e);
         }
+    })
+}
+
+module.exports.processYoutubersToCheck = async (event) => {
+    const allUsernames = [];
+
+    for (let i = 0; i < event.Records.length; i++) {
+        allUsernames.push(event.Records[i].body);
+
     }
+
+    const liveStatuses = await checkMultiLive(allUsernames);
+
+    for (let i = 0; i < liveStatuses.length; i++) {
+        console.log(liveStatuses[i]);
+        await sendRecordServiceCallback(liveStatuses[i]);
+        await processLiveStatus(liveStatuses[i]);
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            message: 'will callback',
+            liveStatus: liveStatus,
+        }),
+
+    }
+}
 
 
 

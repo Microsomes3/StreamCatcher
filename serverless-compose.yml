@@ -3,7 +3,16 @@ services:
 
   liveChecker:
     path: services/liveChecker
+    params:
+      recordCallBackUrl: ${record.ServiceEndpoint}/CallBackReceivedLiveEvents
   
   poobic:
     path: services/poobic
 
+  recordRequests:
+    path: services/recordRequests
+  
+  record:
+    path: services/record
+    params:
+      recordRequestUrl: ${recordRequests.ServiceEndpoint}/recordRequest/

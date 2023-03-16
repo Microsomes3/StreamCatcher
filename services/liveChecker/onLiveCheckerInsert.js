@@ -9,6 +9,8 @@ const documentWriter = new aws.DynamoDB.DocumentClient({
 module.exports.onLiveCheckerInsert= async (event)=>{
     
     for (let record of event.Records) {
+
+        try{
         const newImage = record.dynamodb.NewImage;
         const channel = newImage.channel.S;
         const isLive = newImage.isLive.BOOL;
@@ -26,12 +28,17 @@ module.exports.onLiveCheckerInsert= async (event)=>{
             Item: {
                 youtubeusername: channel,
                 isLive: isLive,
-                liveLink: newImage.liveLink.S,
-                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss")
+                updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
+                extra: newImage,
+                liveLink: newImage.liveLink.S
+
             },
         };
 
         await documentWriter.put(params).promise();
+    }catch(e){
+        console.log(e);
+    }
 
     }
 

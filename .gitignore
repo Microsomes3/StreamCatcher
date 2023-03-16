@@ -5,5 +5,5 @@ services/poobic/node_modules
 services/poobic/.serverless/
 node_modules/
 
-
+.env
 node_modules

@@ -4,6 +4,7 @@ service: griffin-livechecker-service
 provider:
   name: aws
   runtime: nodejs14.x
+  memorySize: 128
   environment:
     LIVE_CHECKER_TABLE: !Ref LiveCheckerTable
     AWS_REGION_T: !Ref AWS::Region
@@ -11,6 +12,7 @@ provider:
     YOUTUBERS_TO_CHECK_QUEUEUrl: !GetAtt YoutubersToCheckQueue.QueueUrl
     CALLBACK_URLS_FOR_LIVE_YOUTUBERS_TABLE: !Ref CallBackUrlsForLiveYoutubers
     AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE: !Ref AggregateCurrentYoutuberLive
+    CALLBACK_FOR_RECORD_SERVICE: ${param:recordCallBackUrl}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -162,19 +164,20 @@ functions:
   ProcessYoutubersToCheckQueue:
     handler: processYoutubersToCheck.processYoutubersToCheck
     timeout: 90
-    memorySize: 700
+    memorySize: 750
     events:
       - sqs:
           arn:
             Fn::GetAtt:
               - YoutubersToCheckQueue
               - Arn
-          batchSize: 1
+          batchSize: 10
+          
           enabled: true
   ScheduleYoutubersToCheck:
     handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(2 minutes)
   AddYoutuberUsername:
     handler: addYoutuberUsername.addYoutuberUsername
     events:
@@ -188,6 +191,7 @@ functions:
       - http:
           path: /getLiveStatuses
           method: get
+          cors: true
 
   CheckLiveStatusFromYoutube:
     handler: liveChecker.getLiveStatus
@@ -195,5 +199,11 @@ functions:
     events:
       - http:
           path: /checkLiveFromYoutube
+          method: get
+  TestMulti:
+    handler: testMulti.checkMultiLive
+    events:
+      - http:
+          path: /testMulti
           method: get
   
