@@ -15,7 +15,7 @@ function DashboardHome() {
 
 
   useEffect(()=>{
-    setEmail(user)
+    setEmail(user[0])
   },[user])
 
 
