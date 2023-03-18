@@ -192,7 +192,13 @@ functions:
           path: /getLiveStatuses
           method: get
           cors: true
-
+  GetLiveStatusByUsername:
+    handler: getLiveStatusByUsername.getLiveStatusByUsername
+    events:
+      - http:
+          path: /getLiveStatus/{username}
+          method: get
+          cors: true
   CheckLiveStatusFromYoutube:
     handler: liveChecker.getLiveStatus
     timeout: 30

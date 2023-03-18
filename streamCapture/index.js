@@ -3,6 +3,8 @@ const { spawn } = require('child_process');
 
 const moment = require("moment");
 
+const axios = require("axios");
+
 const { checkLIVE } = require('./checkLive.js');
 
 const fs = require("fs");
@@ -12,7 +14,10 @@ const aws = require("aws-sdk");
 const { createLogWithStream } = require("./logs.js")
 
 
-function mustCheckLive(channel){
+function mustCheckLive(channel) {
+
+    const getChannelStatusURI= process.env.getChannelStatusURI || "https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatus/";
+
     return new Promise(async (resolve,reject)=>{
         var maxTries = 3;
         var currentTry = 0;
@@ -22,8 +27,8 @@ function mustCheckLive(channel){
         for(var i = 0; i < maxTries; i++){
             
             try{
-           const isLive = await checkLIVE(channel);
-              toReturn = isLive;
+           const isLive = await axios.get(getChannelStatusURI+channel);
+              toReturn = isLive.data;
            break;
             }catch(e){
                 console.log(e);
@@ -67,12 +72,13 @@ function tryDownload(timeout,link){
     const region = process.env.region || "us-east-1";
 
     mustCheckLive(channel).then(async (isLive)=>{
-       if(isLive.isLive){
+
+       if(isLive.status){
             //
 
             createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH")+"-"+channel, "Starting recording for "+channel+" at "+moment().format("YYYY-MM-DD-HH-mm-ss")+" with timeout of "+timeout+" and bucket "+bucket+" and region "+region);
 
-            await tryDownload(timeout, isLive.link);
+            await tryDownload(timeout, "https://youtube.com"+isLive.link);
 
             createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH")+"-"+channel, "Finished recording for "+channel+" at "+moment().format("YYYY-MM-DD-HH-mm-ss")+" with timeout of "+timeout+" and bucket "+bucket+" and region "+region);
 
@@ -110,6 +116,8 @@ function tryDownload(timeout,link){
                     console.log("Upload Success", data.Location);
 
                     createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH")+"-"+channel, "Uploaded to s3 for "+channel+" at "+moment().format("YYYY-MM-DD-HH-mm-ss")+" with timeout of "+timeout+" and bucket "+bucket+" and region "+region);
+
+                    fs.rmSync("output.mp4");
 
                     //presign the url
                     const params = { Bucket: bucket, Key: uploadParams.Key, Expires: 60 * 60 * 24 * 7 };
