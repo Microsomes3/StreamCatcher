@@ -6,6 +6,7 @@ provider:
   environment:
     RECORD_REQUEST_TABLE: !Ref RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
+    PROCESS_TASK_CREATION_QUEUEUrl: !GetAtt ProcessTaskCreationQueue.QueueUrl
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -20,6 +21,25 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt ProcessTaskCreationQueue.Arn
+    - Effect: Allow
+      Action:
+        - Cloudformation:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - cloudformation:CreateStack
+        - ecs:*
+        - logs:*
+        - iam:*
+      Resource: "*"
+    
 
 resources:
   Outputs:
@@ -32,6 +52,13 @@ resources:
       Export:
         Name: RecordRequestTableArn
   Resources:
+    ProcessTaskCreationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ProcessTaskCreationQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+        ReceiveMessageWaitTimeSeconds: 20
     RecordRequestTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -52,11 +79,30 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
-      
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
     
-    
-
 functions:
+  ProcessCreateTask:
+    handler: processCreateTaskFromRDQueue.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - ProcessTaskCreationQueue
+              - Arn
+          batchSize: 1
+  OnRecordRequestCreate:
+    handler: OnRecordRequestCreate.handler
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - RecordRequestTable
+              - StreamArn
+          batchSize: 1
+          startingPosition: TRIM_HORIZON
   getRecordRequestByUser:
     handler: getRecordRequestByUser.handler
     events:
