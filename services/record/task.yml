@@ -1,20 +1,24 @@
-
-
 Parameters:
   Name:
     Type: String
     Default: griffin-record
   Image:
     Type: String
-    Default: 574134043875.dkr.ecr.us-east-1.amazonaws.com/griffin-record:latest
+    Default: public.ecr.aws/m8l7i2c5/griffin@sha256:b14e80e094d37baa96b882f7f4bc1652d6bb814b836e7433f92ac230afa1e777
   Channel:
     Type: String
-    Default: "@griffingaming"
+    Default: "@LofiGirl"
   Timeout:
     Type: String
     Default: 60s
 
 Resources:
+  LogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${Name}
+      RetentionInDays: 14
+  
   ECSTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -28,6 +32,12 @@ Resources:
       ContainerDefinitions:
         - Name: !Ref Name
           Image: !Ref Image
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
           Environment:
             - Name: AWS_REGION_T
               Value: !Ref AWS::Region
@@ -48,6 +58,8 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
 
   TaskRole:
     Type: AWS::IAM::Role
@@ -61,4 +73,5 @@ Resources:
             Action: sts:AssumeRole
       # Add policies as needed for your specific use case
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
