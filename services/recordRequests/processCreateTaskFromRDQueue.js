@@ -21,6 +21,10 @@ module.exports.handler = async (event) => {
     const params = {
         StackName: "c"+IdHash,
         TemplateBody: tasktml,
+        Capabilities: [
+            "CAPABILITY_IAM",
+            "CAPABILITY_NAMED_IAM",
+        ],
         Parameters: [
             {
                 ParameterKey: 'Name',
