@@ -71,6 +71,13 @@ function tryDownload(timeout,link){
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
 
+    console.log({
+        channel,
+        timeout,
+        bucket,
+        region
+    })
+
     mustCheckLive(channel).then(async (isLive)=>{
 
        if(isLive.status){
