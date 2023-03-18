@@ -1,10 +1,10 @@
 Parameters:
   Name:
     Type: String
-    Default: griffin-record
+    Default: griffin-record-1
   Image:
     Type: String
-    Default: public.ecr.aws/m8l7i2c5/griffin@sha256:b14e80e094d37baa96b882f7f4bc1652d6bb814b836e7433f92ac230afa1e777
+    Default: public.ecr.aws/m8l7i2c5/griffin:latest
   Channel:
     Type: String
     Default: "@LofiGirl"
