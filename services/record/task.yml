@@ -1,0 +1,64 @@
+
+
+Parameters:
+  Name:
+    Type: String
+    Default: griffin-record
+  Image:
+    Type: String
+    Default: 574134043875.dkr.ecr.us-east-1.amazonaws.com/griffin-record:latest
+  Channel:
+    Type: String
+    Default: "@griffingaming"
+  Timeout:
+    Type: String
+    Default: 60s
+
+Resources:
+  ECSTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      RequiresCompatibilities:
+        - FARGATE
+      ContainerDefinitions:
+        - Name: !Ref Name
+          Image: !Ref Image
+          Environment:
+            - Name: AWS_REGION_T
+              Value: !Ref AWS::Region
+            - Name: channel
+              Value: !Ref Channel
+            - Name: timeout
+              Value: !Ref Timeout
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      # Add policies as needed for your specific use case
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess

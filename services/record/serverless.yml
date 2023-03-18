@@ -40,7 +40,37 @@ provider:
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordTable/index/record-request-id-index"
 
 resources:
+  Outputs:
+    RecordBucket:
+      Value: !Ref RecordInputBucket
+      Export:
+        Name: RecordInputBucket
   Resources:
+    ECRRecordRepository:
+      Type: AWS::ECR::Repository
+      Properties:
+        RepositoryName: griffin-record
+    EcsDownloadCluster:
+      Type: AWS::ECS::Cluster
+      Properties:
+        ClusterName: griffin-record-cluster
+    RecordInputBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: griffin-record-input
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              AllowedOrigins:
+                - '*'
+              MaxAge: 3000
     RecordTable:
       Type: AWS::DynamoDB::Table
       Properties:
