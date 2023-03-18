@@ -101,6 +101,13 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+  RecordByRequestIDAdhoc:
+    handler: RecordByRequestIDAdhoc.handler
+    events:
+      - http:
+          path: /RecordByRequestIDAdhoc/{requestid}
+          method: post
+          cors: true
   CallBackReceivedLiveEvents:
     handler: CallBackReceivedLiveEvents.handler
     events:
