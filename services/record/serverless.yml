@@ -145,6 +145,13 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+  GetRecordingByRecordId:
+    handler: getRecordingByRecordId.handler
+    events:
+      - http:
+          path: /GetRecordingByRecordId/{id}
+          method: get
+          cors: true
   GetAllRecordStatusesByRequestID:
     handler: getAllRecordStatusesByRequestId.handler
     events:
