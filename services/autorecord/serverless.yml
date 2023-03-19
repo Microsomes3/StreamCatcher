@@ -1,0 +1,12 @@
+service: griffin-autorecord-service
+
+
+provider:
+  name: aws
+
+
+functions:
+  pollRequestJobs:
+    handler: src/handlers/pollRequestJobs.handler
+    events:
+      - schedule: rate(1 minute)

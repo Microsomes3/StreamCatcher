@@ -1,6 +1,9 @@
 
 services:
 
+  autoRecord:
+    path: services/autorecord
+
   liveChecker:
     path: services/liveChecker
     params:
