@@ -57,6 +57,10 @@ provider:
         - dynamodb:Scan
         - dynamodb:UpdateItem
       Resource: !GetAtt RecordStatuses.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/record-request-id-index"
 
 
 resources:
@@ -141,6 +145,13 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+  GetRecordStatusById:
+    handler: getRecordStatusById.handler
+    events:
+      - http:
+          path: /GetRecordStatusById/{id}
+          method: get
+          cors: true
   GetAllRecordingsByRequestID:
     handler: getAllRecordingsByRequestID.handler
     events:

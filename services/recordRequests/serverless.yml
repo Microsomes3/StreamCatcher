@@ -43,7 +43,7 @@ provider:
       Action:
         - events:*
       Resource: "*"
-
+      
 resources:
   Outputs:
     RecordRequestTable:

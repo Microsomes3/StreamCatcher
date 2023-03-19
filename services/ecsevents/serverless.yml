@@ -17,6 +17,8 @@ resources:
           detail-type:
             - "ECS Task State Change"
           detail:
+            clusterArn:
+              - arn:aws:ecs:us-east-1:574134043875:cluster/griffin-record-cluster
             lastStatus:
               - "STOPPED"
               - "RUNNING"

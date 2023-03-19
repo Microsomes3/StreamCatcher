@@ -63,6 +63,8 @@ module.exports.handler = async (event) => {
         region: process.env.AWS_REGION_T,
     });
 
+    const uniqueRecordId=  uuidv4();
+
     const ecsparams = {
         cluster: "griffin-record-cluster",
         taskDefinition: ecsname,
@@ -77,6 +79,10 @@ module.exports.handler = async (event) => {
                             name: "RECORD_REQUEST_ID",
                             value: requestID
                         },
+                        {
+                            name: "RECORD_ID",
+                            value: uniqueRecordId
+                        }
                     ]
                 },
             ],
@@ -87,7 +93,6 @@ module.exports.handler = async (event) => {
                     "subnet-035b7122",
                 ],
                 assignPublicIp: "ENABLED",
-            
             }
         },
     };
@@ -96,19 +101,18 @@ module.exports.handler = async (event) => {
 
     const taskArn = ecsdata.tasks[0].taskArn;
 
-
     const paramsStatuses = {
         TableName: process.env.RecordStatusesTable,
         Item: {
-            id: uuidv4(),
+            id: uniqueRecordId,
             recordrequestid: requestID,
             taskArn: taskArn,
+            status: "PENDING",
             createdAt: new Date().getTime(),
         },
     };
     
-
-    const dataStatuses = await documentWriter.put(paramsStatuses).promise();
+    await documentWriter.put(paramsStatuses).promise();
 
     return {
         statusCode: 200,
@@ -117,13 +121,9 @@ module.exports.handler = async (event) => {
             "Access-Control-Allow-Credentials": true,
         },
         body: JSON.stringify({
-            dataStatuses,
-            data:data,
-            requestID:requestID,
-            sname:sname,
-            // stackDef:stackDef,
-            ecsname:ecsname.split("/")[1].split(":1")[0],
-            ecsdata:ecsdata
+            recordId:uniqueRecordId,
+            status:"PENDING_RECORD",
+            taskArn: taskArn,
         }),
     }
 };

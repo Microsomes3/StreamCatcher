@@ -18,12 +18,11 @@ module.exports.handler = async (event) => {
 
     const {
         requestId,
-        key 
+        key,
+        recordId
     } = JSON.parse(event.body);
 
-    
-
-    if (!requestId || !key) {
+    if (!requestId || !key || !recordId) {
         return {
             statusCode: 400,
             body: JSON.stringify({
@@ -39,12 +38,15 @@ module.exports.handler = async (event) => {
             id: uuidv4(),
             recordrequestid:requestId,
             key: key,
+            recordId: recordId,
             username:"use request id to find out",
             createdAt: new Date().getTime(),
         },
     };
 
-    const toE=null;
+   
+
+    var toE=null;
 
     try {
         toE= await documentClient.put(params).promise();
@@ -52,6 +54,30 @@ module.exports.handler = async (event) => {
         console.log(err);
     }
 
+
+     //update recordStatuses
+
+    const params2 = {
+        TableName: process.env.RecordStatusesTable,
+        Key: {
+            id: recordId
+        },
+        UpdateExpression: "set #status = :s",
+        ExpressionAttributeNames: {
+            "#status": "status"
+        },
+        ExpressionAttributeValues: {
+            ":s": "completed"
+        }
+    };
+
+    try {
+        await documentClient.update(params2).promise();
+    } catch (err) {
+        console.log(err);
+    }
+
+    
 
 
     return {

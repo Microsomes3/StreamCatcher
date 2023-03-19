@@ -137,6 +137,7 @@ function tryDownload(timeout, link) {
                             const response = await axios.post(process.env.completionCallbackUrl, {
                                 requestId: process.env.RECORD_REQUEST_ID,
                                 key: uploadParams.Key,
+                                recordId: process.env.RECORD_ID,
                             }, {
                                 timeout: 10000 // timeout after 10 seconds
                             });
