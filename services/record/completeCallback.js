@@ -3,7 +3,7 @@ const aws = require('aws-sdk');
 
 module.exports.handler = async (event) => {
 
-    const body = json.parse(event.body);
+    const body = JSON.parse(event.body);
 
     console.log(body);
 

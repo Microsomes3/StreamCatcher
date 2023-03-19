@@ -110,7 +110,6 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
-<<<<<<< Updated upstream
   RecordCompleteCallback:
     handler: completeCallback.handler
     events:
@@ -118,15 +117,6 @@ functions:
           path: /RecordCompleteCallback
           method: post
           cors: true
-=======
-  CompleteRecordCallback:
-    handler: CompleteRecordCallback.handler
-    events:
-      - http:
-          path: /completeRecordCallback
-          method: post
-          cors: true  
->>>>>>> Stashed changes
   RecordByRequestIDAdhoc:
     handler: RecordByRequestIDAdhoc.handler
     iamRoleStatements:

@@ -13,7 +13,7 @@ Parameters:
     Default: 60s
   CompletionCallbackUrl:
     Type: String
-    Default: https://api.griffinbot.xyz/record/callback
+    Default: https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback
 
 Resources:
   LogsGroup:
@@ -50,6 +50,8 @@ Resources:
               Value: !Ref Timeout
             - Name: stackname
               Value: !Ref AWS::StackName
+            - Name: completionCallbackUrl
+              Value: !Ref CompletionCallbackUrl
 
   ExecutionRole:
     Type: AWS::IAM::Role
