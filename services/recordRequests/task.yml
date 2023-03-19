@@ -27,6 +27,8 @@ Resources:
     Properties:
       Cpu: 256
       Memory: 512
+      EphemeralStorage:
+        SizeInGiB: 50
       NetworkMode: awsvpc
       ExecutionRoleArn: !Ref ExecutionRole
       TaskRoleArn: !Ref TaskRole
