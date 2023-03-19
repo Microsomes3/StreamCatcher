@@ -7,7 +7,12 @@ provider:
     RECORD_TABLE: !Ref RecordTable
     RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
+    RequestRequestTable: ${param:recordRequestTable}
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - ecs:RunTask
+      Resource: "*"
     - Effect: Allow
       Action:
         - dynamodb:*
@@ -38,6 +43,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordTable/index/record-request-id-index"
+    - Effect: Allow
+      Action:
+        - cloudformation:*
+      Resource: "*"
 
 resources:
   Outputs:
@@ -101,6 +110,7 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+<<<<<<< Updated upstream
   RecordCompleteCallback:
     handler: completeCallback.handler
     events:
@@ -108,13 +118,28 @@ functions:
           path: /RecordCompleteCallback
           method: post
           cors: true
+=======
+  CompleteRecordCallback:
+    handler: CompleteRecordCallback.handler
+    events:
+      - http:
+          path: /completeRecordCallback
+          method: post
+          cors: true  
+>>>>>>> Stashed changes
   RecordByRequestIDAdhoc:
     handler: RecordByRequestIDAdhoc.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - ecs:*
+        Resource: "*"
     events:
       - http:
           path: /RecordByRequestIDAdhoc/{requestid}
           method: post
           cors: true
+      
   CallBackReceivedLiveEvents:
     handler: CallBackReceivedLiveEvents.handler
     events:

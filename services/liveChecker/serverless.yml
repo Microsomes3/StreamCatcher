@@ -177,7 +177,7 @@ functions:
   ScheduleYoutubersToCheck:
     handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
     events:
-      - schedule: rate(2 minutes)
+      - schedule: rate(5 minutes)
   AddYoutuberUsername:
     handler: addYoutuberUsername.addYoutuberUsername
     events:

@@ -16,3 +16,4 @@ services:
     path: services/record
     params:
       recordRequestUrl: ${recordRequests.ServiceEndpoint}/recordRequest/
+      recordRequestTable: ${recordRequests.RecordRequestTable}

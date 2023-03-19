@@ -11,6 +11,9 @@ Parameters:
   Timeout:
     Type: String
     Default: 60s
+  CompletionCallbackUrl:
+    Type: String
+    Default: https://api.griffinbot.xyz/record/callback
 
 Resources:
   LogsGroup:
@@ -45,6 +48,8 @@ Resources:
               Value: !Ref Channel
             - Name: timeout
               Value: !Ref Timeout
+            - Name: stackname
+              Value: !Ref AWS::StackName
 
   ExecutionRole:
     Type: AWS::IAM::Role
@@ -75,3 +80,8 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+
+Outputs:
+  ECSTASKName:
+    Value: !Ref ECSTask
