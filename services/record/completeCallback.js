@@ -35,10 +35,9 @@ module.exports.handler = async (event) => {
     const params = {
         TableName: process.env.RECORD_TABLE,
         Item: {
-            id: uuidv4(),
+            id: recordId,
             recordrequestid:requestId,
             key: key,
-            recordId: recordId,
             username:"use request id to find out",
             createdAt: new Date().getTime(),
         },
@@ -77,7 +76,7 @@ module.exports.handler = async (event) => {
         console.log(err);
     }
 
-    
+
 
 
     return {
