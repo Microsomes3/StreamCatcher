@@ -48,6 +48,16 @@ provider:
       Action:
         - cloudformation:*
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:DeleteItem
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:UpdateItem
+      Resource: !GetAtt RecordStatuses.Arn
+
 
 resources:
   Outputs:

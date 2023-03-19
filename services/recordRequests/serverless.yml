@@ -39,7 +39,10 @@ provider:
         - logs:*
         - iam:*
       Resource: "*"
-    
+    - Effect: Allow
+      Action:
+        - events:*
+      Resource: "*"
 
 resources:
   Outputs:
@@ -83,6 +86,9 @@ resources:
           StreamViewType: NEW_IMAGE
     
 functions:
+  HandleEventsFromECS:
+    handler: HandleEventFromEcs.handler
+
   ProcessCreateTask:
     handler: processCreateTaskFromRDQueue.handler
     events:

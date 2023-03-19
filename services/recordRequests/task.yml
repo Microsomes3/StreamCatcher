@@ -1,7 +1,7 @@
 Parameters:
   Name:
     Type: String
-    Default: griffin-record-1
+    Default: griffin-record-2
   Image:
     Type: String
     Default: public.ecr.aws/m8l7i2c5/griffin:latest
@@ -14,7 +14,9 @@ Parameters:
   CompletionCallbackUrl:
     Type: String
     Default: https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback
-
+  LambdaEventEcsArn:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:574134043875:function:griffin-recordservice-service-dev-HandleEventsFromECS
 Resources:
   LogsGroup:
     Type: AWS::Logs::LogGroup
@@ -71,8 +73,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::574134043875:policy/CFFULL
-
-        
 
   TaskRole:
     Type: AWS::IAM::Role

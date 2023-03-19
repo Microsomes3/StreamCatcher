@@ -12,6 +12,12 @@ services:
   recordRequests:
     path: services/recordRequests
   
+  ecsEventsResource:
+    path: services/ecsevents
+    params:
+      HandleEventsFromECSArn: ${recordRequests.HandleEventsFromECSLambdaFunctionQualifiedArn}
+
+  
   record:
     path: services/record
     params:

@@ -1,0 +1,28 @@
+service: griffin-ecsevents-service
+
+
+provider:
+  name: aws
+
+resources:
+  Resources:
+     
+    ECSEventRole:
+      Type: AWS::Events::Rule
+      Properties:
+        Description: "Rule for ECS Events"
+        EventPattern:
+          source:
+            - "aws.ecs"
+          detail-type:
+            - "ECS Task State Change"
+          detail:
+            lastStatus:
+              - "STOPPED"
+              - "RUNNING"
+              - "PENDING"
+        State: "ENABLED"
+        Targets:
+          - Arn: ${param:HandleEventsFromECSArn}
+            Id: "ECSEventLambda"
+ 
