@@ -58,6 +58,20 @@ module.exports.handler = async (event) => {
         cluster: "griffin-record-cluster",
         taskDefinition: ecsname,
         launchType: "FARGATE",
+        //extra env vars
+        overrides: {
+            containerOverrides: [
+                {
+                    name: "griffin-record",
+                    environment: [
+                        {
+                            name: "RECORD_REQUEST_ID",
+                            value: requestID
+                        },
+                    ]
+                },
+            ],
+        },
         networkConfiguration: {
             awsvpcConfiguration: {
                 subnets: [

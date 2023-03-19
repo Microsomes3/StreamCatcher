@@ -25,6 +25,7 @@ Resources:
   ECSTask:
     Type: AWS::ECS::TaskDefinition
     Properties:
+      
       Cpu: 256
       Memory: 512
       EphemeralStorage:
@@ -35,7 +36,7 @@ Resources:
       RequiresCompatibilities:
         - FARGATE
       ContainerDefinitions:
-        - Name: !Ref Name
+        - Name: "griffin-record"
           Image: !Ref Image
           LogConfiguration:
             LogDriver: awslogs
@@ -69,6 +70,9 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::574134043875:policy/CFFULL
+
+        
 
   TaskRole:
     Type: AWS::IAM::Role
