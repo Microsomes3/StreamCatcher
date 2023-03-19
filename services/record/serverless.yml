@@ -101,6 +101,13 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+  RecordCompleteCallback:
+    handler: completeCallback.handler
+    events:
+      - http:
+          path: /RecordCompleteCallback
+          method: post
+          cors: true
   RecordByRequestIDAdhoc:
     handler: RecordByRequestIDAdhoc.handler
     events:
