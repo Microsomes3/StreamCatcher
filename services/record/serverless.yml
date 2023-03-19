@@ -8,6 +8,7 @@ provider:
     RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
     RequestRequestTable: ${param:recordRequestTable}
+    RecordStatusesTable: !Ref RecordStatuses
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -80,6 +81,26 @@ resources:
               AllowedOrigins:
                 - '*'
               MaxAge: 3000
+    RecordStatuses:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: RecordStatuses
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: recordrequestid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: record-request-id-index
+            KeySchema:
+              - AttributeName: recordrequestid
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
     RecordTable:
       Type: AWS::DynamoDB::Table
       Properties:
