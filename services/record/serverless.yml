@@ -110,6 +110,14 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
+  GetAllRecordingsByRequestID:
+    handler: getAllRecordingsByRequestID.handler
+    events:
+      - http:
+          path: /GetAllRecordingsByRequestID/{requestId}
+          method: get
+          cors: true
+          
   RecordCompleteCallback:
     handler: completeCallback.handler
     events:
