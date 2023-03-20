@@ -8,6 +8,7 @@ useDotenv: true
 provider:
   name: aws
   memorySize: 128
+  runtime: nodejs18.x
   environment:
     RECORD_TABLE: !Ref RecordTable
     RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
@@ -15,6 +16,8 @@ provider:
     RequestRequestTable: ${param:recordRequestTable}
     RecordStatusesTable: !Ref RecordStatuses
     RecordAutoRecordTable: !Ref RecordAutoRecordTable
+    DISCORD_BOT_TOKEN: ${env:DISCORD_BOT_TOKEN}
+    DISCORD_CHANNEL_ID: ${env:DISCORD_CHANNEL_ID}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -195,9 +198,6 @@ resources:
 functions:
   OnUploadInputBucket:
     handler: onUploadInputBucket.handler
-    environment:
-      DISCORD_BOT_TOKEN: ${env:DISCORD_BOT_TOKEN}
-      DISCORD_CHANNEL_ID: ${env:DISCORD_CHANNEL_ID}
     events:
       - s3:
           bucket: !Ref RecordInputBucket
