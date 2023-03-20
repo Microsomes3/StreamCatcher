@@ -204,7 +204,6 @@ functions:
           event: s3:ObjectCreated:*
           existing: true
           rules:
-            - prefix: uploads/
             - suffix: .mp4
   GetRecordingByRecordId:
     handler: getRecordingByRecordId.handler
