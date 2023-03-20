@@ -86,26 +86,29 @@ function sendRecordServiceCallback(liveStatus) {
 }
 
 module.exports.processYoutubersToCheck = async (event) => {
-    const allUsernames = [];
 
-    for (let i = 0; i < event.Records.length; i++) {
-        allUsernames.push(event.Records[i].body);
+    const liveStatuses = await checkMultiLive([
+        event.Records[0].body
+    ]);
 
-    }
+    console.log(liveStatuses);
 
-    const liveStatuses = await checkMultiLive(allUsernames);
+    const tr= liveStatuses[0];
 
-    for (let i = 0; i < liveStatuses.length; i++) {
-        console.log(liveStatuses[i]);
-        await sendRecordServiceCallback(liveStatuses[i]);
-        await processLiveStatus(liveStatuses[i]);
-    }
+    console.log(tr);
+
+    
+
+    await sendRecordServiceCallback(tr);
+        await processLiveStatus(tr);
+    
 
     return {
         statusCode: 200,
         body: JSON.stringify({
             message: 'will callback',
-            liveStatus: liveStatus,
+            liveStatus: liveStatuses,
+            allUsernames: tr,
         }),
 
     }

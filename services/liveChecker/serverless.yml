@@ -171,13 +171,12 @@ functions:
             Fn::GetAtt:
               - YoutubersToCheckQueue
               - Arn
-          batchSize: 10
-          
-          enabled: true
+          batchSize: 1          
   ScheduleYoutubersToCheck:
     handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(2 minutes)
+        enabled: false
   AddYoutuberUsername:
     handler: addYoutuberUsername.addYoutuberUsername
     events:
