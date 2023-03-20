@@ -1,4 +1,9 @@
 service: griffin-record-service
+plugins:
+  - serverless-dotenv-plugin
+
+useDotenv: true
+
 
 provider:
   name: aws
@@ -188,6 +193,19 @@ resources:
 
 
 functions:
+  OnUploadInputBucket:
+    handler: onUploadInputBucket.handler
+    environment:
+      DISCORD_BOT_TOKEN: ${env:DISCORD_BOT_TOKEN}
+      DISCORD_CHANNEL_ID: ${env:DISCORD_CHANNEL_ID}
+    events:
+      - s3:
+          bucket: !Ref RecordInputBucket
+          event: s3:ObjectCreated:*
+          existing: true
+          rules:
+            - prefix: uploads/
+            - suffix: .mp4
   GetRecordingByRecordId:
     handler: getRecordingByRecordId.handler
     events:
