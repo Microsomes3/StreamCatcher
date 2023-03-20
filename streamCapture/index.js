@@ -66,7 +66,8 @@ function tryDownload(timeout, link) {
 }
 
 
-function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout) {
+function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
+    console.log("trying to download", url, output, timeout, livetimeout, partNo)
     return new Promise((resolve, reject) => {
         const child = spawn('ffmpeg', ['-i', url, '-c', 'copy', output]);
 
@@ -99,7 +100,6 @@ function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout) {
                 }
             
             }catch(e){
-                console.log(e);
             }
 
         },1000)
@@ -193,9 +193,15 @@ function tryDownload2(timeout, videoId, parts, livetimeout) {
         //i should record for partMin, then check if the stream is still live and if so, record again and swtich the file name
 
         for (var i = 0; i < parts; i++) {
+
+            try{
             const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
             const indexUrl = indexData.data.index;
-            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout);
+            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout,i);
+            }catch(e){
+                console.log("moving on");
+                console.log(e);
+            }
         }
 
         const videos = fs.readdirSync("videos");
@@ -206,7 +212,20 @@ function tryDownload2(timeout, videoId, parts, livetimeout) {
         });
         const paths = visibleVideos.map((v) => `videos/${v}`);
 
-        resolve(paths);
+        const newPaths = [];
+
+        //remove the files with no data
+        for (var i = 0; i < paths.length; i++) {
+            const d = fs.statSync(paths[i]);
+            console.log(d.size);
+            if (d.size === 0) {
+            }else{
+                newPaths.push(paths[i]);
+            }
+        }
+
+
+        resolve(newPaths);
     })
 }
 
@@ -241,12 +260,12 @@ function manageUploadST(params, region) {
 
 (async () => {
 
-    const channel = process.env.channel || "@CreepsMcPasta";
-    const timeout = process.env.timeout || "60s";
+    const channel = process.env.channel || "@tayyab0987";
+    const timeout = process.env.timeout || "10s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
-    const parts = process.env.parts || 1;
-    const timeoutupdated= process.env.lastupdatedtimeout || 300;
+    const parts = process.env.parts || 10;
+    const timeoutupdated= process.env.lastupdatedtimeout || 30;
 
     console.log({
         channel,
