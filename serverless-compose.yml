@@ -1,8 +1,8 @@
 
 services:
 
-  autoRecord:
-    path: services/autorecord
+  utilitiesapi:
+    path: services/utilitiesapi
 
   liveChecker:
     path: services/liveChecker

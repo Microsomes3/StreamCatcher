@@ -13,6 +13,8 @@ const aws = require("aws-sdk");
 
 const { createLogWithStream } = require("./logs.js")
 
+const path = require("path");
+
 
 function mustCheckLive(channel) {
 
@@ -64,12 +66,160 @@ function tryDownload(timeout, link) {
     })
 }
 
+
+function tryDownloadVIAFFMPEG(url, output, timeout) {
+    return new Promise((resolve, reject) => {
+        const child = spawn('ffmpeg', ['-i', url, '-c', 'copy', output]);
+
+        //create videos folder if it doesn't exist
+        if (!fs.existsSync("videos")) {
+            fs.mkdirSync("videos");
+        }
+
+
+        console.log("timeout", timeout)
+
+        const timeoutId = setTimeout(() => {
+            console.log('Timeout exceeded, stopping ffmpeg...');
+            child.kill('SIGINT');
+        }, timeout);
+
+        child.on('exit', (code) => {
+            clearTimeout(timeoutId);
+            if (code === 0) {
+                console.log('Download complete');
+                resolve();
+            } else {
+                // reject(`FFMPEG exited with code ${code}`);
+                resolve();
+            }
+        });
+
+        child.stderr.on('data', (data) => {
+            // console.log(`stderr: ${data}`);
+        });
+
+        child.stdout.on('data', (data) => {
+            // console.log(`stdout: ${data}`);
+        });
+    });
+}
+
+function stichTogether(videos) {
+    return new Promise((resolve, reject) => {
+
+        console.log("stiching together", videos);
+
+        const path = require('path');
+
+        const visibleVideos = videos.filter((v) => {
+            const fileName = path.basename(v);
+            return !fileName.startsWith('.');
+        });
+
+        const paths = visibleVideos.map((v) => `file 'videos/${v}'`);
+        fs.writeFileSync("concat.txt", paths.join("\n"));
+
+        const child = spawn('ffmpeg', ['-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-c', 'copy', 'videos/output.mp4']);
+
+        child.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        })
+
+        child.stderr.on('data', (data) => {
+            console.log(`stderr: ${data}`);
+        })
+
+        child.on('close', (code) => {
+            console.log(`child process exited with code ${code}`);
+            resolve(code);
+        });
+
+    });
+}
+
+function convertTimeoutTOMS(timeout) {
+
+    //example input 60s or 60m or 60h
+
+    const time = timeout.substring(0, timeout.length - 1);
+    const unit = timeout.substring(timeout.length - 1);
+
+    if (unit === "s") {
+        return time * 1000;
+    }
+
+    if (unit === "m") {
+        return time * 1000 * 60;
+    }
+
+    if (unit === "h") {
+        return time * 1000 * 60 * 60;
+    }
+
+}
+
+function tryDownload2(timeout, videoId, parts) {
+    return new Promise(async (resolve, reject) => {
+
+        const newT = convertTimeoutTOMS(timeout);
+
+        //i should record for partMin, then check if the stream is still live and if so, record again and swtich the file name
+
+        for (var i = 0; i < parts; i++) {
+            const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
+            const indexUrl = indexData.data.index;
+            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT);
+        }
+
+        const videos = fs.readdirSync("videos");
+
+        const visibleVideos = videos.filter((v) => {
+            const fileName = path.basename(v);
+            return !fileName.startsWith('.');
+        });
+        const paths = visibleVideos.map((v) => `videos/${v}`);
+
+        resolve(paths);
+    })
+}
+
+function manageUploadST(params, region) {
+    return new Promise((resolve, reject) => {
+        const s3 = new aws.S3({
+            region: region
+        });
+
+        const managedUpload = s3.upload(params);
+
+        managedUpload.on('httpUploadProgress', function (progress) {
+            console.log("Progress: " + progress.loaded + " / " + progress.total);
+        });
+
+        managedUpload.send(function (err, data) {
+
+            if (err) {
+                console.log("Error", err);
+                reject(err);
+            }
+
+            if (data) {
+                console.log("Upload Success", data.Location);
+                resolve(data.Key);
+            }
+
+        });
+
+    })
+}
+
 (async () => {
 
     const channel = process.env.channel || "@CreepsMcPasta";
     const timeout = process.env.timeout || "60s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
+    const parts = process.env.parts || 1;
 
     console.log({
         channel,
@@ -78,85 +228,52 @@ function tryDownload(timeout, link) {
         region
     })
 
+
     mustCheckLive(channel).then(async (isLive) => {
 
         if (isLive.status) {
             //
+            const videoId = isLive.link.split("?v=")[1];
 
-            createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Starting recording for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
+            console.log("video id", videoId);
 
-            await tryDownload(timeout, "https://youtube.com" + isLive.link);
+            // await tryDownload(timeout, "https://youtube.com" + isLive.link);
 
-            createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Finished recording for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
+            const paths = await tryDownload2(timeout, videoId, parts);
 
-            const s3 = new aws.S3({
-                region: region
-            });
+            const allLocs = [];
 
-            const fileStream = fs.createReadStream('output.mp4');
+            for (var i = 0; i < paths.length; i++) {
+                const fileStream = fs.createReadStream(paths[i]);
 
-            const d = moment().format("YYYY-MM-DD-HH-mm-ss");
+                const d = moment().format("YYYY-MM-DD-HH-mm-ss");
 
-            const uploadParams = {
-                Bucket: bucket,
-                Body: fileStream,
-                ContentType: "video/mp4",
-                Key: channel + d + ".mp4"
-            };
+                const uploadParams = {
+                    Bucket: bucket,
+                    Body: fileStream,
+                    ContentType: "video/mp4",
+                    Key: channel + "____part___" + i + "___" + d + ".mp4"
+                };
 
-            const managedUpload = s3.upload(uploadParams);
+                const loc = await manageUploadST(uploadParams, region);
+                allLocs.push(loc);
+            }
 
-            createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Uploading to s3 for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
+            console.log("send callback");
 
-            managedUpload.on('httpUploadProgress', function (progress) {
-                console.log("Progress: " + progress.loaded + " / " + progress.total);
-            });
+            console.log(allLocs);
 
-            managedUpload.send(function (err, data) {
-                if (err) {
-                    console.log("Error", err);
+            try {
+                const response = await axios.post(process.env.completionCallbackUrl, {
+                    requestId: process.env.RECORD_REQUEST_ID,
+                    keys: allLocs,
+                    recordId: process.env.RECORD_ID,
+                }, {
+                    timeout: 10000 // timeout after 10 seconds
+                });
 
-                    createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Error uploading to s3 for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
-                }
-
-                if (data) {
-                    console.log("Upload Success", data.Location);
-
-                    createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Uploaded to s3 for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
-
-                    fs.rmSync("output.mp4");
-
-                    //presign the url
-                    const params = { Bucket: bucket, Key: uploadParams.Key, Expires: 60 * 60 * 24 * 7 };
-                    s3.getSignedUrl('getObject', params, async function (err, url) {
-                        console.log('The URL is', url);
-
-
-                        //send callbaxk
-                        try {
-                            const response = await axios.post(process.env.completionCallbackUrl, {
-                                requestId: process.env.RECORD_REQUEST_ID,
-                                key: uploadParams.Key,
-                                recordId: process.env.RECORD_ID,
-                            }, {
-                                timeout: 10000 // timeout after 10 seconds
-                            });
-
-                            console.log("Completion callback response:", response.data);
-                        } catch (err) {
-                            console.log("Completion callback error:", err);
-                        }
-
-
-                        createLogWithStream("/microsomes/ecstask/record", moment().format("YYYY-MM-DD-HH") + "-" + channel, "Presigned url for " + channel + " at " + moment().format("YYYY-MM-DD-HH-mm-ss") + " with timeout of " + timeout + " and bucket " + bucket + " and region " + region);
-
-                    });
-
-                }
-            });
-
-
-
+                console.log("callback response", response.data);
+            }catch(e){}
         } else {
             console.log("NOT LIVE");
         }

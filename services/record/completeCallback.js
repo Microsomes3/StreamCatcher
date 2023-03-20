@@ -18,11 +18,11 @@ module.exports.handler = async (event) => {
 
     const {
         requestId,
-        key,
+        keys,
         recordId
     } = JSON.parse(event.body);
 
-    if (!requestId || !key || !recordId) {
+    if (!requestId || !keys || !recordId) {
         return {
             statusCode: 400,
             body: JSON.stringify({
@@ -37,7 +37,7 @@ module.exports.handler = async (event) => {
         Item: {
             id: recordId,
             recordrequestid:requestId,
-            key: key,
+            keys: keys,
             username:"use request id to find out",
             createdAt: new Date().getTime(),
         },
@@ -83,7 +83,7 @@ module.exports.handler = async (event) => {
         statusCode: 200,
         body: JSON.stringify({
            requestId,
-           key,
+           keys,
            toE
         }),
     }
