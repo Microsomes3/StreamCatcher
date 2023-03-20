@@ -5,7 +5,6 @@ const moment = require("moment");
 
 const axios = require("axios");
 
-const { checkLIVE } = require('./checkLive.js');
 
 const fs = require("fs");
 
@@ -67,7 +66,7 @@ function tryDownload(timeout, link) {
 }
 
 
-function tryDownloadVIAFFMPEG(url, output, timeout) {
+function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout) {
     return new Promise((resolve, reject) => {
         const child = spawn('ffmpeg', ['-i', url, '-c', 'copy', output]);
 
@@ -77,7 +76,33 @@ function tryDownloadVIAFFMPEG(url, output, timeout) {
         }
 
 
-        console.log("timeout", timeout)
+        const checkLastFileAdded = setInterval(()=>{
+            console.log("checking for new file")
+
+            try{
+               //get details of output file
+               const o = fs.statSync(output);
+
+                //check difference between last modified and now
+                const now = moment().unix();
+                const lastUpdatedFile = moment(o.mtime).unix();
+
+                const diff = now - lastUpdatedFile;
+
+
+                if(diff > livetimeout){
+                    console.log("stream is no longer live, stopping ffmpeg")
+                    child.kill('SIGINT');
+                    clearInterval(checkLastFileAdded);
+                }else{
+                    console.log("stream is still live, continuing", diff)
+                }
+            
+            }catch(e){
+                console.log(e);
+            }
+
+        },1000)
 
         const timeoutId = setTimeout(() => {
             console.log('Timeout exceeded, stopping ffmpeg...');
@@ -86,6 +111,7 @@ function tryDownloadVIAFFMPEG(url, output, timeout) {
 
         child.on('exit', (code) => {
             clearTimeout(timeoutId);
+            clearInterval(checkLastFileAdded);
             if (code === 0) {
                 console.log('Download complete');
                 resolve();
@@ -159,7 +185,7 @@ function convertTimeoutTOMS(timeout) {
 
 }
 
-function tryDownload2(timeout, videoId, parts) {
+function tryDownload2(timeout, videoId, parts, livetimeout) {
     return new Promise(async (resolve, reject) => {
 
         const newT = convertTimeoutTOMS(timeout);
@@ -169,7 +195,7 @@ function tryDownload2(timeout, videoId, parts) {
         for (var i = 0; i < parts; i++) {
             const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
             const indexUrl = indexData.data.index;
-            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT);
+            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout);
         }
 
         const videos = fs.readdirSync("videos");
@@ -220,6 +246,7 @@ function manageUploadST(params, region) {
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
     const parts = process.env.parts || 1;
+    const timeoutupdated= process.env.lastupdatedtimeout || 300;
 
     console.log({
         channel,
@@ -239,7 +266,7 @@ function manageUploadST(params, region) {
 
             // await tryDownload(timeout, "https://youtube.com" + isLive.link);
 
-            const paths = await tryDownload2(timeout, videoId, parts);
+            const paths = await tryDownload2(timeout, videoId, parts,timeoutupdated);
 
             const allLocs = [];
 

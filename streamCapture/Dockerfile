@@ -27,7 +27,6 @@ WORKDIR /APP
 COPY package.json .
 COPY index.js .
 
-COPY checkLive.js .
 
 COPY logs.js .
 
