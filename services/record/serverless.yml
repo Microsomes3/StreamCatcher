@@ -9,6 +9,7 @@ provider:
     AWS_REGION_T: !Ref AWS::Region
     RequestRequestTable: ${param:recordRequestTable}
     RecordStatusesTable: !Ref RecordStatuses
+    RecordAutoRecordTable: !Ref RecordAutoRecordTable
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -61,6 +62,18 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/record-request-id-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordAutoRecordTable/index/date-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordAutoRecordTable/index/record-request-id-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt RecordAutoRecordTable.Arn
 
 
 resources:
@@ -115,6 +128,35 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+    
+    RecordAutoRecordTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: RecordAutoRecordTable
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: recordrequestid
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: date-index
+            KeySchema:
+              - AttributeName: date
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: record-request-id-index
+            KeySchema:
+              - AttributeName: recordrequestid
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
     RecordTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -143,6 +185,7 @@ resources:
             Projection:
               ProjectionType: ALL
         BillingMode: PAY_PER_REQUEST
+
 
 functions:
   GetRecordingByRecordId:

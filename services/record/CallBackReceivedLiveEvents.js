@@ -1,5 +1,6 @@
 const aws = require("aws-sdk");
 const axios = require("axios");
+const moment = require("moment");
 
 const { getAllRequestsFromUser } = require("./helpers/rdrequestshelper")
 
@@ -13,6 +14,34 @@ module.exports.handler = async (event, context, callback) => {
         const username = data.username;
 
         const allRequests = await getAllRequestsFromUser(username);
+
+        const items = allRequests.Items || [];
+
+        for(var i=0;i<items.length;i++){
+            try{
+            console.log("trigger>", items[i].trigger);
+
+            const current = moment().format("YYYY-MM-DD");
+
+            const params = {
+                TableName: process.env.RecordAutoRecordTable,
+                IndexName: "date-index",
+                KeyConditionExpression: "#dt = :date",
+                ExpressionAttributeNames: {
+                    "#dt": "date"
+                },
+                ExpressionAttributeValues: {
+                    ":date": current,
+                },
+            };
+
+            
+            console.log(params);
+
+            
+            }catch(e){}
+        }
+
 
         console.log(allRequests);
 
