@@ -35,6 +35,8 @@ function makeRecordRequest({ requestId }) {
 
         const data = await documentWriter.get(params).promise();
 
+        const maxparts = data.Item.maxparts || 1;
+
     
         if (!data.Item) {
             reject({
@@ -82,7 +84,11 @@ function makeRecordRequest({ requestId }) {
                             {
                                 name: "RECORD_ID",
                                 value: uniqueRecordId
-                            }
+                            },
+                            {
+                                name: "parts",
+                                value: maxparts.toString()
+                            },
                         ]
                     },
                 ],

@@ -14,13 +14,21 @@ function uuidv4() {
 
 
 module.exports.handler = async (event) => {
-    const {username, duration, from, to, trigger} = JSON.parse(event.body);
+    const {username, duration, from, to, trigger, maxparts} = JSON.parse(event.body);
 
-    if (!username || !duration || !from || !to || !trigger) {
+    if (!username || !duration || !from || !to || !trigger, !maxparts) {
         return {
             statusCode: 400,
             body: JSON.stringify({
                 error: 'Missing required parameters',
+                expected:[
+                    "username",
+                    "duration",
+                    "from",
+                    "to",
+                    "trigger",
+                    "maxparts"
+                ]
             }),
         };
     }
@@ -33,7 +41,8 @@ module.exports.handler = async (event) => {
             duration,
             from,
             to,
-            trigger
+            trigger,
+            maxparts,
         },
     };
 
