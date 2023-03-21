@@ -34,6 +34,19 @@ module.exports.handler = async (event) => {
         };
     }
 
+    const maxExpectedRuntime = duration* maxparts;
+
+    if(minruntime > maxExpectedRuntime){
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                error: 'minruntime is greater than maxExpectedRuntime',
+                expectedRuntime:maxExpectedRuntime,
+            }),
+        };
+    }
+                
+
     const params = {
         TableName: process.env.RECORD_REQUEST_TABLE,
         Item: {
