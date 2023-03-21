@@ -69,7 +69,8 @@ function tryDownload(timeout, link) {
 }
 
 
-function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout) {
+function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
+    console.log("trying to download", url, output, timeout, livetimeout, partNo)
     return new Promise((resolve, reject) => {
         const child = spawn('ffmpeg', ['-i', url, '-c', 'copy', output]);
 
@@ -102,7 +103,6 @@ function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout) {
                 }
             
             }catch(e){
-                console.log(e);
             }
 
         },1000)
@@ -209,9 +209,15 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
         //i should record for partMin, then check if the stream is still live and if so, record again and swtich the file name
 
         for (var i = 0; i < parts; i++) {
+
+            try{
             const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
             const indexUrl = indexData.data.index;
-            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout);
+            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout,i);
+            }catch(e){
+                console.log("moving on");
+                console.log(e);
+            }
         }
 
         const videos = fs.readdirSync("videos");
