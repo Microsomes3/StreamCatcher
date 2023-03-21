@@ -19,10 +19,11 @@ module.exports.handler = async (event) => {
     const {
         requestId,
         keys,
-        recordId
+        recordId,
+        status,
     } = JSON.parse(event.body);
 
-    if (!requestId || !keys || !recordId) {
+    if (!requestId || !keys || !recordId, !status) {
         return {
             statusCode: 400,
             body: JSON.stringify({
@@ -66,7 +67,7 @@ module.exports.handler = async (event) => {
             "#status": "status"
         },
         ExpressionAttributeValues: {
-            ":s": "completed"
+            ":s": status
         }
     };
 

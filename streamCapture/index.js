@@ -1,6 +1,9 @@
 
 const { spawn } = require('child_process');
 
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
+
 const moment = require("moment");
 
 const axios = require("axios");
@@ -185,7 +188,20 @@ function convertTimeoutTOMS(timeout) {
 
 }
 
-function tryDownload2(timeout, videoId, parts, livetimeout) {
+async function getVideoRuntime(filePath) {
+    try {
+        console.log("getting runtime for", filePath);
+      const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${filePath}`);
+      console.log(">",stdout);
+      const runtime = parseFloat(stdout);
+      return runtime;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
     return new Promise(async (resolve, reject) => {
 
         const newT = convertTimeoutTOMS(timeout);
@@ -206,7 +222,32 @@ function tryDownload2(timeout, videoId, parts, livetimeout) {
         });
         const paths = visibleVideos.map((v) => `videos/${v}`);
 
-        resolve(paths);
+        var allRunetimes = 0;
+
+        for (var i = 0; i < paths.length; i++) {
+            const runtime = await getVideoRuntime(paths[i]);
+            allRunetimes += runtime;
+        }
+
+        var status = "";
+        var reason = "";
+
+
+        if(allRunetimes < minruntime){
+            console.log("not enough runtime, trying again");
+            status= "failed";
+            reason = "not enough runtime,"+allRunetimes+" < "+minruntime;
+        }else{
+            status = "success";
+            reason = "runtime was "+allRunetimes;
+        }
+
+        resolve({
+            status: status,
+            reason: reason,
+            paths: paths
+        })
+
     })
 }
 
@@ -242,11 +283,12 @@ function manageUploadST(params, region) {
 (async () => {
 
     const channel = process.env.channel || "@CreepsMcPasta";
-    const timeout = process.env.timeout || "60s";
+    const timeout = process.env.timeout || "10s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
-    const parts = process.env.parts || 1;
+    const parts = process.env.parts || 3;
     const timeoutupdated= process.env.lastupdatedtimeout || 300;
+    const minruntime = process.env.minruntime || 60;
 
     console.log({
         channel,
@@ -266,7 +308,7 @@ function manageUploadST(params, region) {
 
             // await tryDownload(timeout, "https://youtube.com" + isLive.link);
 
-            const paths = await tryDownload2(timeout, videoId, parts,timeoutupdated);
+            const {paths, status, reason} = await tryDownload2(timeout, videoId, parts,timeoutupdated,minruntime);
 
             const allLocs = [];
 
@@ -290,10 +332,17 @@ function manageUploadST(params, region) {
 
             console.log(allLocs);
 
+            console.log("status", status);
+            console.log("reason", reason);
+
             try {
                 const response = await axios.post(process.env.completionCallbackUrl, {
                     requestId: process.env.RECORD_REQUEST_ID,
                     keys: allLocs,
+                    status:{
+                        status: status,
+                        reason: reason
+                    },
                     recordId: process.env.RECORD_ID,
                 }, {
                     timeout: 10000 // timeout after 10 seconds
