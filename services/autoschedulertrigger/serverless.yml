@@ -1,0 +1,14 @@
+service: griffin-autoscheduler-service
+
+
+
+provider:
+  name: aws
+  memorySize: 128
+
+
+functions:
+  checkSchedule:
+    handler: src/checkSchedule.handler
+    events:
+      - schedule: rate(1 minute)
