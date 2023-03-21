@@ -2,7 +2,11 @@
 services:
 
   autoscheduler:
-    path: service/autoschedulertrigger
+    path: services/autoschedulertrigger
+    dependsOn:
+      - record
+      - liveChecker
+
 
   utilitiesapi:
     path: services/utilitiesapi

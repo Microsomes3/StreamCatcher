@@ -94,6 +94,10 @@ resources:
       Value: !Ref RecordAutoRecordTable
       Export:
         Name: RecordAutoRecordTable
+    AutoRecordTableArn:
+      Value: !GetAtt RecordAutoRecordTable.Arn
+      Export:
+        Name: RecordAutoRecordTableArn
   Resources:
     ECRRecordRepository:
       Type: AWS::ECR::Repository
