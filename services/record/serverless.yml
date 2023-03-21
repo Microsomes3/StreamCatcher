@@ -90,6 +90,10 @@ resources:
       Value: !Ref RecordInputBucket
       Export:
         Name: RecordInputBucket
+    AutoRecordTable:
+      Value: !Ref RecordAutoRecordTable
+      Export:
+        Name: RecordAutoRecordTable
   Resources:
     ECRRecordRepository:
       Type: AWS::ECR::Repository

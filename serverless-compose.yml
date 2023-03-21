@@ -1,6 +1,9 @@
 
 services:
 
+  autoscheduler:
+    path: service/autoschedulertrigger
+
   utilitiesapi:
     path: services/utilitiesapi
 
