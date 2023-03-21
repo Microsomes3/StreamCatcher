@@ -5,6 +5,10 @@ service: griffin-autoscheduler-service
 provider:
   name: aws
   memorySize: 128
+  environment:
+    AWS_REGION_T: !Ref AWS::Region
+  
+
 
 
 functions:

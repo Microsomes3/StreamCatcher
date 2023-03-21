@@ -9,6 +9,7 @@ module.exports.handler = async (event) => {
    await sendShitpostLink(newlink);
 
    console.log(newlink);
+   console.log(newlink);
 
     return {
         statusCode: 200,
