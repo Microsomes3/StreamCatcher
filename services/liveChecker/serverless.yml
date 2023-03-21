@@ -70,7 +70,7 @@ resources:
       Export:
         Name: AggregateLiveTableArn
     AggregateIsLiveIndex:
-      Value: !GetAtt AggregateCurrentYoutuberLive.GlobalSecondaryIndexes[0].IndexName
+      Value: arn:aws:dynamodb:us-east-1:574134043875:table/AggregateCurrentYoutuberLive/index/isLive-index
       Export:
         Name: AggregateIsLiveIndex
   Resources:
