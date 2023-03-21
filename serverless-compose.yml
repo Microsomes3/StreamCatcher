@@ -6,6 +6,7 @@ services:
     dependsOn:
       - record
       - liveChecker
+      - recordRequests
 
 
   utilitiesapi:

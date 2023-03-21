@@ -1,5 +1,6 @@
 const aws = require('aws-sdk');
 const sha256 = require('crypto-js/sha256');
+const moment = require('moment');
 
 
 function uuidv4() {
@@ -114,6 +115,9 @@ function makeRecordRequest({ requestId }) {
                 recordrequestid: requestId,
                 taskArn: taskArn,
                 status: "PENDING",
+                friendlyDate: moment().format("YYYY-MM-DD"),
+                timestarted: moment().unix(),
+                timeended: null,
                 createdAt: new Date().getTime(),
             },
         };

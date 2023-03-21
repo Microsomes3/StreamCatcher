@@ -7,6 +7,8 @@ import Home from './pages/home/home'
 import SignUp from './pages/auth/signup'
 import DashboardHome from './pages/dashboard/home'
 
+import ViewRecordRequests from './pages/admin/viewRecordRequests/viewRequests'
+
 import { AuthProvider } from './pages/auth/authwatch'
 
 import PrivateRoute from './routes/privateRouter'
@@ -25,6 +27,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route  path='/' element={<Home />} />
       <Route path='/auth' element={<SignUp />} />
       <Route path='/dashboard' element={<DashboardHome></DashboardHome>} ></Route>
+      <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

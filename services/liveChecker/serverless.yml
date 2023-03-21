@@ -81,15 +81,6 @@ resources:
         AttributeDefinitions:
           - AttributeName: youtubeusername
             AttributeType: S
-          - AttributeName: isLive
-            AttributeType: S
-        GlobalSecondaryIndexes:
-          - IndexName: isLive-index
-            KeySchema:
-              - AttributeName: isLive
-                KeyType: HASH
-            Projection:
-              ProjectionType: ALL
         KeySchema:
           - AttributeName: youtubeusername
             KeyType: HASH

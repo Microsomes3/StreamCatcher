@@ -1,4 +1,5 @@
 const aws = require('aws-sdk');
+const moment = require("moment");
 
 const documentClient = new aws.DynamoDB.DocumentClient(
     {
@@ -32,12 +33,14 @@ module.exports.handler = async (event) => {
         };
     }
 
+
     //inssert into dynamo
     const params = {
         TableName: process.env.RECORD_TABLE,
         Item: {
             id: recordId,
             recordrequestid:requestId,
+            date: moment().format("YYYY-MM-DD"),
             keys: keys,
             username:"use request id to find out",
             createdAt: new Date().getTime(),
@@ -62,12 +65,14 @@ module.exports.handler = async (event) => {
         Key: {
             id: recordId
         },
-        UpdateExpression: "set #status = :s",
+        UpdateExpression: "set #status = :s, #date = :d",
         ExpressionAttributeNames: {
-            "#status": "status"
+            "#status": "status",
+            "#date": "timeended" // add this line
         },
         ExpressionAttributeValues: {
-            ":s": status
+            ":s": status,
+            ":d": moment().unix() // add this line to set the date value to the current time in ISO format
         }
     };
 

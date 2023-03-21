@@ -54,6 +54,14 @@ resources:
       Value: !GetAtt RecordRequestTable.Arn
       Export:
         Name: RecordRequestTableArn
+    RecordRequestUsernameIndex:
+      Value: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
+      Export:
+        Name: RecordRequestUsernameIndex
+    RecordRequestUsernameIndexName:
+      Value: "username-index"
+      Export:
+        Name: RecordRequestUsernameIndexName
   Resources:
     ProcessTaskCreationQueue:
       Type: AWS::SQS::Queue

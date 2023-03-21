@@ -8,9 +8,12 @@ module.exports.handler = async (event) => {
 
     const data = await getAllRequestsFromUser(username);
 
-  
     return {
         statusCode: 200,
+        headers:{
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true,
+        },
         body: JSON.stringify({
             input: username,
             data,

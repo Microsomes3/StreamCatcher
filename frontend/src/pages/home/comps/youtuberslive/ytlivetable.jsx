@@ -3,8 +3,29 @@ import { useEffect, useState } from 'react';
 
 function TYTable() {
   const [youtubers, setYoutubers] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+
+    // Filter the youtubers array based on the search term
+    const filteredYoutubers = youtubers.filter((youtuber) => {
+      return youtuber.username.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+
+    useEffect(()=>{
+      
+      const interval = setInterval(()=>{
+        if (autoRefresh){
+          handleRefresh()
+        }
+      },30000)
+
+      return () => clearInterval(interval);
+    })
+  
+
 
   useEffect(() => {
     axios
@@ -32,14 +53,26 @@ function TYTable() {
 
   return (
     <div className='w-full mt-6'>
-      <div className='flex justify-between items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>
-        <div>Current Youtubers Tracked</div>
+      
+      <div className='flex  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>
+        <div className='flex-grow pl-2'>Current Youtubers Tracked</div>
         <button
-          className='bg-black rounded-md  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+          className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
           onClick={handleRefresh}
         >
           Refresh
         </button>
+
+        <button className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={()=>{setAutoRefresh(!autoRefresh)}}>AutoRefresh:{autoRefresh ? 'On' : 'Off'}</button>
+
+      </div>
+
+
+
+
+      
+      <div className='h-12 bg-red-300 ml-12 mr-12 rounded-md'>
+        <input className='w-full h-full p-2' type='text' placeholder='Search...' onChange={(event) => { setSearchTerm(event.target.value); }} />
       </div>
 
       {isLoading ? (
@@ -71,7 +104,7 @@ function TYTable() {
             </tr>
           </thead>
           <tbody>
-            {youtubers.map((youtuber) => (
+            {filteredYoutubers.map((youtuber) => (
               <tr key={youtuber.username}>
                 <td className='border px-4 py-2'>{youtuber.username}</td>
                 <td className='border px-4 py-2' style={{ backgroundColor: youtuber.islive ? 'lightgreen' : 'lightred' }}>

@@ -10,6 +10,8 @@ provider:
 
     AUTO_RECORD_TABLEArn: !ImportValue RecordAutoRecordTableArn
     AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLEArn: !ImportValue AggregateLiveTableArn
+    RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
+    RECORD_RECORD_USERNAME_INDEX: !ImportValue RecordRequestUsernameIndexName
   
   iamRoleStatements:
     - Effect: Allow
@@ -21,9 +23,24 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: !ImportValue RecordAutoRecordTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !ImportValue AggregateLiveTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordRequestTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordRequestUsernameIndex
   
-
-
 
 functions:
   checkSchedule:
