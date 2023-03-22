@@ -16,6 +16,18 @@ function TYTable() {
   });
 
 
+  //sort by isLive
+
+
+
+  //filter by total record requests
+
+  const filteredYoutubersRecordRequests = filteredYoutubers.sort((a, b) => b.recordRequests - a.recordRequests);
+
+  const totalRecordRequests = filteredYoutubersRecordRequests.reduce((acc, youtuber) => {
+    return acc + youtuber.recordRequests;
+  }, 0);
+
   useEffect(() => {
 
     const interval = setInterval(() => {
@@ -106,6 +118,10 @@ function TYTable() {
         <p className='text-sm'>Tip: Click on youtuber to open all record requests</p>
         </div>
 
+        <div>
+          <p className='text-sm'>Total Record Requests: {totalRecordRequests}</p>
+        </div>
+
         <div class="overflow-x-auto">
   <table class="table-auto w-full">
           <thead>
@@ -142,7 +158,9 @@ function TYTable() {
                 </td>
 
                 <td>
-                  <div className='border px-4 py-2 text-center'>0</div>
+                  <div className='border text-white px-4 py-2 text-center'>
+                    {youtuber.recordRequests} requests
+                  </div>
                 </td>
               </tr>
             ))}

@@ -60,6 +60,14 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/CallBackUrlsForLiveYoutubers/index/username-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: ${param:recordRequestTableArn}
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
   
 resources:
   Outputs:

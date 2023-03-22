@@ -24,6 +24,7 @@ module.exports.getLiveStatusesFromDB = async (event) => {
            username: item.youtubeusername,
            lastUpdated: moment(item.updatedAt).fromNow(),
            liveLink: item.liveLink,
+           recordRequests: item.recordRequests || 0,
            link: `https://youtube.com${item.liveLink}&ab_channel=${item.youtubeusername.split("@")[1]}`
         })
     })

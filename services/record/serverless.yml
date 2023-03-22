@@ -267,6 +267,13 @@ functions:
           method: get
           cors: true
           
+  UpdateProgress:
+    handler: updateProgressOfRecording.handler
+    events:
+      - http:
+          path: /UpdateProgress/{id}
+          method: put
+          cors: true
   RecordCompleteCallback:
     handler: completeCallback.handler
     events:

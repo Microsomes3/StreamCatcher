@@ -38,6 +38,10 @@ function makeRecordRequest({ requestId }) {
 
         const maxparts = data.Item.maxparts || 1;
 
+        const minruntime = data.Item.minruntime || 1
+
+        const timeout = data.Item.duration+"s" || "30s"
+
     
         if (!data.Item) {
             reject({
@@ -90,6 +94,15 @@ function makeRecordRequest({ requestId }) {
                                 name: "parts",
                                 value: maxparts.toString()
                             },
+                            {
+                                name: "minruntime",
+                                value: minruntime.toString()
+                            },
+                            {
+                                name:"timeout",
+                                value: timeout
+
+                            }
                         ]
                     },
                 ],
@@ -112,13 +125,19 @@ function makeRecordRequest({ requestId }) {
             TableName: process.env.RecordStatusesTable || 'RecordStatuses',
             Item: {
                 id: uniqueRecordId,
-                recordrequestid: requestId,
-                taskArn: taskArn,
-                status: "PENDING",
-                friendlyDate: moment().format("YYYY-MM-DD"),
-                timestarted: moment().unix(),
-                timeended: null,
-                createdAt: new Date().getTime(),
+                    recordrequestid: requestId,
+                    taskArn: taskArn,
+                    status: "PENDING",
+                    friendlyDate: moment().format("YYYY-MM-DD"),
+                    timestarted: moment().unix(),
+                    timeended: null,
+                    createdAt: new Date().getTime(),
+                    progressState:{
+                        currentRecordedRunTime: 0,
+                        totalParts: 0,
+                        storageUsed: 0,
+                        totalTime: 0
+                    }
             },
         };
         

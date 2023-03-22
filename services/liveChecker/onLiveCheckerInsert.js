@@ -7,6 +7,28 @@ const documentWriter = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T
 });
 
+function getAllRecordRequestsByUsername(username){
+    return new Promise(async (resolve,reject)=>{
+
+        try{
+        const params = {
+            TableName: process.env.RECORD_REQUEST_TABLE,
+            IndexName: "username-index",
+            KeyConditionExpression: "username = :username",
+            ExpressionAttributeValues: {
+                ":username": username,
+            },
+        }
+
+        const data = await documentWriter.query(params).promise();
+        resolve(data.Items || []);
+    }catch(e){
+        reject(e);
+    }
+
+    })
+}
+
 module.exports.onLiveCheckerInsert= async (event)=>{
     
     for (let record of event.Records) {
@@ -23,7 +45,18 @@ module.exports.onLiveCheckerInsert= async (event)=>{
 
         console.log("channel", channel);
 
+        var totalRecordRequests = 0;
 
+        try{
+
+        const recordRequests = await getAllRecordRequestsByUsername(channel);
+        totalRecordRequests = recordRequests.length;
+
+        }catch(e){
+            console.log(e);
+        }
+
+    
         const params = {
             TableName: process.env.AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE,
             Item: {
@@ -31,7 +64,8 @@ module.exports.onLiveCheckerInsert= async (event)=>{
                 isLive: isLive,
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
                 extra: newImage,
-                liveLink: newImage.liveLink.S
+                liveLink: newImage.liveLink.S,
+                recordRequests: totalRecordRequests
 
             },
         };

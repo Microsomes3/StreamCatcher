@@ -131,11 +131,18 @@ function makeRecordRequest({ requestId }) {
                         assignPublicIp: "ENABLED",
                     }
                 },
+                tags:[
+                    {
+                        key: "recordid",
+                        value: uniqueRecordId
+                    }
+                ]
             };
 
             const ecsdata = await ecs.runTask(ecsparams).promise();
 
             const taskArn = ecsdata.tasks[0].taskArn;
+
 
             const paramsStatuses = {
                 TableName: process.env.RECORD_STATUS_TABLE || 'RecordStatuses',
@@ -148,6 +155,12 @@ function makeRecordRequest({ requestId }) {
                     timestarted: moment().unix(),
                     timeended: null,
                     createdAt: new Date().getTime(),
+                    progressState:{
+                        currentRecordedRunTime: 0,
+                        totalParts: 0,
+                        storageUsed: 0,
+                        totalTime: 0
+                    }
                 },
             };
 
