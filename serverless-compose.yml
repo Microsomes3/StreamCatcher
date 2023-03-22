@@ -16,6 +16,9 @@ services:
     path: services/liveChecker
     params:
       recordCallBackUrl: ${record.ServiceEndpoint}/CallBackReceivedLiveEvents
+      recordRequestTable: ${recordRequests.RecordRequestTable}
+      recordRequestTableArn: ${recordRequests.RecordRequestTableArn}
+
   
   poobic:
     path: services/poobic

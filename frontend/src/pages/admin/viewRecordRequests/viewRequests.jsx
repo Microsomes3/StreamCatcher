@@ -47,7 +47,7 @@ function recordRequests() {
 
 
 
-           <Link to={'/addrecordrequest/'+username}> <div className='p-12'>
+           <Link to={'/addrecordrequest/'+username}> <div className='py-2 pl-12 mt-6'>
                 <button
                     className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
                 >
@@ -64,12 +64,20 @@ function recordRequests() {
                 </button>
             </div>
 
+            <div class="pl-12 py-2">
+                <Link to={'/'} ><button  className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
+                    Back to Youtubers Status
+                </button></Link>
+            </div>
+
             <div className='pl-12 pr-12'>
 
                 {allRequests.length === 0 && <div className='text-white text-2xl mt-12'>No Record Requests for this user</div>}
 
                 {allRequests.length > 0 ?
-                    <table className='w-full text-white  mt-12'>
+                        <div className="overflow-x-auto">
+
+                    <table className='w-full table-auto text-white  mt-12'>
                         <thead>
                             <tr>
                                 <th className='border border-white'>Username</th>
@@ -89,14 +97,14 @@ function recordRequests() {
                                         <td className='border border-white'>{request.username}</td>
                                         <td className='border border-white'>{request.id}</td>
                                         <td className='border border-white text-center'>{request.friendlyCreatedAt}</td>
-                                        <td className='border border-white'>{request.duration}</td>
+                                        <td className='border border-white'>{request.duration} ({Math.floor(request.duration/3600*60)} minutes)</td>
                                         <td className='border border-white'>{request.minruntime}</td>
                                         <td className='border border-white'>{request.maxparts}</td>
                                         <tr className=' border border-white flex justify-center p-2 '>
-                                            <Link to={'/viewrecordings/'+request.id}><button className='bg-white rounded-md text-black'>View Recordings</button></Link>
+                                            <Link to={'/viewrecordings/'+request.id+'/'+request.username}><button className='bg-white rounded-md text-black px-2 py-1'>View Recordings</button></Link>
                                         </tr>
                                         <tr className=' border border-white flex justify-center p-2 '>
-                                            <button onClick={(e)=> handleDeleteRequest(request.id, setAllRequests,username)} className='bg-white rounded-md text-black'>Delete</button>
+                                            <button onClick={(e)=> handleDeleteRequest(request.id, setAllRequests,username)} className='bg-white rounded-md text-black px-2 py-1'>Delete</button>
                                             </tr>
                                     </tr>
                                 )
@@ -104,6 +112,7 @@ function recordRequests() {
                             )}
                         </tbody>
                     </table>
+                    </div>
                     : <div></div>}
 
             </div>

@@ -69,11 +69,11 @@ function Navigation() {
 
 
   return (
-    <nav className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-black text-white'} py-4 md:px-6 lg:px-8`}>
+    <nav className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-black text-white'} py-4 md:px-6 lg:px-8  flex flex-col`}>
       <div className="pl-3 text-2xl md:text-3xl font-bold">
         <a href="/" onClick={handleHomeClick}>Stream Catcher</a>
       </div>
-      <div>
+      <div className="mt-2 space-x-5">
         <button
           onClick={handleDarkModeClick}
           className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"

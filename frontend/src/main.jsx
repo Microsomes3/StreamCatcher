@@ -34,7 +34,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
       <Route path='/addyoutuber' element={<AddYoutuber></AddYoutuber>} />
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />
-      <Route path='/viewrecordings/:rqid' element={<ViewAllRecordings></ViewAllRecordings>} />
+      <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

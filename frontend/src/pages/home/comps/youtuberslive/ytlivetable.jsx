@@ -54,18 +54,11 @@ function TYTable() {
   };
 
   return (
-    <div className='w-full mt-6'>
+    <div className=' mt-6 pb-24'>
 
-      <div className='flex  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>
-        <div className='flex-grow pl-2'>Current Youtubers Tracked</div>
-        <button
-          className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
-          onClick={handleRefresh}
-        >
-          Refresh
-        </button>
+      <div className='flex  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>       
 
-        <button className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={() => { setAutoRefresh(!autoRefresh) }}>AutoRefresh:{autoRefresh ? 'On' : 'Off'}</button>
+      <button className='hidden md:block bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={() => { setAutoRefresh(!autoRefresh) }}>AutoRefresh:{autoRefresh ? 'On' : 'Off'}</button>
 
       </div>
 
@@ -73,8 +66,27 @@ function TYTable() {
 
 
 
-      <div className='h-12 bg-red-300 ml-12 mr-12 rounded-md'>
-        <input className='w-full h-full p-2' type='text' placeholder='Search...' onChange={(event) => { setSearchTerm(event.target.value); }} />
+      <div className=' px-5  rounded-md'>
+        <input className='w-full h-12 pl-2  rounded-md' type='text' placeholder='Search... @griffin' onChange={(event) => { setSearchTerm(event.target.value); }} />
+      </div>
+
+      <div className='flex'>
+
+
+      <div className='p-12'>
+          <Link to='/addyoutuber'><button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'>
+            Add Youtuber
+          </button></Link>
+        </div>
+        <div className='p-12'>
+          <button onClick={(e)=> handleRefresh()} className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'>
+            Refresh
+          </button>
+        </div>
+
+       
+
+
       </div>
 
       {isLoading ? (
@@ -89,17 +101,13 @@ function TYTable() {
 
       <div className='overflow-x-auto ml-12 mr-12'>
 
-        <div className='p-12'>
-          <Link to='/addyoutuber'><button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'>
-            Add Youtuber
-          </button></Link>
+     
+        <div className='px-2 py-2'>
+        <p className='text-sm'>Tip: Click on youtuber to open all record requests</p>
         </div>
 
-        <div className='p-12'>
-          <p className='text-sm'>Tip: Click on youtuber to open all record requests</p>
-        </div>
-
-        <table className='table-auto w-full' style={{ tableLayout: 'fixed' }}>
+        <div class="overflow-x-auto">
+  <table class="table-auto w-full">
           <thead>
             <tr className='overflow-none'>
               <th className='px-4 py-2' style={{ width: '33.33%' }}>
@@ -108,11 +116,13 @@ function TYTable() {
               <th className='px-4 py-2' style={{ width: '33.33%' }}>
                 Live
               </th>
-              <th className='px-4 py-2' style={{ width: '33.33%' }}>
-                Link
-              </th>
+             
               <th className='px-4 py-2' style={{ width: '10.33%' }}>
                 Last Updated
+              </th>
+
+              <th className='px-4 py-2' style={{ width: '10.33%' }}>
+                Record Requests 
               </th>
 
             </tr>
@@ -120,26 +130,25 @@ function TYTable() {
           <tbody>
             {filteredYoutubers.map((youtuber) => (
               <tr key={youtuber.username}>
-                <td className='border px-4 py-2'>
+                <td className='border px-4 py-2 underline'>
                   <Link to={'/requests/' + youtuber.username} >{youtuber.username}</Link>
                 </td>
                 <td className='border px-4 py-2'>
                   <div className={`w-4 h-4 rounded-full mx-auto ${youtuber.islive ? 'bg-green-500' : 'bg-red-500'}`}></div>
                 </td>
-                <td className='border flex items-center justify-center px-4 py-2'>
-                  <a href={youtuber.link} target='_blank' rel='noreferrer'>
-                    <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>
-                      Visit Video
-                    </button>
-                  </a>
-                </td>
+             
                 <td>
                   <div className='border px-4 py-2 text-center'>{youtuber.lastUpdated}</div>
+                </td>
+
+                <td>
+                  <div className='border px-4 py-2 text-center'>0</div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

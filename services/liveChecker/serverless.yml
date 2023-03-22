@@ -13,6 +13,8 @@ provider:
     CALLBACK_URLS_FOR_LIVE_YOUTUBERS_TABLE: !Ref CallBackUrlsForLiveYoutubers
     AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE: !Ref AggregateCurrentYoutuberLive
     CALLBACK_FOR_RECORD_SERVICE: ${param:recordCallBackUrl}
+    RECORD_REQUEST_TABLE: ${param:recordRequestTable}
+    RECORD_REQUEST_TABLE_ARN: ${param:recordRequestTableArn}
   iamRoleStatements:
     - Effect: Allow
       Action:

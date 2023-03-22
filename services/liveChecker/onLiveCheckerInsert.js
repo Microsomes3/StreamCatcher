@@ -1,6 +1,7 @@
 const aws = require("aws-sdk");
 
 const moment = require('moment');
+const axios = require('axios');
 
 const documentWriter = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T
