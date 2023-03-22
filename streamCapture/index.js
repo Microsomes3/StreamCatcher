@@ -288,8 +288,8 @@ function manageUploadST(params, region) {
 
 (async () => {
 
-    const channel = process.env.channel || "@CreepsMcPasta";
-    const timeout = process.env.timeout || "10s";
+    const channel = process.env.channel || "@griffingaming";
+    const timeout = process.env.timeout || "120s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
     const parts = process.env.parts || 3;

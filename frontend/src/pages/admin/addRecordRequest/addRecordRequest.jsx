@@ -36,13 +36,13 @@ function AddYoutuber() {
 
         axios.post("https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest",{
             username: username,
-            duration: duration,
+            duration: parseInt(duration),
             from:"mon0-24",
             to:"sun0-24",
             trigger:"onceperday",
             callback:"",
-            maxparts:maxParts,
-            minruntime:minRuntime
+            maxparts:parseInt(maxParts),
+            minruntime:parseInt(minRuntime)
         }).then((data)=>{
             console.log(data);
             alert('Record request added successfully, it may take a few minutes to show up');

@@ -41,6 +41,8 @@ function makeRecordRequest({ requestId }) {
 
             const minruntime = data.Item.minruntime || 1
 
+            const timeout = data.Item.duration+"s" || "30s"
+
 
             if (!data.Item) {
                 reject({
@@ -111,6 +113,11 @@ function makeRecordRequest({ requestId }) {
                                 {
                                     name: "minruntime",
                                     value: minruntime.toString()
+                                },
+                                {
+                                    name:"timeout",
+                                    value: timeout
+
                                 }
                             ]
                         },

@@ -5,6 +5,27 @@ import { useParams, Link } from 'react-router-dom'
 
 import axios from 'axios'
 
+function handleDeleteRequest(id, setAllRequests, username) {
+
+    axios.delete(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequestd/` + id)
+        .then((data) => {
+
+            fetchRequests(username, setAllRequests, username);
+            
+        })
+        .catch((err) => {
+            console.log(err)
+        });
+}
+
+function fetchRequests(username, setAllRequests){
+    setAllRequests([])
+    axios.get(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest/` + username)
+    .then((data) => {
+        const recordRequests = data.data.data.Items;
+        setAllRequests(recordRequests)
+    })
+}
 
 function recordRequests() {
 
@@ -14,19 +35,17 @@ function recordRequests() {
 
 
     useEffect(() => {
-        axios.get(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest/` + username)
-            .then((data) => {
-                const recordRequests = data.data.data.Items;
-                setAllRequests(recordRequests)
-            })
+        fetchRequests(username, setAllRequests);
     }, [])
 
 
     return (
-        <div className='bg-black '>
+        <div className='bg-black min-h-screen '>
             <div className='h-12 bg-white flex items-center justify-center font-bold '>
                 <p>Record Requests for: <span className='text-2xl font-extrabold'>{username}</span></p>
             </div>
+
+
 
            <Link to={'/addrecordrequest/'+username}> <div className='p-12'>
                 <button
@@ -35,6 +54,15 @@ function recordRequests() {
                     Add Record Request
                 </button>
             </div></Link>
+
+          <div className='pl-12'>
+                <button
+                onClick={() => fetchRequests(username, setAllRequests)}
+                    className='bg-red-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
+                >
+                    Refresh
+                </button>
+            </div>
 
             <div className='pl-12 pr-12'>
 
@@ -46,6 +74,7 @@ function recordRequests() {
                             <tr>
                                 <th className='border border-white'>Username</th>
                                 <th className='border border-white'>RequestId</th>
+                                <th className='border border-white'>Created</th>
                                 <th className='border border-white'>duration</th>
                                 <th className='border border-white'>minruntime</th>
                                 <th className='border border-white'>maxparts</th>
@@ -56,15 +85,19 @@ function recordRequests() {
                         <tbody>
                             {allRequests.map((request) => {
                                 return (
-                                    <tr key={request.id}>
+                                    <tr className='text-center' key={request.id}>
                                         <td className='border border-white'>{request.username}</td>
                                         <td className='border border-white'>{request.id}</td>
+                                        <td className='border border-white text-center'>{request.friendlyCreatedAt}</td>
                                         <td className='border border-white'>{request.duration}</td>
                                         <td className='border border-white'>{request.minruntime}</td>
                                         <td className='border border-white'>{request.maxparts}</td>
                                         <tr className=' border border-white flex justify-center p-2 '>
                                             <Link to={'/viewrecordings/'+request.id}><button className='bg-white rounded-md text-black'>View Recordings</button></Link>
                                         </tr>
+                                        <tr className=' border border-white flex justify-center p-2 '>
+                                            <button onClick={(e)=> handleDeleteRequest(request.id, setAllRequests,username)} className='bg-white rounded-md text-black'>Delete</button>
+                                            </tr>
                                     </tr>
                                 )
                             }
