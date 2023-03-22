@@ -195,6 +195,7 @@ functions:
       - http:
           path: /addYoutuberUsername
           method: post
+          cors: true
 
   GetLiveStatuses:
     handler: getLiveStatuses.getLiveStatusesFromDB

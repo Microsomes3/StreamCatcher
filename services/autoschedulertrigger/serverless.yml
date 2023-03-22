@@ -12,6 +12,10 @@ provider:
     AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLEArn: !ImportValue AggregateLiveTableArn
     RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
     RECORD_RECORD_USERNAME_INDEX: !ImportValue RecordRequestUsernameIndexName
+    RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
+    RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
+
+
   
   iamRoleStatements:
     - Effect: Allow
@@ -40,10 +44,35 @@ provider:
       Action:
         - dynamodb:*
       Resource: !ImportValue RecordRequestUsernameIndex
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordStatusesTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordStatusesFriendlyDateIndex
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordAutoRecordDateIndexArn
+    - Effect: Allow
+      Action:
+        - cloudformation:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - ecs:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - iam:*
+      Resource: "*"
   
 
 functions:
   checkSchedule:
     handler: src/checkSchedule.handler
+    timeout: 300
     events:
       - schedule: rate(1 minute)

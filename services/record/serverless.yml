@@ -98,6 +98,23 @@ resources:
       Value: !GetAtt RecordAutoRecordTable.Arn
       Export:
         Name: RecordAutoRecordTableArn
+    AutoRecordDateIndex:
+      Value: arn:aws:dynamodb:us-east-1:574134043875:table/RecordAutoRecordTable/index/date-index
+      Export:
+        Name: RecordAutoRecordDateIndexArn
+    RecordStatusesTable:
+      Value: !Ref RecordStatuses
+      Export:
+        Name: RecordStatusesTable
+    RecordStatusesTableArn:
+      Value: !GetAtt RecordStatuses.Arn
+      Export:
+        Name: RecordStatusesTableArn
+    RecordStatusesFriendlyDateIndex:
+      Value: arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/friendly-date-index
+      Export:
+        Name: RecordStatusesFriendlyDateIndex
+      
   Resources:
     ECRRecordRepository:
       Type: AWS::ECR::Repository
@@ -133,10 +150,18 @@ resources:
             AttributeType: S
           - AttributeName: recordrequestid
             AttributeType: S
+          - AttributeName: friendlyDate
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
         GlobalSecondaryIndexes:
+          - IndexName: friendly-date-index
+            KeySchema:
+              - AttributeName: friendlyDate
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
           - IndexName: record-request-id-index
             KeySchema:
               - AttributeName: recordrequestid

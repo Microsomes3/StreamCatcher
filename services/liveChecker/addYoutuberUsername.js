@@ -14,7 +14,7 @@ module.exports.addYoutuberUsername = async (event,context,callback) => {
         callback(null, {
             statusCode: 400,
             headers: { 'Content-Type': 'text/plain' },
-            body: 'Couldn\'t add the youtuber username.',
+            body: 'Couldn\'t add the youtuber username..',
         });
         return;
     }
@@ -32,6 +32,11 @@ module.exports.addYoutuberUsername = async (event,context,callback) => {
 
     return {
         statusCode: 200,
+        headers:{
+            'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'OPTIONS,POST',
+      'Access-Control-Allow-Headers': 'Content-Type'
+        },
         body: JSON.stringify({
             params: params,
         }),
