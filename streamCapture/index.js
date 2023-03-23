@@ -85,7 +85,7 @@ async function postUpdateToAPI() {
 
     try {
 
-        const c = await axios.put("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress/033b558d-b9d0-4859-abb6-0b8f4d7c1036", {
+        const c = await axios.put("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress/"+process.env.RECORD_ID, {
             "currentRuntime": allRunetimes,
             "totalPartsRecorded": totalParts,
             "storageUsed": totalStorage,
@@ -215,7 +215,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
         var allRunetimes = 0;
 
         for (var i = 0; i < paths.length; i++) {
-            const runtime = await getVideoRuntime(paths[i]);
+            const runtime = await getVideoRuntime(paths[i]).duration;
             allRunetimes += runtime;
         }
 
@@ -272,16 +272,6 @@ function manageUploadST(params, region) {
 
 (async () => {
 
-<<<<<<< HEAD
-    const channel = process.env.channel || "@CreepsMcPasta";
-    const timeout = process.env.timeout || "30s";
-    const bucket = process.env.bucket || "griffin-record-input";
-    const region = process.env.region || "us-east-1";
-    const parts = process.env.parts || 3;
-    const timeoutupdated= process.env.lastupdatedtimeout || 30;
-    const minruntime = process.env.minruntime || 60;
-=======
->>>>>>> d57ce2088caae21a74b445308ba406905de1f734
 
     try {
 
