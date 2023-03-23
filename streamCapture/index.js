@@ -272,20 +272,9 @@ function manageUploadST(params, region) {
 
 (async () => {
 
-<<<<<<< HEAD
-    const channel = process.env.channel || "@CreepsMcPasta";
-    const timeout = process.env.timeout || "30s";
-    const bucket = process.env.bucket || "griffin-record-input";
-    const region = process.env.region || "us-east-1";
-    const parts = process.env.parts || 3;
-    const timeoutupdated= process.env.lastupdatedtimeout || 30;
-    const minruntime = process.env.minruntime || 60;
-=======
->>>>>>> d57ce2088caae21a74b445308ba406905de1f734
-
     try {
 
-        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime } = getAllRequiredInfoForTask();
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
 
         console.log({ channel, timeout, bucket, region })
 
