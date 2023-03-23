@@ -12,6 +12,22 @@ function RecordStatusesTable({statuses}) {
     const [totalFailed, setTotalFailed] = useState(0);
     const [totalComplete, setComplete] = useState(0);
 
+
+    function getParcentage(status){
+        var toReturn = 0;
+
+        try{
+            toReturn = status.progressState.parcentage
+
+            if (toReturn == undefined){
+                toReturn = 0
+            }
+
+        }catch(e){}
+
+        return parseFloat(toReturn).toFixed(2);
+    }
+
     useEffect(() => {
         const sortedStatuses = statuses.sort((a, b) => {
             if(a.timeended == null) {
@@ -91,6 +107,7 @@ function RecordStatusesTable({statuses}) {
                         <th className="w-full border border-white">Time Finished</th>
                         <th className="w-full border border-white">Time Taken</th>
                         <th className="w-full border border-white">Status</th>
+                        <th className="w-full border border-white">Percentage</th>
                         <th className="w-full border border-white">Kill</th>
                     </tr>
                 </thead>
@@ -115,14 +132,20 @@ function RecordStatusesTable({statuses}) {
                                     'not-finished'
                                 }
                             </td>
+                            
                             <td className="whitespace-nowrap">
                                { status.timeended != null ?
                                 <p className="border border-white text-center px-2 py-2">{moment.unix(status.timeended).diff(moment.unix(status.timestarted), 'minutes')} minutes</p> :
                                 <p className="border border-white text-center">not-finished</p> }
                             </td>
+                          
                             <td className="border border-white text-center px-2 py-2 whitespace-nowrap">{status.status.status || <p>
                                 {status.status}
                                 </p>}</td>
+
+                                <td className="border border-white text-center px-2 py-2 whitespace-nowrap">
+                                {getParcentage(status)} %
+                            </td>
                                 <td className="border border-white text-center px-2 py-2 whitespace-nowrap">
                                     <button className='bg-red-400 rounded-md px-2 py-2' onClick={() => {
                                             if(status.status == "PENDING"){

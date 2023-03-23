@@ -10,6 +10,8 @@ function getAllRequiredInfoForTask(){
     const timeoutupdated= process.env.lastupdatedtimeout || 300;
     const minruntime = process.env.minruntime || 60;
 
+    const isComments = process.env.isComments || false;
+
 
     return {
         channel,
@@ -18,7 +20,8 @@ function getAllRequiredInfoForTask(){
         region,
         parts,
         timeoutupdated,
-        minruntime
+        minruntime,
+        isComments
     }
 
 }
