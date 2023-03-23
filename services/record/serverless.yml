@@ -1,7 +1,7 @@
 service: griffin-record-service
 plugins:
   - serverless-dotenv-plugin
-
+  - serverless-prune-plugin
 useDotenv: true
 
 
@@ -278,6 +278,13 @@ functions:
           method: get
           cors: true
           
+  KillRecording:
+    handler: killRecording.handler
+    events:
+      - http:
+          path: /KillRecording/{id}
+          method: put
+          cors: true
   UpdateProgress:
     handler: updateProgressOfRecording.handler
     events:
@@ -312,3 +319,8 @@ functions:
           path: /CallBackReceivedLiveEvents
           method: post
           cors: true
+
+custom:
+  prune:
+    automatic: true
+    number: 3

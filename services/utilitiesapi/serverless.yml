@@ -29,3 +29,11 @@ functions:
       - http:
           path: /getLiveIndex/{youtubeurl}
           method: post
+plugins:
+  - serverless-prune-plugin
+
+
+custom:
+  prune:
+    automatic: true
+    number: 3

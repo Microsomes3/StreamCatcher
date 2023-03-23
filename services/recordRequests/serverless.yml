@@ -153,3 +153,11 @@ functions:
           method: post
           cors: true
       
+plugins:
+  - serverless-prune-plugin
+
+
+custom:
+  prune:
+    automatic: true
+    number: 3

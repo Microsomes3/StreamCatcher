@@ -76,6 +76,10 @@ function RecordStatusesTable({statuses}) {
                 </div>
             </div>
 
+            <div>
+                <p className='text-white py-2'>Please note, Killing a recording, will still save the file, but end early</p>
+            </div>
+
             <table className="table-auto text-white mt-12 table-responsive">
 
                 <thead>
@@ -87,6 +91,7 @@ function RecordStatusesTable({statuses}) {
                         <th className="w-full border border-white">Time Finished</th>
                         <th className="w-full border border-white">Time Taken</th>
                         <th className="w-full border border-white">Status</th>
+                        <th className="w-full border border-white">Kill</th>
                     </tr>
                 </thead>
 
@@ -115,7 +120,26 @@ function RecordStatusesTable({statuses}) {
                                 <p className="border border-white text-center px-2 py-2">{moment.unix(status.timeended).diff(moment.unix(status.timestarted), 'minutes')} minutes</p> :
                                 <p className="border border-white text-center">not-finished</p> }
                             </td>
-                            <td className="border border-white text-center px-2 py-2 whitespace-nowrap">{status.status.status || 'pending'}</td>
+                            <td className="border border-white text-center px-2 py-2 whitespace-nowrap">{status.status.status || <p>
+                                {status.status}
+                                </p>}</td>
+                                <td className="border border-white text-center px-2 py-2 whitespace-nowrap">
+                                    <button className='bg-red-400 rounded-md px-2 py-2' onClick={() => {
+                                            if(status.status == "PENDING"){
+                                               
+                                            
+
+                                        axios.put(' https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/KillRecording/'+status.id).then((res) => {
+                                            console.log(res.data);
+                                            
+
+                                            alert('Killed Recording');
+                                        })
+                                    }else{
+                                        alert('Recording is not pending, cannot kill')
+                                    }
+                                    }}>Kill</button>
+                                </td>
                         </tr>
                     ))}
                 </tbody>

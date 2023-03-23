@@ -210,7 +210,7 @@ functions:
   ScheduleYoutubersToCheck:
     handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(15 minutes)
   SchdulePriorityYoutubersToCheck:
     handler: schedulePriorityUsernamesTOCheck.handler
     events:
@@ -251,3 +251,11 @@ functions:
           path: /testMulti
           method: get
   
+plugins:
+  - serverless-prune-plugin
+
+
+custom:
+  prune:
+    automatic: true
+    number: 3

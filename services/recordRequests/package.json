@@ -13,5 +13,8 @@
     "aws-sdk": "^2.1335.0",
     "crypto-js": "^4.1.1",
     "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "serverless-prune-plugin": "^2.0.2"
   }
 }

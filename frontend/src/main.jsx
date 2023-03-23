@@ -38,6 +38,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />
       <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
       <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
+      <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

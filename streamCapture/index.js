@@ -7,10 +7,100 @@ const fs = require("fs");
 const aws = require("aws-sdk");
 const path = require("path");
 const { convertTimeoutTOMS } = require('./helpers/dateHelper')
-const { getVideoRuntime } = require('./helpers/CalculateRuntimeHelper')
+// const { getVideoRuntime } = require('./helpers/CalculateRuntimeHelper')
 const { mustCheckLive } = require('./helpers/checkLive')
 const { getAllRequiredInfoForTask } = require('./helpers/taskInfoHelper')
 
+var ffprobe = require('ffprobe'),
+    ffprobeStatic = require('ffprobe-static');
+
+
+const { exec } = require("child_process");
+
+async function getVideoRuntime(filePath) {
+    return new Promise((resolve, reject) => {
+        try {
+            ffprobe(filePath, { path: ffprobeStatic.path }, function (err, info) {
+                if (err) resolve({
+                    duration: 1,
+                    storage: 1
+                });
+
+                try{
+                const d = info.streams[0].duration
+                const s = fs.statSync(filePath).size;
+                resolve({
+                    duration: d,
+                    storage: s
+                });
+            }catch(e){
+                resolve({
+                    duration: 1,
+                    storage: 1
+                });
+            }
+            });
+        } catch (error) {
+            resolve({
+                duration: 1,
+                storage: 1
+            });
+        }
+    })
+
+}
+
+async function postUpdateToAPI() {
+
+    //check videos directory
+
+    var doesVidesoDirExist = fs.existsSync("videos");
+
+    var totalParts = 0;
+    var totalStorage = 0;
+    var allRunetimes = 0;
+
+
+    if (doesVidesoDirExist) {
+
+        totalParts = fs.readdirSync("videos").length;
+
+        const paths = fs.readdirSync("videos").map((f) => {
+            return path.join("videos", f);
+        })
+
+        console.log(paths);
+
+
+        for (var i = 0; i < paths.length; i++) {
+            const r = await getVideoRuntime(paths[i]);
+            allRunetimes += parseFloat(r.duration);
+            totalStorage += r.storage;
+
+        }
+
+    }
+
+    var message = "oo";
+
+    try {
+
+        const c = await axios.put("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress/033b558d-b9d0-4859-abb6-0b8f4d7c1036", {
+            "currentRuntime": allRunetimes,
+            "totalPartsRecorded": totalParts,
+            "storageUsed": totalStorage,
+            "totalTimeSoFar": allRunetimes
+        })
+        message = c.data.message;
+    } catch (e) {
+        console.log(e);
+     }
+
+    return {
+        message: message
+    }
+
+}
 
 
 function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
@@ -57,16 +147,25 @@ function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
         }, timeout);
 
 
-        const progressUpdate = setInterval(() => {
+        var updateTimeout = 60000 * 5; // 5 minutes
 
-            console.log("tracking process");
+        const progressUpdate = setInterval(async () => {
+            const r = await postUpdateToAPI()
+            console.log(r);
+        }, updateTimeout);
 
-        }, 1000);
 
-
-        child.on('exit', (code) => {
+        child.on('exit', async (code) => {
             clearTimeout(timeoutId);
             clearInterval(checkLastFileAdded);
+
+            try{
+            await postUpdateToAPI();
+            }catch(e){}
+
+            clearInterval(progressUpdate);
+
+
             if (code === 0) {
                 console.log('Download complete');
                 resolve();
@@ -98,7 +197,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
             try {
                 const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
                 const indexUrl = indexData.data.index;
-                await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
+                const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
             } catch (e) {
                 console.log("moving on");
                 console.log(e);

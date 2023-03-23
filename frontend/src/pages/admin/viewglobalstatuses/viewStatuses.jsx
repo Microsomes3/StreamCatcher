@@ -14,10 +14,10 @@ function ViewGlobalStatuses() {
 
     const [allStatuses, setAllStatuses] = useState([])
 
-    const {date} = useParams();
+    const {date = moment().format("YYYY-MM-DD")} = useParams();
 
     const [selectedDate, setSelectedDate] = useState(date)
-    
+
     const handleRefreshClick = () => {
         setAllStatuses([])
         axios.get("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetAllStatusesByDate/" + selectedDate)
@@ -67,6 +67,10 @@ function ViewGlobalStatuses() {
 
             <input value={selectedDate} type="date" className='border ml-12 mt-2 border-white rounded-md p-2' onChange={(e) => {
                 const date = e.target.value;
+
+
+                //change link
+                window.location.href = "/status/" + date;
 
                 setSelectedDate(date);
               
