@@ -79,7 +79,7 @@ function TYTable() {
 
 
       <div className=' px-5  rounded-md'>
-        <input className='w-full h-12 pl-2  rounded-md' type='text' placeholder='Search... @griffin' onChange={(event) => { setSearchTerm(event.target.value); }} />
+        <input className='w-full h-12 pl-2 text-black  rounded-md' type='text' placeholder='Search... @griffin' onChange={(event) => { setSearchTerm(event.target.value); }} />
       </div>
 
       <div className='flex'>

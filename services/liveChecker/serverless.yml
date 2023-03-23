@@ -68,6 +68,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/YoutubersToCheckTable/index/priority-index"
   
 resources:
   Outputs:
@@ -116,6 +120,15 @@ resources:
         AttributeDefinitions:
           - AttributeName: youtubeusername
             AttributeType: S
+          - AttributeName: priority
+            AttributeType: N
+        GlobalSecondaryIndexes:
+          - IndexName: priority-index
+            KeySchema:
+              - AttributeName: priority
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         KeySchema:
           - AttributeName: youtubeusername
             KeyType: HASH
@@ -151,7 +164,6 @@ resources:
         RedrivePolicy:
           deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
           maxReceiveCount: 3
-
 functions:
   GetCallbackByYoutubeUsername:
     handler: getCallbacksByUsername.getCallbacksByUsername
@@ -199,6 +211,10 @@ functions:
     handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
     events:
       - schedule: rate(5 minutes)
+  SchdulePriorityYoutubersToCheck:
+    handler: schedulePriorityUsernamesTOCheck.handler
+    events:
+      - schedule: rate(1 minute)
   AddYoutuberUsername:
     handler: addYoutuberUsername.addYoutuberUsername
     events:

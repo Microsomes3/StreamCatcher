@@ -82,6 +82,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: !GetAtt RecordAutoRecordTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:  arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/friendly-date-index
 
 
 resources:
@@ -243,6 +247,13 @@ functions:
     events:
       - http:
           path: /GetRecordingByRecordId/{id}
+          method: get
+          cors: true
+  GetAllStatusesByDate:
+    handler: getAllStatusesByDate.handler
+    events:
+      - http:
+          path: /GetAllStatusesByDate/{date}
           method: get
           cors: true
   GetAllRecordStatusesByRequestID:

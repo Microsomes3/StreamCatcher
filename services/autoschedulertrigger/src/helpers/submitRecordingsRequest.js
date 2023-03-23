@@ -42,6 +42,8 @@ function makeRecordRequest({ requestId }) {
             const minruntime = data.Item.minruntime || 1
 
             const timeout = data.Item.duration+"s" || "30s"
+            
+            const channel = data.Item.username
 
 
             if (!data.Item) {
@@ -151,6 +153,7 @@ function makeRecordRequest({ requestId }) {
                     recordrequestid: requestId,
                     taskArn: taskArn,
                     status: "PENDING",
+                    username: channel,
                     friendlyDate: moment().format("YYYY-MM-DD"),
                     timestarted: moment().unix(),
                     timeended: null,

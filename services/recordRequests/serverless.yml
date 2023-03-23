@@ -138,6 +138,13 @@ functions:
           path: /recordRequestd/{id}
           method: delete
           cors: true
+  getRecordRequestById:
+    handler: getRecordRequestById.handler
+    events:
+      - http:
+          path: /recordRequestById/{id}
+          method: get
+          cors: true
   recordRequest:
     handler: addRecordRequest.handler
     events:

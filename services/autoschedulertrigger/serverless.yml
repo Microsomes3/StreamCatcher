@@ -73,6 +73,6 @@ provider:
 functions:
   checkSchedule:
     handler: src/checkSchedule.handler
-    timeout: 300
+    timeout: 45
     events:
       - schedule: rate(1 minute)
