@@ -1,75 +1,109 @@
-
 const { spawn } = require('child_process');
 
 const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-
 const moment = require("moment");
-
 const axios = require("axios");
-
-
 const fs = require("fs");
-
 const aws = require("aws-sdk");
-
-const { createLogWithStream } = require("./logs.js")
-
 const path = require("path");
+const { convertTimeoutTOMS } = require('./helpers/dateHelper')
+// const { getVideoRuntime } = require('./helpers/CalculateRuntimeHelper')
+const { mustCheckLive } = require('./helpers/checkLive')
+const { getAllRequiredInfoForTask } = require('./helpers/taskInfoHelper')
+
+var ffprobe = require('ffprobe'),
+    ffprobeStatic = require('ffprobe-static');
 
 
-function mustCheckLive(channel) {
+const { exec } = require("child_process");
 
-    const getChannelStatusURI = process.env.getChannelStatusURI || "https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatus/";
+async function getVideoRuntime(filePath) {
+    return new Promise((resolve, reject) => {
+        try {
+            ffprobe(filePath, { path: ffprobeStatic.path }, function (err, info) {
+                if (err) resolve({
+                    duration: 1,
+                    storage: 1
+                });
 
-    return new Promise(async (resolve, reject) => {
-        var maxTries = 3;
-        var currentTry = 0;
-
-        var toReturn = false;
-
-        for (var i = 0; i < maxTries; i++) {
-
-            try {
-                const isLive = await axios.get(getChannelStatusURI + channel);
-                toReturn = isLive.data;
-                break;
-            } catch (e) {
-                console.log(e);
+                try{
+                const d = info.streams[0].duration
+                const s = fs.statSync(filePath).size;
+                resolve({
+                    duration: d,
+                    storage: s
+                });
+            }catch(e){
+                resolve({
+                    duration: 1,
+                    storage: 1
+                });
             }
+            });
+        } catch (error) {
+            resolve({
+                duration: 1,
+                storage: 1
+            });
+        }
+    })
 
-            currentTry++;
+}
+
+async function postUpdateToAPI() {
+
+    //check videos directory
+
+    var doesVidesoDirExist = fs.existsSync("videos");
+
+    var totalParts = 0;
+    var totalStorage = 0;
+    var allRunetimes = 0;
+
+
+    if (doesVidesoDirExist) {
+
+        totalParts = fs.readdirSync("videos").length;
+
+        const paths = fs.readdirSync("videos").map((f) => {
+            return path.join("videos", f);
+        })
+
+        console.log(paths);
+
+
+        for (var i = 0; i < paths.length; i++) {
+            const r = await getVideoRuntime(paths[i]);
+            allRunetimes += parseFloat(r.duration);
+            totalStorage += r.storage;
 
         }
 
-        resolve(toReturn)
+    }
 
+    var message = "oo";
 
-    })
-}
+    try {
 
-function tryDownload(timeout, link) {
-    return new Promise((resolve, reject) => {
-        const child = spawn('timeout', ['-s', 'INT', timeout, 'yt-dlp', '--live-from-start', link, '-o', 'output.mp4', '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4']);
+        const c = await axios.put("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress/033b558d-b9d0-4859-abb6-0b8f4d7c1036", {
+            "currentRuntime": allRunetimes,
+            "totalPartsRecorded": totalParts,
+            "storageUsed": totalStorage,
+            "totalTimeSoFar": allRunetimes
+        })
+        message = c.data.message;
+    } catch (e) {
+        console.log(e);
+     }
 
-        child.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        });
+    return {
+        message: message
+    }
 
-        child.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
-            // reject(data);
-        });
-
-        child.on('close', (code) => {
-            resolve(code);
-        });
-
-    })
 }
 
 
-function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
+function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
     console.log("trying to download", url, output, timeout, livetimeout, partNo)
     return new Promise((resolve, reject) => {
         const child = spawn('ffmpeg', ['-i', url,'-r','30', '-c', 'copy', output]);
@@ -80,12 +114,12 @@ function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
         }
 
 
-        const checkLastFileAdded = setInterval(()=>{
+        const checkLastFileAdded = setInterval(() => {
             console.log("checking for new file")
 
-            try{
-               //get details of output file
-               const o = fs.statSync(output);
+            try {
+                //get details of output file
+                const o = fs.statSync(output);
 
                 //check difference between last modified and now
                 const now = moment().unix();
@@ -94,27 +128,44 @@ function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
                 const diff = now - lastUpdatedFile;
 
 
-                if(diff > livetimeout){
+                if (diff > livetimeout) {
                     console.log("stream is no longer live, stopping ffmpeg")
                     child.kill('SIGINT');
                     clearInterval(checkLastFileAdded);
-                }else{
+                } else {
                     console.log("stream is still live, continuing", diff)
                 }
-            
-            }catch(e){
+
+            } catch (e) {
             }
 
-        },1000)
+        }, 1000)
 
         const timeoutId = setTimeout(() => {
             console.log('Timeout exceeded, stopping ffmpeg...');
             child.kill('SIGINT');
         }, timeout);
 
-        child.on('exit', (code) => {
+
+        var updateTimeout = 60000 * 5; // 5 minutes
+
+        const progressUpdate = setInterval(async () => {
+            const r = await postUpdateToAPI()
+            console.log(r);
+        }, updateTimeout);
+
+
+        child.on('exit', async (code) => {
             clearTimeout(timeoutId);
             clearInterval(checkLastFileAdded);
+
+            try{
+            await postUpdateToAPI();
+            }catch(e){}
+
+            clearInterval(progressUpdate);
+
+
             if (code === 0) {
                 console.log('Download complete');
                 resolve();
@@ -134,73 +185,6 @@ function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
     });
 }
 
-function stichTogether(videos) {
-    return new Promise((resolve, reject) => {
-
-        console.log("stiching together", videos);
-
-        const path = require('path');
-
-        const visibleVideos = videos.filter((v) => {
-            const fileName = path.basename(v);
-            return !fileName.startsWith('.');
-        });
-
-        const paths = visibleVideos.map((v) => `file 'videos/${v}'`);
-        fs.writeFileSync("concat.txt", paths.join("\n"));
-
-        const child = spawn('ffmpeg', ['-f', 'concat', '-safe', '0', '-i', 'concat.txt', '-c', 'copy', 'videos/output.mp4']);
-
-        child.stdout.on('data', (data) => {
-            console.log(`stdout: ${data}`);
-        })
-
-        child.stderr.on('data', (data) => {
-            console.log(`stderr: ${data}`);
-        })
-
-        child.on('close', (code) => {
-            console.log(`child process exited with code ${code}`);
-            resolve(code);
-        });
-
-    });
-}
-
-function convertTimeoutTOMS(timeout) {
-
-    //example input 60s or 60m or 60h
-
-    const time = timeout.substring(0, timeout.length - 1);
-    const unit = timeout.substring(timeout.length - 1);
-
-    if (unit === "s") {
-        return time * 1000;
-    }
-
-    if (unit === "m") {
-        return time * 1000 * 60;
-    }
-
-    if (unit === "h") {
-        return time * 1000 * 60 * 60;
-    }
-
-}
-
-async function getVideoRuntime(filePath) {
-    try {
-        console.log("getting runtime for", filePath);
-      const { stdout } = await exec(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${filePath}`);
-      console.log(">",stdout);
-      const runtime = parseFloat(stdout);
-      return runtime;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  }
-
 function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
     return new Promise(async (resolve, reject) => {
 
@@ -210,11 +194,11 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
 
         for (var i = 0; i < parts; i++) {
 
-            try{
-            const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
-            const indexUrl = indexData.data.index;
-            await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT,livetimeout,i);
-            }catch(e){
+            try {
+                const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
+                const indexUrl = indexData.data.index;
+                const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
+            } catch (e) {
                 console.log("moving on");
                 console.log(e);
             }
@@ -239,13 +223,13 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
         var reason = "";
 
 
-        if(allRunetimes < minruntime){
+        if (allRunetimes < minruntime) {
             console.log("not enough runtime, trying again");
-            status= "failed";
-            reason = "not enough runtime,"+allRunetimes+" < "+minruntime;
-        }else{
+            status = "failed";
+            reason = "not enough runtime," + allRunetimes + " < " + minruntime;
+        } else {
             status = "success";
-            reason = "runtime was "+allRunetimes;
+            reason = "runtime was " + allRunetimes;
         }
 
         resolve({
@@ -288,6 +272,7 @@ function manageUploadST(params, region) {
 
 (async () => {
 
+<<<<<<< HEAD
     const channel = process.env.channel || "@CreepsMcPasta";
     const timeout = process.env.timeout || "30s";
     const bucket = process.env.bucket || "griffin-record-input";
@@ -295,26 +280,25 @@ function manageUploadST(params, region) {
     const parts = process.env.parts || 3;
     const timeoutupdated= process.env.lastupdatedtimeout || 30;
     const minruntime = process.env.minruntime || 60;
+=======
+>>>>>>> d57ce2088caae21a74b445308ba406905de1f734
 
-    console.log({
-        channel,
-        timeout,
-        bucket,
-        region
-    })
+    try {
 
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime } = getAllRequiredInfoForTask();
 
-    mustCheckLive(channel).then(async (isLive) => {
+        console.log({ channel, timeout, bucket, region })
+
+        const isLive = await mustCheckLive(channel);
 
         if (isLive.status) {
-            //
             const videoId = isLive.link.split("?v=")[1];
 
             console.log("video id", videoId);
 
             // await tryDownload(timeout, "https://youtube.com" + isLive.link);
 
-            const {paths, status, reason} = await tryDownload2(timeout, videoId, parts,timeoutupdated,minruntime);
+            const { paths, status, reason } = await tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime);
 
             const allLocs = [];
 
@@ -345,7 +329,7 @@ function manageUploadST(params, region) {
                 const response = await axios.post(process.env.completionCallbackUrl, {
                     requestId: process.env.RECORD_REQUEST_ID,
                     keys: allLocs,
-                    status:{
+                    status: {
                         status: status,
                         reason: reason
                     },
@@ -355,11 +339,21 @@ function manageUploadST(params, region) {
                 });
 
                 console.log("callback response", response.data);
-            }catch(e){}
+            } catch (e) { }
         } else {
             console.log("NOT LIVE");
         }
-    });
+
+        console.log(isLive)
+
+    } catch (e) {
+
+        console.log(e);
+    } finally {
+        console.log("done")
+    }
+
+
 
 
 })()

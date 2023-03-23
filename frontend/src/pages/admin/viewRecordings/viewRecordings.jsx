@@ -46,35 +46,40 @@ function ViewAllRecordings() {
     },[])
 
 
-    useEffect(() => {
+    function handleGetAllStatuses({rqid, setAllStatuses}){
         axios.get(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetAllRecordStatusesByRequestID/${rqid}`)
-            .then((data) => {
-                console.log(data.data.results);
-                setAllStatuses(data.data.results);
-            });
+        .then((data) => {
+            console.log(data.data.results);
+            setAllStatuses(data.data.results);
+        });
+    }
+
+    useEffect(() => {
+        handleGetAllStatuses({rqid, setAllStatuses});
     }, [rqid,tableMode]);
 
 
-    function handleRequestDownload(rqid){
+    function handleRequestDownload(rqid, setAllStatuses){
         axios.post(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordByRequestIDAdhoc/${rqid}`)
             .then((data) => {
                 console.log(data)
                 alert("Request Sent, please check back in a few minutes")
+                handleGetAllStatuses({rqid, setAllStatuses});
             }).catch((err) => {
                 console.log(err)
+                alert("try again in a few minutes")
             });
     }
 
-
     return (
-        <div className='bg-black h-screen'>
+        <div className='bg-black min-h-screen'>
 
             <div className="h-12 flex items-center justify-center bg-white">
                 <p className="font-bold text-center">View all Recordings: {username}</p>
             </div>
 
             <div class="py-2 mt-6 pl-12">
-                <button onClick={(e)=> handleRequestDownload(rqid)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
+                <button onClick={(e)=> handleRequestDownload(rqid, setAllStatuses)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
                     Request Download Now
                 </button>
             </div>
@@ -100,7 +105,7 @@ function ViewAllRecordings() {
                     setAllRecordings([]);
                 }} class="block appearance-none w-full bg-white border border-gray-300 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
                     <option value={'recordings'}>Recordings</option>
-                    <option>Statuses</option>
+                    <option value={'statuses'}>Statuses</option>
                 </select>
 
             </div>
@@ -109,16 +114,13 @@ function ViewAllRecordings() {
             <div className='pl-12 pr-12'>
                 <div className="overflow-x-auto text-white">
                 {allRecordings.length === 0 && <div className='text-white text-2xl mt-12'>No Recordings for this request</div>}
-
-                {allRecordings.length > 0 ?
-                    
-                    tableMode === "recordings" ?
-                    <RecordingsTable recordings={allRecordings} />
-                    :
-                    <StatusesTable statuses={allStatuses} ></StatusesTable>
-
                 
-                : <div>Sorry</div>}
+                {(allStatuses.length >0 && tableMode == "statuses") &&  <StatusesTable statuses={allStatuses} ></StatusesTable>} 
+
+                {(allRecordings.length > 0 && tableMode == "recordings") && <RecordingsTable recordings={allRecordings} ></RecordingsTable>}
+               
+
+             
                 
                 </div>
 

@@ -46,6 +46,11 @@ function AddYoutuber() {
         }).then((data)=>{
             console.log(data);
             alert('Record request added successfully, it may take a few minutes to show up');
+
+            //go back to view recordings
+            window.location.href = `/requests/${username}`;
+
+
         }).catch((err)=>{
             console.log(err);
             alert('Error adding record request');

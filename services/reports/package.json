@@ -1,5 +1,5 @@
 {
-  "name": "autoschedulertrigger",
+  "name": "reports",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,11 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.1339.0",
-    "crypto-js": "^4.1.1",
-    "moment": "^2.29.4"
-  },
-  "devDependencies": {
-    "serverless-prune-plugin": "^2.0.2"
+    "aws-sdk": "^2.1341.0"
   }
 }

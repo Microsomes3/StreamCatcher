@@ -13,6 +13,8 @@ import AddYoutuber from './pages/admin/addYoutuberToTrack/addyoutuber'
 import AddRecordRequest from './pages/admin/addRecordRequest/addRecordRequest'
 import ViewAllRecordings from './pages/admin/viewRecordings/viewRecordings'
 
+import ViewGlobalStatuses from './pages/admin/viewglobalstatuses/viewStatuses'
+
 import { AuthProvider } from './pages/auth/authwatch'
 
 import PrivateRoute from './routes/privateRouter'
@@ -35,6 +37,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/addyoutuber' element={<AddYoutuber></AddYoutuber>} />
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />
       <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
+      <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
+      <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

@@ -4,11 +4,7 @@ import axios from 'axios';
 
 function AddYoutuber() {
 
-
-
   const [username, setUsername] = useState('');
-
-  
 
   const handleSubmit = (event) => {
     event.preventDefault();

@@ -28,3 +28,11 @@ resources:
           - Arn: ${param:HandleEventsFromECSArn}
             Id: "ECSEventLambda"
  
+plugins:
+  - serverless-prune-plugin
+
+
+custom:
+  prune:
+    automatic: true
+    number: 3

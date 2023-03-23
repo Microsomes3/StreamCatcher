@@ -79,7 +79,7 @@ function TYTable() {
 
 
       <div className=' px-5  rounded-md'>
-        <input className='w-full h-12 pl-2  rounded-md' type='text' placeholder='Search... @griffin' onChange={(event) => { setSearchTerm(event.target.value); }} />
+        <input className='w-full h-12 pl-2 text-black  rounded-md' type='text' placeholder='Search... @griffin' onChange={(event) => { setSearchTerm(event.target.value); }} />
       </div>
 
       <div className='flex'>
@@ -103,7 +103,7 @@ function TYTable() {
 
       {isLoading ? (
         <div className='flex justify-center items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-bl-md rounded-br-md'>
-          <div>Loading...</div>
+          <div className='animate animate-spin'>Loading</div>
         </div>
       ) : (
         <div className='flex hidden justify-center items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-bl-md rounded-br-md'>
@@ -119,8 +119,10 @@ function TYTable() {
         </div>
 
         <div>
-          <p className='text-sm'>Total Record Requests: {totalRecordRequests}</p>
+          <p className='text-sm px-2'>Total Record Requests: {totalRecordRequests}</p>
         </div>
+
+        
 
         <div class="overflow-x-auto">
   <table class="table-auto w-full">

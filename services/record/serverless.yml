@@ -1,7 +1,7 @@
 service: griffin-record-service
 plugins:
   - serverless-dotenv-plugin
-
+  - serverless-prune-plugin
 useDotenv: true
 
 
@@ -82,6 +82,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: !GetAtt RecordAutoRecordTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource:  arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/friendly-date-index
 
 
 resources:
@@ -245,6 +249,13 @@ functions:
           path: /GetRecordingByRecordId/{id}
           method: get
           cors: true
+  GetAllStatusesByDate:
+    handler: getAllStatusesByDate.handler
+    events:
+      - http:
+          path: /GetAllStatusesByDate/{date}
+          method: get
+          cors: true
   GetAllRecordStatusesByRequestID:
     handler: getAllRecordStatusesByRequestId.handler
     events:
@@ -267,6 +278,13 @@ functions:
           method: get
           cors: true
           
+  KillRecording:
+    handler: killRecording.handler
+    events:
+      - http:
+          path: /KillRecording/{id}
+          method: put
+          cors: true
   UpdateProgress:
     handler: updateProgressOfRecording.handler
     events:
@@ -301,3 +319,8 @@ functions:
           path: /CallBackReceivedLiveEvents
           method: post
           cors: true
+
+custom:
+  prune:
+    automatic: true
+    number: 3

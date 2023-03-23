@@ -13,5 +13,8 @@
     "@discordjs/rest": "^1.5.0",
     "aws-sdk": "^2.1333.0",
     "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "serverless-prune-plugin": "^2.0.2"
   }
 }

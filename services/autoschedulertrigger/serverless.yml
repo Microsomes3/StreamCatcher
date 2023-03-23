@@ -15,7 +15,6 @@ provider:
     RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
     RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
 
-
   
   iamRoleStatements:
     - Effect: Allow
@@ -73,6 +72,14 @@ provider:
 functions:
   checkSchedule:
     handler: src/checkSchedule.handler
-    timeout: 300
+    timeout: 45
     events:
       - schedule: rate(1 minute)
+plugins:
+  - serverless-prune-plugin
+
+
+custom:
+  prune:
+    automatic: true
+    number: 3

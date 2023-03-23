@@ -5,6 +5,20 @@ const ecs = new aws.ECS({
 });
 
 
+(async ()=>{
+    //get all tasks running
+    const params = {
+        cluster: process.env.CLUSTER_NAME || "griffin-record-cluster",
+        desiredStatus: "RUNNING",
+    };
+
+    const data = await ecs.listTasks(params).promise();
+
+    const taskArns = data.taskArns;
+
+    console.log(taskArns);
+})()
+
 module.exports.handler = async (event) => {
     //get all tasks running
     const params = {
@@ -13,6 +27,8 @@ module.exports.handler = async (event) => {
     };
 
     const data = await ecs.listTasks(params).promise();
+
+    console.log(data);
 
     const taskArns = data.taskArns;
 

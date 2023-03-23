@@ -26,6 +26,7 @@ module.exports.addYoutuberUsername = async (event,context,callback) => {
             youtubeusername: username,
             createdAt: moment().unix(),
             updatedAt: moment().unix(),
+            priority: 0
         },
     };
     await dynamoDb.put(params).promise();

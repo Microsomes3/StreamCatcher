@@ -27,6 +27,8 @@ WORKDIR /APP
 COPY package.json .
 COPY index.js .
 
+ADD helpers /APP/helpers
+
 
 COPY logs.js .
 
