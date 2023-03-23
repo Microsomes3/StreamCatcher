@@ -72,7 +72,7 @@ function tryDownload(timeout, link) {
 function tryDownloadVIAFFMPEG(url, output, timeout,livetimeout, partNo) {
     console.log("trying to download", url, output, timeout, livetimeout, partNo)
     return new Promise((resolve, reject) => {
-        const child = spawn('ffmpeg', ['-i', url, '-c', 'copy', output]);
+        const child = spawn('ffmpeg', ['-i', url,'-r','30', '-c', 'copy', output]);
 
         //create videos folder if it doesn't exist
         if (!fs.existsSync("videos")) {
@@ -288,12 +288,12 @@ function manageUploadST(params, region) {
 
 (async () => {
 
-    const channel = process.env.channel || "@griffingaming";
-    const timeout = process.env.timeout || "120s";
+    const channel = process.env.channel || "@CreepsMcPasta";
+    const timeout = process.env.timeout || "30s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
     const parts = process.env.parts || 3;
-    const timeoutupdated= process.env.lastupdatedtimeout || 300;
+    const timeoutupdated= process.env.lastupdatedtimeout || 30;
     const minruntime = process.env.minruntime || 60;
 
     console.log({
