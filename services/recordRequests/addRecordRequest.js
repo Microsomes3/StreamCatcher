@@ -15,9 +15,9 @@ function uuidv4() {
 
 
 module.exports.handler = async (event) => {
-    const {username, duration, from, to, trigger, maxparts, minruntime} = JSON.parse(event.body);
+    const {username, duration, from, to, trigger, maxparts, minruntime, isComments, label} = JSON.parse(event.body);
 
-    if (!username || !duration || !from || !to || !trigger, !maxparts || !minruntime) {
+    if (!username || !duration || !from || !to || !trigger, !maxparts || !minruntime || !isComments || !label) {
         return {
             statusCode: 400,
             body: JSON.stringify({
@@ -30,6 +30,7 @@ module.exports.handler = async (event) => {
                     "trigger",
                     "maxparts",
                     "minruntime",
+                    "isComments"
                 ]
             }),
         };
@@ -92,6 +93,26 @@ module.exports.handler = async (event) => {
         };
     }
 
+    //parts must be less than 10
+    if (maxparts > 10) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                error: 'maxparts must be less than 10',
+            }),
+        };
+    }
+
+    //isComment should be boolean
+    if (typeof isComments !== 'boolean') {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                error: 'isComments must be a boolean',
+            }),
+        };
+    }
+
 
 
 
@@ -108,6 +129,8 @@ module.exports.handler = async (event) => {
             minruntime,
             createdAt: moment().unix(),
             friendlyCreatedAt: moment().format('MMMM Do YYYY, h:mm:ss a'),
+            isComments,
+            label,
         },
     };
 

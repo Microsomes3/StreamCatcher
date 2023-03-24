@@ -7,6 +7,8 @@ import axios from 'axios'
 
 function handleDeleteRequest(id, setAllRequests, username) {
 
+
+
     axios.delete(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequestd/` + id)
         .then((data) => {
 
@@ -18,12 +20,15 @@ function handleDeleteRequest(id, setAllRequests, username) {
         });
 }
 
-function fetchRequests(username, setAllRequests){
+function fetchRequests(username, setAllRequests, setIsLoading){
     setAllRequests([])
+    setIsLoading(true)
     axios.get(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest/` + username)
     .then((data) => {
         const recordRequests = data.data.data.Items;
         setAllRequests(recordRequests)
+        setIsLoading(false)
+
     })
 }
 
@@ -33,9 +38,11 @@ function recordRequests() {
 
     const [allRequests, setAllRequests] = useState([])
 
+    const [isLoading, setIsLoading] = useState(true)
+
 
     useEffect(() => {
-        fetchRequests(username, setAllRequests);
+        fetchRequests(username, setAllRequests, setIsLoading);
     }, [])
 
 
@@ -45,6 +52,17 @@ function recordRequests() {
                 <p>Record Requests for: <span className='text-2xl font-extrabold'>{username}</span></p>
             </div>
 
+
+           
+      {isLoading ? (
+        <div className='flex mt-6 justify-center items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-bl-md rounded-br-md'>
+          <div className='animate animate-spin'>Loading</div>
+        </div>
+      ) : (
+        <div className='flex hidden justify-center items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-bl-md rounded-br-md'>
+          <div></div>
+        </div>
+      )}
 
 
            <Link to={'/addrecordrequest/'+username}> <div className='py-2 pl-12 mt-6'>
@@ -57,7 +75,7 @@ function recordRequests() {
 
           <div className='pl-12'>
                 <button
-                onClick={() => fetchRequests(username, setAllRequests)}
+                onClick={() => fetchRequests(username, setAllRequests, setIsLoading)}
                     className='bg-red-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
                 >
                     Refresh
@@ -65,6 +83,13 @@ function recordRequests() {
             </div>
 
             <div class="pl-12 py-2">
+                <Link to={'/recordings/'+username} ><button  className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
+                    View All Recordings
+                </button></Link>
+            </div>
+            
+
+            <div class="pl-12 py-1">
                 <Link to={'/'} ><button  className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
                     Back to Youtubers Status
                 </button></Link>

@@ -11,5 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1341.0"
+  },
+  "devDependencies": {
+    "serverless-prune-plugin": "^2.0.2"
   }
 }

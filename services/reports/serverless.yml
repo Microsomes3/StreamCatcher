@@ -24,3 +24,5 @@ functions:
           path: /getAllEcsRunning
           method: get
           cors: true
+plugins:
+  - serverless-prune-plugin

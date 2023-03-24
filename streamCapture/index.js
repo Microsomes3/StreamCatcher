@@ -11,8 +11,12 @@ const { convertTimeoutTOMS } = require('./helpers/dateHelper')
 const { mustCheckLive } = require('./helpers/checkLive')
 const { getAllRequiredInfoForTask } = require('./helpers/taskInfoHelper')
 
+const { fetchComments, stopCapturingComments } = require('./helpers/scrapeComments')
+
 var ffprobe = require('ffprobe'),
     ffprobeStatic = require('ffprobe-static');
+
+
 
 
 const { exec } = require("child_process");
@@ -185,7 +189,7 @@ function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
     });
 }
 
-function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
+function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopCommentCapture) {
     return new Promise(async (resolve, reject) => {
 
         const newT = convertTimeoutTOMS(timeout);
@@ -226,11 +230,13 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime) {
         if (allRunetimes < minruntime) {
             console.log("not enough runtime, trying again");
             status = "failed";
-            reason = "not enough runtime," + allRunetimes + " < " + minruntime;
+            reason = "not enough runtime";
         } else {
             status = "success";
-            reason = "runtime was " + allRunetimes;
+            reason = "success";
         }
+
+        await stopCommentCapture();
 
         resolve({
             status: status,
@@ -271,79 +277,88 @@ function manageUploadST(params, region) {
 }
 
 (async () => {
-
     try {
+      const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
+      console.log({ channel, timeout, bucket, region, isComments })
+  
+      const isLive = await mustCheckLive(channel);
+      if (isLive.status) {
+        const videoId = isLive.link.split("?v=")[1];
+        console.log("video id", videoId);
+  
+        const [downloadResult, comments] = await Promise.all([
+          isComments == true ? tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime,stopCapturingComments) : ()=>{
+            return new Promise((resolve,reject)=>{
+                resolve("trov");
+            })
+          },
+          fetchComments({ url: "https://youtube.com/live_chat?is_popout=1&v=" + videoId })
+        ]);
 
-        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
+        //upload comments
+        if (isComments) {
+            fs.writeFileSync("comments_g.json", JSON.stringify(comments));
+            const fileStream = fs.createReadStream("comments_g.json");
+            const d = moment().format("YYYY-MM-DD-HH-mm-ss");
+            const uploadParams = {
+                Bucket: bucket,
+                Body: fileStream,
+                ContentType: "application/json",
+                Key: process.env.RECORD_ID + "____comments___" + d + ".json"
+            };
+  
+            const loc = await manageUploadST(uploadParams, region);
 
-        console.log({ channel, timeout, bucket, region, isComments })
-
-        const isLive = await mustCheckLive(channel);
-
-        if (isLive.status) {
-            const videoId = isLive.link.split("?v=")[1];
-
-            console.log("video id", videoId);
-
-            // await tryDownload(timeout, "https://youtube.com" + isLive.link);
-
-            const { paths, status, reason } = await tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime);
-
-            const allLocs = [];
-
-            for (var i = 0; i < paths.length; i++) {
-                const fileStream = fs.createReadStream(paths[i]);
-
-                const d = moment().format("YYYY-MM-DD-HH-mm-ss");
-
-                const uploadParams = {
-                    Bucket: bucket,
-                    Body: fileStream,
-                    ContentType: "video/mp4",
-                    Key: channel + "____part___" + i + "___" + d + ".mp4"
-                };
-
-                const loc = await manageUploadST(uploadParams, region);
-                allLocs.push(loc);
-            }
-
-            console.log("send callback");
-
-            console.log(allLocs);
-
-            console.log("status", status);
-            console.log("reason", reason);
-
-            try {
-                const response = await axios.post(process.env.completionCallbackUrl, {
-                    requestId: process.env.RECORD_REQUEST_ID,
-                    keys: allLocs,
-                    status: {
-                        status: status,
-                        reason: reason
-                    },
-                    recordId: process.env.RECORD_ID,
-                }, {
-                    timeout: 10000 // timeout after 10 seconds
-                });
-
-                console.log("callback response", response.data);
-            } catch (e) { }
-        } else {
-            console.log("NOT LIVE");
+            console.log("comments uploaded", loc);
         }
-
-        console.log(isLive)
-
+  
+        const { paths, status, reason } = downloadResult;
+  
+        const allLocs = [];
+        for (var i = 0; i < paths.length; i++) {
+          const fileStream = fs.createReadStream(paths[i]);
+          const d = moment().format("YYYY-MM-DD-HH-mm-ss");
+  
+          const uploadParams = {
+            Bucket: bucket,
+            Body: fileStream,
+            ContentType: "video/mp4",
+            Key: channel + "____part___" + i + "___" + d + ".mp4"
+          };
+  
+          const loc = await manageUploadST(uploadParams, region);
+          allLocs.push(loc);
+        }
+  
+        console.log("send callback");
+        console.log(allLocs);
+        console.log("status", status);
+        console.log("reason", reason);
+  
+        try {
+          const response = await axios.post(process.env.completionCallbackUrl, {
+            requestId: process.env.RECORD_REQUEST_ID,
+            keys: allLocs,
+            status: {
+              status: status,
+              reason: reason
+            },
+            recordId: process.env.RECORD_ID,
+          }, {
+            timeout: 10000 // timeout after 10 seconds
+          });
+  
+          console.log("callback response", response.data);
+        } catch (e) { }
+      } else {
+        console.log("NOT LIVE");
+      }
+  
+      console.log(isLive)
     } catch (e) {
-
-        console.log(e);
+      console.log(e);
     } finally {
-        console.log("done")
+      console.log("done")
     }
-
-
-
-
-})()
-
+  })();
+  
