@@ -76,10 +76,12 @@ async function fetchComments({url}) {
         console.log("capturedComments:", comments.length);
         console.log("capturedDonations:", donations.length);
 
+        console.log(comments[0])
+
         allComments.push(comments);
         allDonations.push(donations);
 
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(30000);
       }
 
       console.log("done capturing");

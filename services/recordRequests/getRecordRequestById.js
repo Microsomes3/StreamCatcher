@@ -10,8 +10,12 @@ module.exports.handler = async (event) => {
 
     const params = {
         TableName: process.env.RECORD_REQUEST_TABLE,
-        Key: {
-            id: id,
+        KeyConditionExpression: "#id = :id",
+        ExpressionAttributeNames: {
+            "#id": "id",
+        },
+        ExpressionAttributeValues: {
+            ":id": id,
         },
     };
 
