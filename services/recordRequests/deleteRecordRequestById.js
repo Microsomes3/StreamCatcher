@@ -9,6 +9,20 @@ module.exports.handler = async (event) => {
 
     const requestId = event.pathParameters.id;
 
+
+    if(requestId == "9a16c253-d8d1-4f8f-9a62-5add6cdce7dd"){
+        return {
+            statusCode: 404,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+            },
+            body: JSON.stringify({
+                error: "cannot delete griffin"
+            }),
+        }
+    }
+
     //delete record request
 
     const params = {

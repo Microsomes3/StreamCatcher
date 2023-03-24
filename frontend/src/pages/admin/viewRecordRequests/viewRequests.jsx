@@ -45,6 +45,20 @@ function recordRequests() {
         fetchRequests(username, setAllRequests, setIsLoading);
     }, [])
 
+    const [filteredRequests, setFilteredRequests] = useState([])
+
+
+    useEffect(() => {
+        
+        //filter using .createdAt
+
+        const filtered = allRequests.sort((a, b) => {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        })
+
+        setFilteredRequests(filtered)
+
+    }, [allRequests])
 
     return (
         <div className='bg-black min-h-screen '>
@@ -64,36 +78,38 @@ function recordRequests() {
         </div>
       )}
 
+<div className='flex flex-col sm:flex-row py-12'>
+  <Link to={'/addrecordrequest/'+username}>
+    <div className='py-2 pl-4 sm:pl-12'>
+      <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'>
+        Add Record Request
+      </button>
+    </div>
+  </Link>
+  
+  <div className='py-2 pl-4 sm:pl-12'>
+    <button onClick={() => fetchRequests(username, setAllRequests, setIsLoading)} className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded'>
+      Refresh
+    </button>
+  </div>
 
-           <Link to={'/addrecordrequest/'+username}> <div className='py-2 pl-12 mt-6'>
-                <button
-                    className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
-                >
-                    Add Record Request
-                </button>
-            </div></Link>
+  <div className='py-2 pl-4 sm:pl-12'>
+    <Link to={'/recordings/'+username}>
+      <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md'>
+        View All Recordings
+      </button>
+    </Link>
+  </div>
 
-          <div className='pl-12'>
-                <button
-                onClick={() => fetchRequests(username, setAllRequests, setIsLoading)}
-                    className='bg-red-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded'
-                >
-                    Refresh
-                </button>
-            </div>
+  <div className='py-2 pl-4 sm:pl-12'>
+    <Link to={'/'}>
+      <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md'>
+        Back to Youtubers Status
+      </button>
+    </Link>
+  </div>
+</div>
 
-            <div class="pl-12 py-2">
-                <Link to={'/recordings/'+username} ><button  className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
-                    View All Recordings
-                </button></Link>
-            </div>
-            
-
-            <div class="pl-12 py-1">
-                <Link to={'/'} ><button  className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
-                    Back to Youtubers Status
-                </button></Link>
-            </div>
 
             <div className='pl-12 pr-12'>
 
@@ -106,25 +122,24 @@ function recordRequests() {
                         <thead>
                             <tr>
                                 <th className='border border-white'>Username</th>
-                                <th className='border border-white'>RequestId</th>
                                 <th className='border border-white'>Created</th>
                                 <th className='border border-white'>duration</th>
-                                <th className='border border-white'>minruntime</th>
-                                <th className='border border-white'>maxparts</th>
+                                <th className='border border-white'> Label </th>
+                        
                                 <th className='border border-white'>View Recordings</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {allRequests.map((request) => {
+                            {filteredRequests.map((request) => {
                                 return (
                                     <tr className='text-center' key={request.id}>
                                         <td className='border border-white'>{request.username}</td>
-                                        <td className='border border-white'>{request.id}</td>
                                         <td className='border border-white text-center'>{request.friendlyCreatedAt}</td>
                                         <td className='border border-white'>{request.duration} ({Math.floor(request.duration/3600*60)} minutes)</td>
-                                        <td className='border border-white'>{request.minruntime}</td>
-                                        <td className='border border-white'>{request.maxparts}</td>
+
+                                        <td className='border border-white'>{request.label || 'no-label'}</td>
+                          
                                         <tr className=' border border-white flex justify-center p-2 '>
                                             <Link to={'/viewrecordings/'+request.id+'/'+request.username}><button className='bg-white rounded-md text-black px-2 py-1'>View Recordings</button></Link>
                                         </tr>

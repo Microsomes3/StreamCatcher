@@ -277,7 +277,13 @@ functions:
           path: /GetAllRecordingsByRequestID/{requestId}
           method: get
           cors: true
-          
+  GetRecordingsByUsername:
+    handler: recordingsByUsername.handler
+    events:
+      - http:
+          path: /GetRecordingsByUsername/{username}
+          method: get
+          cors: true
   KillRecording:
     handler: killRecording.handler
     events:
