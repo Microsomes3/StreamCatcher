@@ -8,7 +8,8 @@ const checkMultiLive= async (usernames) => {
     try {
         browser = await puppeteer.launch({
             args:['--no-sandbox', '--disable-setuid-sandbox'],
-            headless: false
+            headless: true,
+            userDataDir: "./data"
         });
 
         const page = await browser.newPage();
@@ -40,9 +41,16 @@ const checkMultiLive= async (usernames) => {
                     return false;
                 }
             });
+
+            console.log("cookie:",isCookie);
     
             if (isCookie) {
-                await page.click(".SGW9xe");
+                await page.click("#yDmH0d > c-wiz > div > div > div > div.NIoIEf > div.G4njw > div.qqtRac > div.VtwTSb > form:nth-child(3) > div > div > button > div.VfPpkd-RLmnJb");
+
+                await page.waitForTimeout(1000);
+                await page.waitForNavigation({
+                    waitUntil: "networkidle2"
+                });
             }
 
             const isLive = await page.evaluate(() => {
@@ -63,10 +71,27 @@ const checkMultiLive= async (usernames) => {
                 }
             })
 
+            var viewers = 0;
+
+            try{
+
+                viewers = await page.evaluate(() => {
+                    try{
+                        return document.querySelector("#metadata-line > span").innerText
+                    }catch(e){
+                        return 0;
+                    }
+                })
+
+            }catch(e){
+                console.log(e);
+            }
+
             toReturn.push({
                 username: usernames[i],
                 isLive: isLive,
-                liveLink: liveLink
+                liveLink: liveLink,
+                viewers: viewers
             })
         }catch(e){
             console.log(e);

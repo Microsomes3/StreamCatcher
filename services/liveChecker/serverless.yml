@@ -250,6 +250,13 @@ functions:
       - http:
           path: /testMulti
           method: get
+  ManualLiveEvent:
+    handler: getManualLiveEvent.handler
+    events:
+      - http:
+          path: /manualLiveEvent/{username}
+          method: post
+          cors: true
   
 plugins:
   - serverless-prune-plugin
