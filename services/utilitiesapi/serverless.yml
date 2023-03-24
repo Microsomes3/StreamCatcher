@@ -7,16 +7,16 @@ provider:
 
 
 
-layers:
-  ytdlp:
-    path: ./yt-dlp_linux
-    description: youtube-dlp
-    compatibleRuntimes:
-      - nodejs12.x
-      - nodejs14.x
-      - nodejs16.x
-      - nodejs18.x
-    licenseInfo: MIT
+# layers:
+#   ytdlp:
+#     path: ./yt-dlp_linux
+#     description: youtube-dlp
+#     compatibleRuntimes:
+#       - nodejs12.x
+#       - nodejs14.x
+#       - nodejs16.x
+#       - nodejs18.x
+#     licenseInfo: MIT
 
 functions:
   GetLiveIndex:
@@ -24,7 +24,7 @@ functions:
     memorySize: 256
     timeout: 30
     layers:
-      - arn:aws:lambda:us-east-1:574134043875:layer:ytdlp:5	
+      - arn:aws:lambda:us-east-1:574134043875:layer:ytdlp:10
     events:
       - http:
           path: /getLiveIndex/{youtubeurl}

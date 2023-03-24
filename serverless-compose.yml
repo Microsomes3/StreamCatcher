@@ -37,3 +37,6 @@ services:
     params:
       recordRequestUrl: ${recordRequests.ServiceEndpoint}/recordRequest/
       recordRequestTable: ${recordRequests.RecordRequestTable}
+
+  youtubedownloader:
+    path: services/youtubedownloader
