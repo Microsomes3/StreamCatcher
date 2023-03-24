@@ -9,11 +9,39 @@ function TYTable() {
   const [searchTerm, setSearchTerm] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(false);
 
+  const [tableSortMode, setTableSortMode] = useState('live');
+  
+
+  const [filteredYoutubers, setFilteredYoutubers] = useState([]);
 
   // Filter the youtubers array based on the search term
-  const filteredYoutubers = youtubers.filter((youtuber) => {
-    return youtuber.username.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  // const filteredYoutubers = youtubers.filter((youtuber) => {
+  //   return youtuber.username.toLowerCase().includes(searchTerm.toLowerCase());
+  // });
+
+
+  useEffect(() => {
+
+    const sortedYoutubers = [...youtubers];
+
+
+    const allLive = sortedYoutubers.filter((youtuber) => {
+      return youtuber.islive === true;
+    });
+
+    const allOffline = sortedYoutubers.filter((youtuber) => {
+      return youtuber.islive === false;
+    });
+
+    if(tableSortMode === 'live'){
+     setFilteredYoutubers(allLive)
+    }else if(tableSortMode === 'offline'){
+      setFilteredYoutubers(allOffline)
+    }
+
+
+  
+  }, [tableSortMode, youtubers, searchTerm])
 
 
   //sort by isLive
@@ -68,7 +96,17 @@ function TYTable() {
   return (
     <div className=' mt-6 pb-24'>
 
-      <div className='flex  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>       
+<div className='flex justify-between items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>
+  <div className='flex space-x-3'>
+    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'live' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('live') }}>Live</button>
+    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'offline' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('offline') }}>Offline</button>
+  </div>
+  <div className='flex space-x-3'>
+    <div className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Total Record Requests: {totalRecordRequests}</div>
+  </div>
+</div>
+
+      <div className='flex mt-6  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>       
 
       <button className='hidden md:block bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded' onClick={() => { setAutoRefresh(!autoRefresh) }}>AutoRefresh:{autoRefresh ? 'On' : 'Off'}</button>
 

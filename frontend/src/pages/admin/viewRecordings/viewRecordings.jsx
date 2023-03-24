@@ -21,6 +21,9 @@ function ViewAllRecordings() {
 
     const [allStatuses, setAllStatuses] = useState([]);
 
+
+    const { filter = "old" } = useParams();
+
     useEffect(() => {
         axios.get(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetAllRecordingsByRequestID/${rqid}`)
             .then((data) => {
@@ -28,6 +31,19 @@ function ViewAllRecordings() {
             });
     }, [rqid,tableMode]);
 
+
+    useEffect(()=>{
+
+        if(filter == "all"){
+            axios("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetRecordingsByUsername/"+username)
+            .then((d)=>{
+                setAllRecordings(d.data.results)
+            })
+        }
+
+    },[
+        filter
+    ])
 
     useEffect(()=>{
        const t = setTimeout(()=>{
@@ -75,14 +91,17 @@ function ViewAllRecordings() {
         <div className='bg-black min-h-screen'>
 
             <div className="h-12 flex items-center justify-center bg-white">
-                <p className="font-bold text-center">View all Recordings: {username}</p>
+                <p className="font-bold text-center">View {filter == "old"? "request":"all"} Recordings: {username}</p>
             </div>
 
+     
+
+            {filter =="old"?
             <div class="py-2 mt-6 pl-12">
                 <button onClick={(e)=> handleRequestDownload(rqid, setAllStatuses)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
                     Request Download Now
                 </button>
-            </div>
+            </div>:<div></div>}
 
             <div class="pl-12 py-2">
                 <button onClick={(e)=> location.reload()} className="bg-green-600 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
@@ -96,7 +115,7 @@ function ViewAllRecordings() {
                 </button></Link>
             </div>
 
-            <div class="relative inline-block w-64 px-12">
+            {filter =="old"? <div class="relative inline-block w-64 px-12">
                 <select value={tableMode}  onChange={(e)=>{
                     setTableMode(e.target.value);
 
@@ -108,7 +127,7 @@ function ViewAllRecordings() {
                     <option value={'statuses'}>Statuses</option>
                 </select>
 
-            </div>
+            </div>:<div></div>}
 
 
             <div className='pl-12 pr-12'>

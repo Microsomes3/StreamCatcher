@@ -94,7 +94,7 @@ function recordRequests() {
   </div>
 
   <div className='py-2 pl-4 sm:pl-12'>
-    <Link to={'/recordings/'+username}>
+    <Link to={'/recordings/'+username+'/all'}>
       <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md'>
         View All Recordings
       </button>

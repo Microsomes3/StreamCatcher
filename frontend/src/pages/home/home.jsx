@@ -9,7 +9,7 @@ function Home() {
           If you would like to add a channel, or a callback please login or sign up.
         </div>
 
-        <div className='border-2 border-white md:mx-6 md:my-6 rounded-md'>
+        <div className=' border-white md:mx-6 md:my-6 rounded-md'>
         <YTTable />
         </div>
       </div>
