@@ -276,7 +276,7 @@ function manageUploadST(params, region) {
 
         const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
 
-        console.log({ channel, timeout, bucket, region })
+        console.log({ channel, timeout, bucket, region, isComments })
 
         const isLive = await mustCheckLive(channel);
 
