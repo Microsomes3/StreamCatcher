@@ -69,6 +69,55 @@ provider:
       Resource: "*"
   
 
+resources:
+  Resources:
+    TaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      # Add policies as needed for your specific use case
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+    ExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::574134043875:policy/CFFULL
+    EC2Task:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: !Sub ${AWS::StackName}-EC2Task
+        Cpu: 512
+        Memory: 1024
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-EC2Task
+            Image: public.ecr.aws/m8l7i2c5/griffin:latest
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: completionCallbackUrl
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
 functions:
   checkSchedule:
     handler: src/checkSchedule.handler

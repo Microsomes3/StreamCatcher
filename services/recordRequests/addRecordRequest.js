@@ -17,7 +17,7 @@ function uuidv4() {
 module.exports.handler = async (event) => {
     const {username, duration, from, to, trigger, maxparts, minruntime, isComments, label} = JSON.parse(event.body);
 
-    if (!username || !duration || !from || !to || !trigger, !maxparts || !minruntime || !isComments || !label) {
+    if (!username || !duration || !from || !to || !trigger, !maxparts || !minruntime || !label) {
         return {
             statusCode: 400,
             body: JSON.stringify({

@@ -240,8 +240,6 @@ functions:
           bucket: !Ref RecordInputBucket
           event: s3:ObjectCreated:*
           existing: true
-          rules:
-            - suffix: .mp4
   GetRecordingByRecordId:
     handler: getRecordingByRecordId.handler
     events:

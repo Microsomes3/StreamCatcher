@@ -23,6 +23,8 @@ xvfbProcess.on("close", (code) => {
 
 var browser = null;
 
+var mergeCommentsId = null;
+
 async function fetchComments({url}) {
   browser = await puppeteer.launch({
     headless: false,
@@ -45,6 +47,7 @@ async function fetchComments({url}) {
   const allDonations = [];
 
   // Set a timeout to stop capturing comments after 10 seconds
+  
 
   // Create a Promise that resolves when isCapturingComments becomes false
   const commentsPromise = new Promise((resolve, reject) => {
@@ -76,13 +79,27 @@ async function fetchComments({url}) {
         console.log("capturedComments:", comments.length);
         console.log("capturedDonations:", donations.length);
 
-        console.log(comments[0])
 
-        allComments.push(comments);
+        
+         comments.forEach(comment => {
+        const isDuplicate = allComments.some(c => c.id === comment.id);
+        if (!isDuplicate) {
+          allComments.push(comment);
+        }
+      });
+
+        
         allDonations.push(donations);
+        
+        
+        
+        
 
         await page.waitForTimeout(30000);
       }
+
+  
+
 
       console.log("done capturing");
 
@@ -96,6 +113,8 @@ async function fetchComments({url}) {
 
 async function stopCapturingComments() {
   isCapturingComments = false;
+  
+  
   await browser.close();
   xvfbProcess.kill(); // Kill the Xvfb process when the browser is closed
   return 1;

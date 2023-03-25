@@ -45,6 +45,8 @@ function makeRecordRequest({ requestId }) {
             
             const channel = data.Item.username
 
+            const isComments = data.Item.isComments || false
+
 
             if (!data.Item) {
                 reject({
@@ -119,9 +121,13 @@ function makeRecordRequest({ requestId }) {
                                 {
                                     name:"timeout",
                                     value: timeout
-
+                                },
+                                {
+                                    name: "isComments",
+                                    value: isComments.toString()
                                 }
                             ]
+
                         },
                     ],
                 },
