@@ -24,13 +24,9 @@ function ViewAllRecordings() {
 
     const { filter = "old" } = useParams();
 
-    useEffect(() => {
-        axios.get(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetAllRecordingsByRequestID/${rqid}`)
-            .then((data) => {
-                setAllRecordings(data.data.results);
-            });
-    }, [rqid,tableMode]);
+    const [isLoading, setIsLoading] = useState(true);
 
+  
 
     useEffect(()=>{
 
@@ -38,11 +34,21 @@ function ViewAllRecordings() {
             axios("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetRecordingsByUsername/"+username)
             .then((d)=>{
                 setAllRecordings(d.data.results)
+                setIsLoading(false)
+
             })
+        }else{
+            axios.get(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetAllRecordingsByRequestID/${rqid}`)
+            .then((data) => {
+                setAllRecordings(data.data.results);
+                setIsLoading(false)
+
+            });
         }
 
+
     },[
-        filter
+        filter,rqid,tableMode
     ])
 
     useEffect(()=>{
@@ -132,6 +138,11 @@ function ViewAllRecordings() {
 
             <div className='pl-12 pr-12'>
                 <div className="overflow-x-auto text-white">
+
+                {isLoading && <div className='text-white text-2xl mt-12'>
+                    <p className='animate animate-pulse'>Loading</p>
+                    </div>}
+
                 {allRecordings.length === 0 && <div className='text-white text-2xl mt-12'>No Recordings for this request</div>}
                 
                 {(allStatuses.length >0 && tableMode == "statuses") &&  <StatusesTable statuses={allStatuses} ></StatusesTable>} 

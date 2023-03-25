@@ -34,10 +34,23 @@ function TYTable() {
     });
 
     if(tableSortMode === 'live'){
-     setFilteredYoutubers(allLive)
+      const filteredLive = allLive.filter((youtuber) => {
+        return youtuber.username.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+     setFilteredYoutubers(filteredLive)
     }else if(tableSortMode === 'offline'){
-      setFilteredYoutubers(allOffline)
+
+      const filteredOffline = allOffline.filter((youtuber) => {
+        return youtuber.username.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+
+      setFilteredYoutubers(filteredOffline)
     }
+
+
+    //filter by search term
+
+   
 
 
   
@@ -96,15 +109,7 @@ function TYTable() {
   return (
     <div className=' mt-6 pb-24'>
 
-<div className='flex justify-between items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>
-  <div className='flex space-x-3'>
-    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'live' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('live') }}>Live</button>
-    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'offline' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('offline') }}>Offline</button>
-  </div>
-  <div className='flex space-x-3'>
-    <div className='bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>Total Record Requests: {totalRecordRequests}</div>
-  </div>
-</div>
+
 
       <div className='flex mt-6  justify-end space-x-3  items-center h-6 pl-2 text-white ml-12 mr-12 bg-black rounded-tl-md rounded-tr-md'>       
 
@@ -134,6 +139,8 @@ function TYTable() {
           </button>
         </div>
 
+        
+
        
 
 
@@ -149,16 +156,18 @@ function TYTable() {
         </div>
       )}
 
+      
+
       <div className='overflow-x-auto ml-12 mr-12'>
 
      
-        <div className='px-2 py-2'>
-        <p className='text-sm'>Tip: Click on youtuber to open all record requests</p>
-        </div>
+   
 
-        <div>
-          <p className='text-sm px-2'>Total Record Requests: {totalRecordRequests}</p>
-        </div>
+  <div className='flex space-x-3'>
+    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'live' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('live') }}>Live</button>
+    <button className={`bg-black rounded-md z-10 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${tableSortMode === 'offline' ? 'bg-blue-700' : ''}`} onClick={() => { setTableSortMode('offline') }}>Offline</button>
+  </div>
+  
 
         
 
