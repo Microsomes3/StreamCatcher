@@ -64,7 +64,7 @@ function AddYoutuber() {
     return (
         <div className="bg-black h-screen">
             <div className="h-12 flex items-center justify-center bg-white">
-                <p className="font-bold">Add Record Requests</p>
+                <p className="font-bold">Add Record Schedule for {username}</p>
             </div>
            
             <div className="flex  justify-center mt-8">
@@ -84,35 +84,57 @@ function AddYoutuber() {
     ))}
   </select>
 
-  <label htmlFor="duration" className="text-white font-bold mb-2">
-    Duration:
-</label>
+  <div className="duration-input hidden md:block">
+    <label htmlFor="duration" className="text-white font-bold mb-2">
+        Duration:
+    </label>
 
+    <div className="relative w-full">
+        <input
+            type="range"
+            id="duration"
+            name="duration"
+            min="15" // minimum duration of 30 minutes in seconds
+            max="21600" // maximum duration of 6 hours in seconds
+            value={duration}
+            onChange={(event) => setDuration(event.target.value)}
+            className="absolute w-full h-2 opacity-0"
+        />
+        <div className="h-2 bg-gray-700 rounded-full">
+            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${((duration - 1800) / 19800) * 100}%` }}></div>
+        </div>
 
-<div className="relative w-full">
-    <input
-        type="range"
-        id="duration"
-        name="duration"
-        min="15" // minimum duration of 30 minutes in seconds
-        max="21600" // maximum duration of 6 hours in seconds
-        value={duration}
-        onChange={(event) => setDuration(event.target.value)}
-        className="absolute w-full h-2 opacity-0"
-    />
-    <div className="h-2 bg-gray-700 rounded-full">
-        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${((duration - 1800) / 19800) * 100}%` }}></div>
+        <div className="text-white text-xs w-52 flex justify-between mt-1">
+            <span>15 sec</span>
+            <span>6 hours</span>
+        </div>
+
+       
     </div>
+</div>
 
-    <div className="text-white text-xs flex justify-between mt-1">
-        <span>15 sec</span>
-        <span>6 hours</span>
-    </div>
+<div className='mt-5 flex flex-col space-x-3'>
+    <label className='text-white px-2 text-sm pb-2 pl-3 font-bold'>Duration (seconds)</label>
+    <input value={duration} onChange={(e)=>{
 
-    <div className="text-white text-xs flex justify-between mt-1">
-        <span>{duration} seconds</span>
-        <span>{Math.floor(duration / 60)} minutes</span>
-    </div>
+        //make sure it's a number
+        if(isNaN(e.target.value)){
+            return;
+        }
+
+        //make sure it's not less than 15 seconds
+        // if(e.target.value < 15){
+        //     return;
+        // }
+
+        //make sure it's not more than 6 hours
+        if(e.target.value > 21600){
+            return;
+        }
+
+        setDuration(e.target.value);
+    }} className='rounded-md pl-2' placeholder='seconds...' type='text'>
+    </input>
 </div>
 
 <div className="flex mt-6 flex-col items-start">

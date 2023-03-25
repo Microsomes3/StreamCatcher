@@ -11,9 +11,13 @@ import DashboardHome from './pages/dashboard/home'
 import ViewRecordRequests from './pages/admin/viewRecordRequests/viewRequests'
 import AddYoutuber from './pages/admin/addYoutuberToTrack/addyoutuber'
 import AddRecordRequest from './pages/admin/addRecordRequest/addRecordRequest'
-import ViewAllRecordings from './pages/admin/viewRecordings/viewRecordings'
+import ViewAllRecordings from './pages/admin/viewRecordingsForRequests/viewRecordings'
 
 import ViewGlobalStatuses from './pages/admin/viewglobalstatuses/viewStatuses'
+
+import ViewAllRecordingsByUsername from './pages/admin/viewAllRecordingsUsername/viewAllRecordingsUsername'
+
+import LandingPage from './pages/landing/landing'
 
 import { AuthProvider } from './pages/auth/authwatch'
 
@@ -30,7 +34,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
     <BrowserRouter>
       <Routes>
-      <Route  path='/' element={<Home />} />
+      <Route  path='/' element={<LandingPage />} />
+      <Route path='/demo' element={<Home />} />
       <Route path='/auth' element={<SignUp />} />
       <Route path='/dashboard' element={<DashboardHome></DashboardHome>} ></Route>
       <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
@@ -39,7 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
       <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
-      <Route path='/recordings/:username/:filter' element={<ViewAllRecordings></ViewAllRecordings>} />
+      <Route path='/recordings/:username/:filter' element={<ViewAllRecordingsByUsername></ViewAllRecordingsByUsername>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

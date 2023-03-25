@@ -250,13 +250,23 @@ functions:
       - http:
           path: /testMulti
           method: get
-  ManualLiveEvent:
-    handler: getManualLiveEvent.handler
+  GetStatusFromYoutube:
+    handler: getLiveStatusFromYoutube.handler
+    memorySize: 1024
+    timeout: 30
     events:
       - http:
-          path: /manualLiveEvent/{username}
-          method: post
+          path: /getLiveStatusFromYoutube/{username}
+          method: get
           cors: true
+          
+  # ManualLiveEvent:
+  #   handler: getManualLiveEvent.handler
+  #   events:
+  #     - http:
+  #         path: /manualLiveEvent/{username}
+  #         method: post
+  #         cors: true
   
 plugins:
   - serverless-prune-plugin

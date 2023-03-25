@@ -4,7 +4,7 @@ import axios from 'axios';
 
 import moment from 'moment';
 
-import StatusTable from '../viewRecordings/components/statusesTable/statusTable'
+import StatusTable from '../viewRecordingsForRequests/components/statusesTable/statusTable'
 
 import {useParams} from 'react-router-dom'
 

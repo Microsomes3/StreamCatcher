@@ -69,46 +69,38 @@ function Navigation() {
 
 
   return (
-    <nav className={`flex justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-black text-white'} py-4 md:px-6 lg:px-8  flex flex-col`}>
-      <div className="pl-3 text-2xl md:text-3xl font-bold">
-        <a href="/" onClick={handleHomeClick}>Stream Catcher</a>
-      </div>
-      <div className="mt-2 space-x-5">
-        <button
-          onClick={handleDarkModeClick}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-        >
-          {isDarkMode ? "Light Mode" : "Dark Mode"}
-        </button>
-
-        {!isLogin && (
+    <nav className={`flex flex-wrap justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-black text-white'} py-4 md:px-6 lg:px-8`}>
+    <div className="pl-3 text-2xl md:text-3xl font-bold">
+      <a href="/" onClick={handleHomeClick}>Stream Catcher</a>
+    </div>
+    
+    <div className="mt-2 md:ml-auto flex items-center">
+      {!isLogin && (
         <button
           onClick={() => window.location.href = "/dashboard"}
-          className="bg-blue-500 ml-6 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-4"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-4"
         >
           Dashboard
         </button>
       )}
-       
-      
-        {!isLogin ? (
-          <button
-            onClick={handleLogoutClick}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded md:ml-4"
-          >
-            Logout ({userEmail})
-          </button>
-        ) : (
-
-          <button
-            onClick={handleLoginClick}
-            className="bg-blue-500 m-2 md:my-0 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-          >
-            Login/Up
-          </button>
-        )}
-      </div>
-    </nav>
+      {!isLogin ? (
+        <button
+          onClick={handleLogoutClick}
+          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded md:ml-4"
+        >
+          Logout ({userEmail})
+        </button>
+      ) : (
+        <button
+          onClick={handleLoginClick}
+          className="bg-blue-500 ml-6 md:ml-2 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Login/Up
+        </button>
+      )}
+    </div>
+  </nav>
+  
   );
 }
 
