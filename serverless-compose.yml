@@ -11,6 +11,8 @@ services:
 
   utilitiesapi:
     path: services/utilitiesapi
+    params:
+      ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
 
   liveChecker:
     path: services/liveChecker
@@ -40,3 +42,6 @@ services:
 
   youtubedownloader:
     path: services/youtubedownloader
+
+  ytdlp_layer:
+    path: services/ytdlp_layer

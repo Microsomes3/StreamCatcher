@@ -199,7 +199,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
         for (var i = 0; i < parts; i++) {
 
             try {
-                const indexData = await axios.post("https://aov1nrki8l.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/" + videoId);
+                const indexData = await axios.post(process.env.getIndexapi + videoId);
                 const indexUrl = indexData.data.index;
                 const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
             } catch (e) {

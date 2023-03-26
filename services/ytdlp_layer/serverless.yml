@@ -1,0 +1,16 @@
+service: ytdlp-layer-service
+
+provider:
+  name: aws
+
+layers:
+  ytdlp:
+    path: ./yt-dlp_linux
+    description: youtube-dlp
+    compatibleRuntimes:
+      - nodejs12.x
+      - nodejs14.x
+      - nodejs16.x
+      - nodejs18.x
+    licenseInfo: MIT
+    
