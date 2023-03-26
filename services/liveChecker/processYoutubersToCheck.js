@@ -1,10 +1,6 @@
 const aws = require("aws-sdk");
 const moment = require("moment");
-const axios = require("axios");
-
-const { checkMultiLive } = require('./helpers/checkLive');
-
-const { getAllCallbacks } = require("./helpers/getAllCallbacks.js");
+const { getLiveStatusv2 } = require('./helpers/checkLivev2')
 
 
 const documentWriter = new aws.DynamoDB.DocumentClient({
@@ -18,91 +14,65 @@ function uuidv4() {
     });
 }
 
-function processLiveStatus(liveStatus) {
-    return new Promise(async (resolve, reject) => {
-        try {
+// function processLiveStatus(liveStatus) {
+//     return new Promise(async (resolve, reject) => {
+//         try {
 
-            const username = liveStatus.username;
+//         const params = {
+//             TableName: process.env.LIVE_CHECKER_TABLE,
+//             Item: {
+//                 id: uuidv4(),
+//                 createdAt: moment().unix(),
+//                 updatedAt: moment().unix(),
+//                 channel: liveStatus.username,
+//                 status: JSON.stringify(liveStatus),
+//                 isLive: liveStatus.isLive,
+//                 liveLink: liveStatus.liveLink,
+//             },
+//         };
 
-            if (liveStatus.isLive) {
-                const callbacks = await getAllCallbacks(username);
+//         await documentWriter.put(params).promise();
 
-                for (let i = 0; i < callbacks.results.length; i++) {
-
-                    const curl = callbacks.results[i].callbackUrl;
-
-                    await axios.post(curl, {
-                        username: username,
-                        isLive: liveStatus.isLive,
-                        liveStatus: liveStatus,
-                    }, {
-                        timeout: 7000,
-                    }).catch((err) => {
-                        console.log(err);
-                    }
-                    );
-                }
+//     })
+// }
 
 
-            }
-        } catch (e) {
 
-            console.log("error", e);
-        }
-
-        const params = {
-            TableName: process.env.LIVE_CHECKER_TABLE,
-            Item: {
-                id: uuidv4(),
-                createdAt: moment().unix(),
-                updatedAt: moment().unix(),
-                channel: liveStatus.username,
-                status: JSON.stringify(liveStatus),
-                isLive: liveStatus.isLive,
-                liveLink: liveStatus.liveLink,
-            },
-        };
-
-        await documentWriter.put(params).promise();
-
+function handleFunc(username){
+    return new Promise((resolve,reject)=>{
+        const ex = "/opt/yt-dlp_linux";
+        getLiveStatusv2("yt-dlp", username).then((res)=>{
+           resolve(res)
+        }).catch((e)=>{
+            resolve(false)
+        })
     })
 }
 
-
-function sendRecordServiceCallback(liveStatus) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            axios.post(process.env.CALLBACK_FOR_RECORD_SERVICE, {
-                username: liveStatus.username,
-                isLive: liveStatus.isLive,
-                liveStatus: liveStatus,
-            });
-            resolve();
-        } catch (e) {
-            console.log(e);
-            reject(e);
-        }
-    })
-}
 
 module.exports.processYoutubersToCheck = async (event) => {
 
-    const liveStatuses = await checkMultiLive([
-        event.Records[0].body
-    ]);
+    const usernameToCheck = event.Records[0].body;
 
-    console.log(liveStatuses);
+    const result = await handleFunc(usernameToCheck);
 
-    const tr= liveStatuses[0];
-
-    console.log(tr);
-
+    var status = result == true ?  true:false
     
+    const params = {
+        TableName: process.env.LIVE_CHECKER_TABLE,
+        Item: {
+            id: uuidv4(),
+            createdAt: moment().unix(),
+            updatedAt: moment().unix(),
+            channel: usernameToCheck,
+            status: JSON.stringify(result),
+            isLive: status,
+            liveLink: "https://youtube.com/"+usernameToCheck+"/live",
+        },
+    };
 
-    await sendRecordServiceCallback(tr);
-        await processLiveStatus(tr);
+    await documentWriter.put(params).promise();
     
-
     return {
         statusCode: 200,
         body: JSON.stringify({
