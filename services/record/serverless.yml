@@ -18,6 +18,7 @@ provider:
     RecordAutoRecordTable: !Ref RecordAutoRecordTable
     DISCORD_BOT_TOKEN: ${env:DISCORD_BOT_TOKEN}
     DISCORD_CHANNEL_ID: ${env:DISCORD_CHANNEL_ID}
+    AUTO_SCHEDULE_QUEUE: !ImportValue AutoScheduleQueueUrl
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -86,6 +87,10 @@ provider:
       Action:
         - dynamodb:*
       Resource:  arn:aws:dynamodb:us-east-1:574134043875:table/RecordStatuses/index/friendly-date-index
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:  "*"
 
 
 resources:
@@ -301,18 +306,6 @@ functions:
     events:
       - http:
           path: /RecordCompleteCallback
-          method: post
-          cors: true
-  RecordByRequestIDAdhoc:
-    handler: RecordByRequestIDAdhoc.handler
-    iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - ecs:*
-        Resource: "*"
-    events:
-      - http:
-          path: /RecordByRequestIDAdhoc/{requestid}
           method: post
           cors: true
       

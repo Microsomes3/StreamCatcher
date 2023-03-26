@@ -97,9 +97,11 @@ function ViewAllRecordings() {
 
 
     function handleRequestDownload(rqid, setAllStatuses){
-        axios.post(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordByRequestIDAdhoc/${rqid}`)
+      setIsLoading(true);
+        axios.post(`https://c3z399rsmd.execute-api.us-east-1.amazonaws.com/dev/RecordByRequestIDAdhoc/${rqid}`)
             .then((data) => {
                 console.log(data)
+                setIsLoading(false);
                 alert("Request Sent, please check back in a few minutes")
                 handleGetAllStatuses({rqid, setAllStatuses});
             }).catch((err) => {
@@ -156,13 +158,13 @@ function ViewAllRecordings() {
       </div>
 
       {requestDetails!=null ?
-      <div className='bg-gray-800 rounded-md p-12 ml-12 mr-12 mt-6'>
-        <p className='text-sm text-white'>Request Description.</p>
-              
-              <p className='text-white'>This record request will record <span className='text-2xl'>{requestDetails.username}</span> youtube channel for around {requestDetails.duration} seconds, the comments {requestDetails.isComments ? 'will be captured':'will not be captured'}</p>
+  <div className='bg-gray-800 rounded-md p-12 ml-12 mr-12 mt-6 hidden sm:block'>
+    <p className='text-sm text-white'>Request Description.</p>
+          
+    <p className='text-white'>This record request will record <span className='text-2xl'>{requestDetails.username}</span> youtube channel for around {requestDetails.duration} seconds, the comments {requestDetails.isComments ? 'will be captured':'will not be captured'}</p>
+  </div>
+  :<div></div>}
 
-      </div>
-      :<div></div>}
     
       <div className='pl-4 pr-4 md:pl-12 md:pr-12'>
         <div className="overflow-x-auto text-white">

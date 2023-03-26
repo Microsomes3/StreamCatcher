@@ -36,21 +36,16 @@ function handleFunc(){
         var allResponses = [];
     
         for(let i=0; i<flattenRecordRequests.length; i++){
-           const params = {
-                TableName: process.env.AUTO_RECORD_TABLE || 'RecordAutoRecordTable',
+           
+            const params = {
+                TableName: process.env.AUTO_SCHEDULE_TABLEV2,
                 Item: {
-                    id: uuidv4(),
-                    recordrequestid: flattenRecordRequests[i].id,
-                    username: flattenRecordRequests[i].username,
-                    date: moment().format('YYYY-MM-DD'),
-                    recordid:-1,
-                    request: flattenRecordRequests[i],
-                    status:"pending",
-                    livelink: "--"
+                    "recordrequestid": flattenRecordRequests[i].id,
+                    "date": moment().format('YYYY-MM-DD'),
                 }
-           }
-    
-             const l = await documentClient.put(params).promise();
+            };
+            
+            const l = await documentClient.put(params).promise();
     
              const param = {
                 MessageBody: JSON.stringify({

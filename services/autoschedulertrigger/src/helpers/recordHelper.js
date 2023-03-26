@@ -36,40 +36,28 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
     requestID,
     date
 }){
-    return new Promise((resolve,reject)=>{
+    return new Promise(async (resolve,reject)=>{
 
-        const params = {
-            TableName: process.env.AUTO_RECORD_TABLE || 'RecordAutoRecordTable',
-            IndexName: process.env.AUTO_RECORD_DATE_INDEX || 'date-index',
-            KeyConditionExpression: "#d = :date",
-            ExpressionAttributeNames: {
-                "#d": "date"
-            },
-            ExpressionAttributeValues: {
-                ":date": date
-            }
-        }
+            const params = {
+                TableName: process.env.AUTO_SCHEDULE_TABLEV2 || 'griffin-autoscheduler-service-dev-AutoScheduleV2Table-1OQJML172K83Y',
+                Key: {
+                    "recordrequestid": requestID,
+                    "date": date,
+                },
+                ConsistentRead: true
+            };
 
-        const data = documentClient.query(params).promise();
 
-        data.then((results)=>{
-            const items = results.Items || [];
-            const found = items.filter((item)=>{
-                return item.recordrequestid == requestID;
-            });
+        const data = await documentClient.get(params).promise();
 
-            if(found.length > 0){
-                resolve(true);
-                return;
-            }
+        resolve(data.Item ? true : false);
 
-            resolve(false);
-        }).catch((e)=>{
-            console.log(e);
-            resolve(false);
-        })
+        
     })
 }
+
+
+
 
 function checkWhichRequestsShouldTrigger({
     requests

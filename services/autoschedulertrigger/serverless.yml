@@ -17,6 +17,7 @@ provider:
     EC2_TASK_DEFINITION: !Ref EC2Task
     AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
     CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
+    AUTO_SCHEDULE_TABLEV2: !Ref AutoScheduleV2Table
 
   
   iamRoleStatements:
@@ -77,10 +78,28 @@ provider:
         - sqs:DeleteMessage
         - sqs:GetQueueUrl
       Resource: !GetAtt AutoScheduleQueue.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt AutoScheduleV2Table.Arn
   
 
 resources:
   Resources:
+    AutoScheduleV2Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: recordrequestid
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: recordrequestid
+            KeyType: HASH
+          - AttributeName: date
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
     
     LogsGroup:
       Type: AWS::Logs::LogGroup
@@ -175,6 +194,14 @@ functions:
               - AutoScheduleQueue
               - Arn
           batchSize: 1
+  TriggerAdhocRecord:
+    handler: src/RecordByRequestIDAdhoc.handler
+    timeout: 45
+    events:
+      - http:
+          path: RecordByRequestIDAdhoc/{recordrequestid}
+          method: post
+          cors: true
 
 
 custom:

@@ -1,11 +1,13 @@
-const chromium = require('chrome-aws-lambda');
 
+
+var isLocal = true;
 
 const checkMultiLive= async (usernames) => {
     let browser = null;
     var toReturn = [];
 
-    try {
+    if(!isLocal){
+        const chromium = require('chrome-aws-lambda');
         browser = await chromium.puppeteer.launch({
             args: chromium.args,
             defaultViewport: chromium.defaultViewport,
@@ -13,13 +15,24 @@ const checkMultiLive= async (usernames) => {
             headless: chromium.headless,
             ignoreHTTPSErrors: true,
         });
+    }else{
+        const puppeteer = require('puppeteer');
+        browser = await puppeteer.launch({
+            executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            headless: false,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            ignoreHTTPSErrors: true,
+        });
+    }
 
+    try {
+        
         const page = await browser.newPage();
         
         await page.setRequestInterception(true);
 
         page.on('request', (request) => {
-            if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1) {
+            if ([ 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1) {
                 request.abort();
             } else {
                 request.continue();
@@ -30,7 +43,7 @@ const checkMultiLive= async (usernames) => {
 
             try{
             
-            await page.goto('https://youtube.com/'+usernames[i],{
+            await page.goto('https://youtube.com/'+usernames[i]+"/live",{
                 waitUntil: "networkidle2"
             });
 
@@ -44,8 +57,14 @@ const checkMultiLive= async (usernames) => {
                 }
             });
     
+           
             if (isCookie) {
-                await page.click(".SGW9xe");
+                await page.click("#yDmH0d > c-wiz > div > div > div > div.NIoIEf > div.G4njw > div.qqtRac > div.VtwTSb > form:nth-child(3) > div > div > button > div.VfPpkd-RLmnJb");
+
+                await page.waitForTimeout(1000);
+                await page.waitForNavigation({
+                    waitUntil: "networkidle2"
+                });
             }
 
             const isLive = await page.evaluate(() => {
@@ -79,7 +98,7 @@ const checkMultiLive= async (usernames) => {
         console.log(error);
     } finally {
         if (browser !== null) {
-            await browser.close();
+            // await browser.close();
         }
     }
 
