@@ -1,6 +1,6 @@
 const aws = require('aws-sdk');
 
-const { processRecordings } = require('./recordHelper')
+const { checkWhichRequestsShouldTrigger, markAsRecording } = require('./recordHelper')
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || 'us-east-1',
@@ -8,7 +8,6 @@ const documentClient = new aws.DynamoDB.DocumentClient({
 
 function getAllRecordRequestsByUsername(username){
     return new Promise((resolve,reject)=>{
-
         try{
 
             const params = {
@@ -33,7 +32,7 @@ function getAllRecordRequestsByUsername(username){
 }
 
 
-function checkScheduleC(){
+function getAllRecordRequestsToSchedule(){
     return new Promise(async (resolve,reject)=>{
         try{
 
@@ -46,60 +45,65 @@ function checkScheduleC(){
 
     const liveYoutubers = data.Items;
 
-    //filter islive
-
     const liveYoutubersFiltered = liveYoutubers.filter((youtuber) => {
         return youtuber.isLive === true;
     });
 
-    const allData = [];
+
+    var allLiveUsernamesAndTheirRequests = [];
     
     for(let i=0; i<liveYoutubersFiltered.length; i++){
         const username = liveYoutubersFiltered[i].youtubeusername;
         const livelink = liveYoutubersFiltered[i].liveLink;
         const requests = await getAllRecordRequestsByUsername(username);
 
-        allData.push({
+        allLiveUsernamesAndTheirRequests.push({
             username,
             livelink,
             requests: requests.Items || []
         })  
     }
 
-    var allDs = [];
+    //filter and remove all usernames that do not have any record requests
+    allLiveUsernamesAndTheirRequests = allLiveUsernamesAndTheirRequests.filter((d)=>{
+        return d.requests.length > 0;
+    })
 
+    var allRecordRequestsToTrigger = [];
 
-    for(let i=0; i<allData.length; i++){
-        const username = allData[i].username;
-        const livelink = allData[i].livelink;
-        const requests = allData[i].requests;
-
-        console.log(allData);
+    for(let i=0; i<allLiveUsernamesAndTheirRequests.length; i++){
+        const username = allLiveUsernamesAndTheirRequests[i].username;
+        const livelink = allLiveUsernamesAndTheirRequests[i].livelink;
+        const requests = allLiveUsernamesAndTheirRequests[i].requests;
 
 
         console.log("checking for", username );
         console.log("requests to check", requests.length );
 
-        const d = await processRecordings({
+        const requestsToTrigger = await checkWhichRequestsShouldTrigger({
             username,
             livelink,
             requests
         });
 
-        allDs.push(d);
+      
+        allRecordRequestsToTrigger.push(requestsToTrigger);
 
     }
 
-    resolve(allDs);
+    console.log(allRecordRequestsToTrigger);
+
+
+    resolve(allRecordRequestsToTrigger);
 
 
         }catch(err){
-            reject(err);
+            reject([]);
         }
     })
 }
 
 
 module.exports = {
-    checkScheduleC
+    getAllRecordRequestsToSchedule
 }

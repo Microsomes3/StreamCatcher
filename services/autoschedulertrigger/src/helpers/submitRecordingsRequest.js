@@ -61,29 +61,6 @@ function makeRecordRequest({ requestId }) {
                 });
             }
 
-            var ecsName = null;
-
-
-            try {
-
-                const dsscribeStack = {
-                    StackName: sname
-                };
-
-                const stackDef = await cloudformation.describeStacks(dsscribeStack).promise();
-
-                if(stackDef.Stacks[0].StackStatus == "CREATE_IN_PROGRESS"){
-                    reject("Stack is still being created, please try again in a few minutes.");
-                    return;
-                }else{
-
-                ecsName = stackDef.$response.data.Stacks[0].Outputs[0].OutputValue;
-                }
-
-            } catch (e) {
-                reject(e);
-            }
-
 
             //ecs run task with ecsname task definition
             const ecs = new aws.ECS({
@@ -94,14 +71,18 @@ function makeRecordRequest({ requestId }) {
 
             const ecsparams = {
                 cluster: "griffin-record-cluster",
-                taskDefinition: ecsName,
+                taskDefinition: process.env.EC2_TASK_DEFINITION,
                 launchType: "FARGATE",
                 //extra env vars
                 overrides: {
                     containerOverrides: [
                         {
-                            name: "griffin-record",
+                            name: "griffin-autoscheduler-service-dev-EC2Task",
                             environment: [
+                                {
+                                    name:'channel',
+                                    value: channel
+                                },
                                 {
                                     name: "RECORD_REQUEST_ID",
                                     value: requestId

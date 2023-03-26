@@ -32,82 +32,68 @@ function getAllAutoRecordsByCurrentDate(){
     })
 }
 
-function processRecordings({
-    username,
-    livelink,
+function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
+    requestID,
+    date
+}){
+    return new Promise((resolve,reject)=>{
+
+        const params = {
+            TableName: process.env.AUTO_RECORD_TABLE || 'RecordAutoRecordTable',
+            IndexName: process.env.AUTO_RECORD_DATE_INDEX || 'date-index',
+            KeyConditionExpression: "#d = :date",
+            ExpressionAttributeNames: {
+                "#d": "date"
+            },
+            ExpressionAttributeValues: {
+                ":date": date
+            }
+        }
+
+        const data = documentClient.query(params).promise();
+
+        data.then((results)=>{
+            const items = results.Items || [];
+            const found = items.filter((item)=>{
+                return item.recordrequestid == requestID;
+            });
+
+            if(found.length > 0){
+                resolve(true);
+                return;
+            }
+
+            resolve(false);
+        }).catch((e)=>{
+            console.log(e);
+            resolve(false);
+        })
+    })
+}
+
+function checkWhichRequestsShouldTrigger({
     requests
 }){
     return new Promise(async (resolve,reject)=>{
 
-        //todo- check if a video has been already recorded,via the auto record table
-        // if so check the video status, see if it was successfull, otherwise launch again
+        var requestsToTrigger = [];
 
-
-        const allAutoRecordings =  await getAllAutoRecordsByCurrentDate();
-
-        console.log("allAutoRecordings", allAutoRecordings);
-
-        if(allAutoRecordings.length == 0) {
-            //save to record since we have no recordings for today
-
-            for(let i=0; i<requests.length; i++){
-                const request = requests[i];
-                await markAsRecording({
-                    username,
-                    livelink,
-                    request
-                });
-            }
-
-            resolve(true);
-            return;
-        }
-
-
-        const allMyRecordings = allAutoRecordings.filter((recording)=>{
-            return recording.username == username;
-        });
-
-        if(allMyRecordings.length == 0){
-            //save to record since we have no recordings for today
-
-            for(let i=0; i<requests.length; i++){
-                const request = requests[i];
-                await markAsRecording({
-                    username,
-                    livelink,
-                    request
-                });
-            }
-
-            resolve(true);
-            return;
-        }
-
-
-        for (let i = 0; i < requests.length; i++) {
+        for(var i=0; i<requests.length; i++){
             const request = requests[i];
-
-            const myRecordingsForThisRequest = allMyRecordings.filter((recording)=>{
-                return recording.request.id == request.id;
+           
+            const exists = await checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
+                requestID: request.id,
+                date: moment().format('YYYY-MM-DD')
             });
-
-            if(myRecordingsForThisRequest.length == 0){
-                //save to record since we have no recordings for today
-                try{
-                await markAsRecording({
-                    username,
-                    livelink,
-                    request
-                });
-            }catch(e){
-                console.log("wait try later");
+            
+            if(!exists){
+                requestsToTrigger.push(request);
             }
-
-            }
+            
         }
 
-        resolve(false);
+        resolve(requestsToTrigger);
+
     })
 }
 
@@ -153,6 +139,6 @@ function markAsRecording({
 
 
 module.exports = {
-    processRecordings,
+    checkWhichRequestsShouldTrigger,
     markAsRecording
 }

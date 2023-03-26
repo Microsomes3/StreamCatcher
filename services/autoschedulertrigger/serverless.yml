@@ -14,6 +14,9 @@ provider:
     RECORD_RECORD_USERNAME_INDEX: !ImportValue RecordRequestUsernameIndexName
     RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
     RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
+    EC2_TASK_DEFINITION: !Ref EC2Task
+    AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
+    CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
 
   
   iamRoleStatements:
@@ -67,10 +70,24 @@ provider:
       Action:
         - iam:*
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt AutoScheduleQueue.Arn
   
 
 resources:
   Resources:
+    
+    LogsGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /ecs/scrubdogz
+        RetentionInDays: 14
+
     TaskRole:
       Type: AWS::IAM::Role
       Properties:
@@ -103,29 +120,61 @@ resources:
     EC2Task:
       Type: AWS::ECS::TaskDefinition
       Properties:
-        Family: !Sub ${AWS::StackName}-EC2Task
+        Family: !Sub ${AWS::StackName}-EC2Task2
         Cpu: 512
         Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
         NetworkMode: awsvpc
         ExecutionRoleArn: !GetAtt ExecutionRole.Arn
         TaskRoleArn: !GetAtt TaskRole.Arn
         ContainerDefinitions:
           - Name: !Sub ${AWS::StackName}-EC2Task
-            Image: public.ecr.aws/m8l7i2c5/griffin:latest
+            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
             Essential: true
             Environment:
               - Name: AWS_REGION_T
                 Value: !Ref AWS::Region
               - Name: completionCallbackUrl
                 Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
+    AutoScheduleQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub ${AWS::StackName}-AutoScheduleQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+        ReceiveMessageWaitTimeSeconds: 20
+  Outputs:
+    AutoScheduleQueueUrl:
+      Value: !GetAtt AutoScheduleQueue.QueueUrl
+      Export:
+        Name: AutoScheduleQueueUrl
+    
+
 functions:
   checkSchedule:
     handler: src/checkSchedule.handler
     timeout: 45
     events:
       - schedule: rate(1 minute)
-plugins:
-  - serverless-prune-plugin
+  processSchduleTask:
+    handler: src/processScheduleTask.handler
+    timeout: 45
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - AutoScheduleQueue
+              - Arn
+          batchSize: 1
 
 
 custom:
