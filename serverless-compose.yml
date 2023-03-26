@@ -20,6 +20,8 @@ services:
       recordCallBackUrl: ${record.ServiceEndpoint}/CallBackReceivedLiveEvents
       recordRequestTable: ${recordRequests.RecordRequestTable}
       recordRequestTableArn: ${recordRequests.RecordRequestTableArn}
+      ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
+
 
   
   poobic:

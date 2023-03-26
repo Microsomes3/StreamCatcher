@@ -199,7 +199,9 @@ functions:
   ProcessYoutubersToCheckQueue:
     handler: processYoutubersToCheck.processYoutubersToCheck
     timeout: 90
-    memorySize: 750
+    memorySize: 200
+    layers:
+      - ${param:ytdlpArn}
     events:
       - sqs:
           arn:

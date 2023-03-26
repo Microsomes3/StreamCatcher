@@ -1,6 +1,6 @@
 
 
-var isLocal = true;
+var isLocal = false;
 
 const checkMultiLive= async (usernames) => {
     let browser = null;
