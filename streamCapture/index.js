@@ -287,16 +287,11 @@ function manageUploadST(params, region) {
         console.log("video id", videoId);
   
         const [downloadResult, comments] = await Promise.all([
-          isComments == true ? tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime,stopCapturingComments) : ()=>{
-            return new Promise((resolve,reject)=>{
-                resolve("trov");
-            })
-          },
+          tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime,stopCapturingComments),
           fetchComments({ url: "https://youtube.com/live_chat?is_popout=1&v=" + videoId })
         ]);
 
         //upload comments
-        if (isComments) {
             fs.writeFileSync("comments_g.json", JSON.stringify(comments));
             const fileStream = fs.createReadStream("comments_g.json");
             const d = moment().format("YYYY-MM-DD-HH-mm-ss");
@@ -310,7 +305,6 @@ function manageUploadST(params, region) {
             const loc = await manageUploadST(uploadParams, region);
 
             console.log("comments uploaded", loc);
-        }
   
         const { paths, status, reason } = downloadResult;
   
