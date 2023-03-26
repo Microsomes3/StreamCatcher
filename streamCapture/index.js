@@ -89,7 +89,7 @@ async function postUpdateToAPI() {
 
     try {
 
-        const c = await axios.put("https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress/"+process.env.RECORD_ID, {
+        const c = await axios.put(process.env.recordUpdateApi+"/"+process.env.RECORD_ID, {
             "currentRuntime": allRunetimes,
             "totalPartsRecorded": totalParts,
             "storageUsed": totalStorage,
@@ -199,7 +199,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
         for (var i = 0; i < parts; i++) {
 
             try {
-                const indexData = await axios.post(process.env.getIndexapi + videoId);
+                const indexData = await axios.post(process.env.getIndexapi +"/"+ process.env.channel);
                 const indexUrl = indexData.data.index;
                 const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
             } catch (e) {
@@ -277,6 +277,12 @@ function manageUploadST(params, region) {
 }
 
 (async () => {
+
+    //create videos folder if it doesn't exist
+    if (!fs.existsSync("videos")) {
+        fs.mkdirSync("videos");
+    }
+
     try {
       const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
       console.log({ channel, timeout, bucket, region, isComments })
@@ -346,6 +352,8 @@ function manageUploadST(params, region) {
         } catch (e) { }
       } else {
         console.log("NOT LIVE");
+        //kill
+        process.exit(0);
       }
   
       console.log(isLive)
@@ -353,6 +361,7 @@ function manageUploadST(params, region) {
       console.log(e);
     } finally {
       console.log("done")
+      process.exit(0);
     }
   })();
   

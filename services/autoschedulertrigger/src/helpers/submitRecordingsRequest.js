@@ -80,8 +80,12 @@ function makeRecordRequest({ requestId }) {
                             name: "griffin-autoscheduler-service-dev-EC2Task",
                             environment: [
                                 {
+                                    name:"recordUpdateApi",
+                                    value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress"
+                                },
+                                {
                                     name: "getIndexapi",
-                                    value: "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex/"
+                                    value: "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex"
                                 },
                                 {
                                     name:'channel',
