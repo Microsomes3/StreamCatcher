@@ -5,6 +5,8 @@ import { useParams, Link } from 'react-router-dom'
 
 import axios from 'axios'
 
+import moment from 'moment'
+
 function handleDeleteRequest(id, setAllRequests, username) {
 
 
@@ -61,7 +63,7 @@ function recordRequests() {
     }, [allRequests])
 
     return (
-        <div className='bg-black min-h-screen '>
+        <div className='bg-gray-800 min-h-screen '>
             <div className='h-12 bg-white flex items-center justify-center font-bold '>
                 <p>Record Schedules for: <span className='text-2xl font-extrabold'>{username}</span></p>
             </div>
@@ -113,7 +115,9 @@ function recordRequests() {
 </div>
 
 
-
+<div className='rounded-md ml-12 px-2 text-center mr-12 flex items-center justify-center text-3xl cursor-pointer bg-gray-700  text-white mt-6 h-52'>
+    We will record {allRequests.length} videos for {username}
+  </div>
 
 
             <div className='pl-12 pr-12'>
@@ -123,55 +127,30 @@ function recordRequests() {
                 {allRequests.length > 0 ?
                     <div className="overflow-x-auto">
 
-                        <table className='w-full table-auto text-white  mt-12'>
-                            <thead>
-                                <tr>
-                                    <th className='border border-white'>Username</th>
-                                    <th className='border border-white'>Created</th>
-                                    <th className='border border-white'>duration</th>
-                                    <th className='border border-white'> Label </th>
-                                    <th className='border border-white'> Capture Comments </th>
+{allRequests.length > 0 &&
+  filteredRequests.map((request) => (
+    <div className='rounded-md shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
+      <p className='font-bold'>{request.label}</p>
+      <p className='text-sm'>Will Record for {Math.floor(request.duration / 60)} minutes and {request.duration % 60} seconds everyday</p>
+      <p className='text-sm'>{request.friendlyCreatedAt}</p>
+    </div>
+  ))
 
-                                    <th className='border border-white'>View Recordings</th>
-                                </tr>
-                            </thead>
 
-                            <tbody>
-                                {filteredRequests.map((request) => {
-                                    return (
-                                        <tr className='text-center' key={request.id}>
-                                            <td className='border border-white'>{request.username}</td>
-                                            <td className='border border-white text-center'>{request.friendlyCreatedAt}</td>
-                                            <td className='border border-white'>{request.duration} ({Math.floor(request.duration / 3600 * 60)} minutes)</td>
+  }
 
 
 
-                                            <td className='border border-white'>{request.label || 'no-label'}</td>
-
-                                            <td className=' border border-white flex justify-center p-2 '>
-
-                                            {request.isComments === true ? <div className='bg-green-500 rounded-md text-white px-2 py-1'>Yes</div> : <div className='bg-red-500 rounded-md text-white px-2 py-1'>No</div>}
-
-                                            </td>
 
 
-                                            <td>
-                                                <tr className=' border border-white flex justify-center p-2 '>
-                                                    <Link to={'/viewrecordings/' + request.id + '/' + request.username}><button className='bg-white rounded-md text-black px-2 py-1'>View Recordings</button></Link>
-                                                </tr>
+
+                      
 
 
-                                                <tr className=' border border-white flex justify-center p-2 '>
-                                                    <button onClick={(e) => handleDeleteRequest(request.id, setAllRequests, username)} className='bg-white rounded-md text-black px-2 py-1'>Delete</button>
-                                                </tr>
-                                            </td>
 
-                                        </tr>
-                                    )
-                                }
-                                )}
-                            </tbody>
-                        </table>
+
+
+                     
                     </div>
                     : <div></div>}
 

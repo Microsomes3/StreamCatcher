@@ -34,10 +34,9 @@ function LandingPage() {
 
         setIsLoading(true);
 
-        axios.get("https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatusFromYoutube/"+username)
+        axios.get("https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveStatusFromYoutube/"+username)
         .then((data)=>{
-            setStreamInfo(data.data.data[0]);
-            console.log(">>",data.data[0])
+            setStreamInfo(data.data);
             setIsLoading(false);
         });
     }
@@ -67,10 +66,11 @@ function LandingPage() {
 
       <div className="mt-16 w-full max-w-lg flex flex-col items-center">
         <p className="text-sm">It takes around 12-15 seconds to capture the status, but try it out</p>
+       {streamInfo == null?
         <form onSubmit={(e)=>handleSubmit(e)} className="flex w-full">
           <input
             type="text"
-            placeholder="Enter YouTuber @username"
+            placeholder="Enter YouTuber @username to search"
             onChange={(e)=>handleUsernameChange(e)}
             value={username}
             className="w-full px-4 py-2 rounded-l-md border-t border-b border-l text-gray-900 border-gray-500 bg-white"
@@ -81,7 +81,7 @@ function LandingPage() {
             type="submit"
             className="px-4 py-2 rounded-r-md bg-blue-500 hover:bg-blue-600 text-white font-bold"
           >
-            Get Stream Info
+            Search
           </button>
             }
 
@@ -89,10 +89,26 @@ function LandingPage() {
             <p className="animate animate-pulse font-extrabold ml-2 ">Loading</p>
             }
 
-        </form>
+        </form>:<div></div>}
         
         {streamInfo!=null ?<div className="mt-4 px-4 py-2 rounded-md border border-gray-500 text-center w-full">
-            <p>{username} {streamInfo.isLive ? 'is live' : 'is offline'}</p>
+            <p>{username} {streamInfo.isLive ? 'is live wanna record?' : 'is offline'}</p>
+
+            <div className="space-x-3">
+             {streamInfo.isLive &&
+              <button onClick={(e)=> alert("working on")} className="bg-green-700 hover:bg-green-600 px-4 py-1 rounded-md">Record 30 Second Demo</button>
+              }
+
+              {streamInfo.isLive ==false &&
+                <p className="text-white px-3 mb-2">
+                  Register and set up an automatic recording for this YouTuber, when they go live, we will record the stream and send you a link to download it.
+                </p>
+              }
+
+              <button onClick={(e)=> setStreamInfo(null)} className="bg-red-700 hover:bg-red-600 px-4 py-1 rounded-md">Clear Results</button>
+
+            </div>
+        
         </div>:null}
 
       </div>
