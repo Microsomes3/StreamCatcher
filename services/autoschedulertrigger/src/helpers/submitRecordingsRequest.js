@@ -37,7 +37,15 @@ function makeRecordRequest({ requestId }) {
 
             const data = await documentWriter.get(params).promise();
 
-            const maxparts = data.Item.maxparts || 1;
+            var mp = 0;
+
+            try{
+
+                mp = data.Item.maxparts || 1
+
+            }catch(e){
+                mp=1;
+            }
 
             const minruntime = data.Item.minruntime || 1
 
@@ -101,7 +109,7 @@ function makeRecordRequest({ requestId }) {
                                 },
                                 {
                                     name: "parts",
-                                    value: maxparts.toString()
+                                    value: mp.toString()
                                 },
                                 {
                                     name: "minruntime",

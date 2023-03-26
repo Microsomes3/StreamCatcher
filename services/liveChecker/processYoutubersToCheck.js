@@ -41,7 +41,7 @@ function uuidv4() {
 function handleFunc(username){
     return new Promise((resolve,reject)=>{
         const ex = "/opt/yt-dlp_linux";
-        getLiveStatusv2("yt-dlp", username).then((res)=>{
+        getLiveStatusv2(ex, username).then((res)=>{
            resolve(res)
         }).catch((e)=>{
             resolve(false)
@@ -77,9 +77,7 @@ module.exports.processYoutubersToCheck = async (event) => {
         statusCode: 200,
         body: JSON.stringify({
             message: 'will callback',
-            liveStatus: liveStatuses,
-            allUsernames: tr,
-        }),
+        })
 
     }
 }
