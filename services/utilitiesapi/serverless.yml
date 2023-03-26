@@ -25,7 +25,7 @@ functions:
       - ${param:ytdlpArn}
     events:
       - http:
-          path: /getLiveIndex/{youtubeurl}
+          path: /getLiveIndex/{username}
           method: post
 plugins:
   - serverless-prune-plugin

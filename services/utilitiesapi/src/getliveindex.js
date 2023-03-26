@@ -3,9 +3,9 @@ const { getLiveIndex } = require('./helpers/getLiveindex')
 
 module.exports.handler = async (event) => {
 
-    var urll = event.pathParameters.youtubeurl;
+    var username = event.pathParameters.username;
    
-    const formattedUrl ="https://www.youtube.com/watch?v="+urll;
+    const formattedUrl = `https://youtube.com/${username}/live`;
     const ex="/opt/yt-dlp_linux";
     const c = await getLiveIndex(ex, formattedUrl);
 
