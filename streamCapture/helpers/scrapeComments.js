@@ -1,21 +1,17 @@
 const puppeteer = require("puppeteer");
 const moment = require("moment");
-const { spawn } = require("child_process");
+const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
+
 
 var isCapturingComments = true; // flag variable
 // Start Xvfb
-const xvfbProcess = spawn("Xvfb", [":99", "-screen", "0", "1024x768x16"]);
-xvfbProcess.stdout.on("data", (data) => {
-  console.log(`stdout: ${data}`);
-});
-xvfbProcess.stderr.on("data", (data) => {
-  console.error(`stderr: ${data}`);
-});
-xvfbProcess.on("close", (code) => {
-  console.log(`child process exited with code ${code}`);
-});
+
 
 var browser = null;
+
+const allComments = [];
+const allDonations = [];
+
 
 async function fetchComments({ url }) {
   try {
@@ -36,9 +32,6 @@ async function fetchComments({ url }) {
     await page.evaluate(() => {
       document.querySelector("#items > ytd-menu-service-item-renderer:nth-child(2) > tp-yt-paper-item > yt-formatted-string").click();
     });
-
-    const allComments = [];
-    const allDonations = [];
 
     // Set a timeout to stop capturing comments after 10 seconds
     // Create a Promise that resolves when isCapturingComments becomes false
@@ -84,9 +77,6 @@ async function fetchComments({ url }) {
           await page.waitForTimeout(5000);
         }
 
-
-
-
         console.log("done capturing");
 
         resolve({ allComments, allDonations });
@@ -110,11 +100,18 @@ async function fetchComments({ url }) {
 async function stopCapturingComments() {
   try {
     isCapturingComments = false;
-    await browser.close();
-    xvfbProcess.kill(); // Kill the Xvfb process when the browser is closed
-    return 1;
+    if (browser) {
+      await browser.close();
+    }
+    return {
+     allComments: allComments,
+      allDonations: allDonations
+    }
   } catch (e) {
-    return 0;
+    return {
+      allComments: allComments,
+      allDonations: allDonations
+    }
   }
 }
 

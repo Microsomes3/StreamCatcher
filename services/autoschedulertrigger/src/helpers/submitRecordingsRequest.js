@@ -55,6 +55,23 @@ function makeRecordRequest({ requestId }) {
 
             const isComments = data.Item.isComments == true ? "yes": "no";
 
+            const isRecordStart = data.Item.isRecordStart == true ? "yes": "no";
+
+
+            var storageToUse = 30;
+
+
+            if(channel == "@griffingaming"){
+                storageToUse = 50;
+            }
+
+            if(duration < 1500){
+                storageToUse = 20;
+            }
+
+            if(duration> 17000){
+                storageToUse = 50;
+            }
 
 
             if (!data.Item) {
@@ -123,8 +140,17 @@ function makeRecordRequest({ requestId }) {
                                 {
                                     name: "isComments",
                                     value: isComments
+                                },
+                                {
+                                    name: "isRecordStart",
+                                    value: isRecordStart
                                 }
-                            ]
+                            ],
+                            cpu: isComments == "yes" ? 512 : 256,
+                            memory: isComments == "yes" ? 1024 : 512,
+                            ephemeralStorage:{
+                                sizeInGiB:  storageToUse
+                            }
 
                         },
                     ],

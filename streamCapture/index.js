@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 
 const util = require('util');
 const moment = require("moment");
@@ -10,16 +10,22 @@ const { convertTimeoutTOMS } = require('./helpers/dateHelper')
 // const { getVideoRuntime } = require('./helpers/CalculateRuntimeHelper')
 const { mustCheckLive } = require('./helpers/checkLive')
 const { getAllRequiredInfoForTask } = require('./helpers/taskInfoHelper')
-
+const { getYoutubeLiveUrl } = require('./helpers/getYoutubeLIveUrl')
 const { fetchComments, stopCapturingComments } = require('./helpers/scrapeComments')
 
 var ffprobe = require('ffprobe'),
     ffprobeStatic = require('ffprobe-static');
 
-
-
-
-const { exec } = require("child_process");
+const xvfbProcess = spawn("Xvfb", [":99", "-screen", "0", "1024x768x16"]);
+xvfbProcess.stdout.on("data", (data) => {
+  console.log(`stdout: ${data}`);
+});
+xvfbProcess.stderr.on("data", (data) => {
+  console.error(`stderr: ${data}`);
+});
+xvfbProcess.on("close", (code) => {
+  console.log(`child process exited with code ${code}`);
+});
 
 async function getVideoRuntime(filePath) {
     return new Promise((resolve, reject) => {
@@ -97,7 +103,6 @@ async function postUpdateToAPI() {
         })
         message = c.data.message;
     } catch (e) {
-        console.log(e);
     }
 
     return {
@@ -236,13 +241,78 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
             reason = "success";
         }
 
-        await stopCommentCapture();
+       const comments = await stopCommentCapture();
 
         resolve({
             status: status,
             reason: reason,
-            paths: paths
+            paths: paths,
+            comments: comments.allComments
         })
+
+    })
+}
+
+function tryDownloadStart(channel,timeout,livetimeout,stopCapturingComments){
+    return new Promise((resolve,reject)=>{
+        const newT = convertTimeoutTOMS(timeout);
+
+        //if videos folder doesn't exist, create it
+        if(!fs.existsSync("videos")){
+            fs.mkdirSync("videos");
+        }
+
+        const url = `https://www.youtube.com/${channel}/live`;
+
+
+        const outputFolder = 'videos';
+        const ytldCommand = `yt-dlp --live-from-start -o ./${outputFolder}/%(title)s.%(ext)s" --merge-output-format mp4 ${url}`;
+
+
+        const child = spawn('yt-dlp', ytldCommand.split(' '), {
+            detached: true,
+            stdio: 'inherit'
+          });
+          
+          child.on('exit', async (code) => {
+            console.log(`yt-dlp process exited with code ${code}`);
+            
+            stopCapturingComments().then((comments)=>{
+                
+
+
+            //get all mp4 files in videos folder
+
+            const videos = fs.readdirSync("videos");
+
+            const visibleVideos = videos.filter((v) => {
+                const fileName = path.basename(v);
+                return !fileName.startsWith('.');
+            });
+
+            const paths = visibleVideos.map((v) => `videos/${v}`);
+
+        
+            resolve({
+                status: "success",
+                reason: "success",
+                paths: paths,
+                comments: comments.allComments
+            })
+
+            })
+
+          });
+          
+          const timeoutId = setTimeout(() => {
+            console.log('Timeout exceeded, stopping yt-dlp...');
+            process.kill(child.pid, 'SIGINT');
+          }, newT);
+
+          
+
+
+
 
     })
 }
@@ -284,16 +354,30 @@ function manageUploadST(params, region) {
     }
 
     try {
-        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart } = getAllRequiredInfoForTask();
         console.log({ channel, timeout, bucket, region, isComments })
 
         const isLive = await mustCheckLive(channel);
+
+    
         if (isLive.status) {
-            const videoId = isLive.link.split("?v=")[1];
+
+           const liveLink= await getYoutubeLiveUrl(isLive.link);
+
+            const videoId = liveLink.split("?v=")[1];
             console.log("video id", videoId);
 
-            const [downloadResult, comments] = await Promise.all([
-                tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments),
+            const [downloadResult,downloadResult2, commentsP] = await Promise.all([
+                isRecordStart == "yes" ? tryDownloadStart(channel,timeout,timeoutupdated,stopCapturingComments): ()=>{
+                    return new Promise((resolve,reject)=>{
+                        resolve()
+                    })
+                },
+                isRecordStart == "no" ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments):() => {
+                    return new Promise((resolve, reject) => {
+                        resolve()
+                    })
+                },
                 isComments == "yes" ? fetchComments({ url: "https://youtube.com/live_chat?is_popout=1&v=" + videoId }) : () => {
                     return new Promise((resolve, reject) => {
                         resolve()
@@ -301,8 +385,29 @@ function manageUploadST(params, region) {
                 }
             ]);
 
+            var paths = []
+            var status = ""
+            var reason = ""
+            var comments = []
+
+            if (isRecordStart == "yes") {
+                paths = downloadResult.paths;
+                status = downloadResult.status;
+                reason = downloadResult.reason;
+                comments = downloadResult.comments;
+            }else if(isRecordStart == "no"){
+                paths = downloadResult2.paths;
+                status = downloadResult2.status;
+                reason = downloadResult2.reason;
+                comments = downloadResult2.comments;
+            }
+            
 
             if (isComments == "yes") {
+
+                console.log(">>", comments);
+
+                try{
 
                 //upload comments
                 fs.writeFileSync("comments_g.json", JSON.stringify(comments));
@@ -318,9 +423,9 @@ function manageUploadST(params, region) {
                 const loc = await manageUploadST(uploadParams, region);
 
                 console.log("comments uploaded", loc);
+            }catch(e){}
             }
 
-            const { paths, status, reason } = downloadResult;
 
             const allLocs = [];
             for (var i = 0; i < paths.length; i++) {
@@ -331,7 +436,7 @@ function manageUploadST(params, region) {
                     Bucket: bucket,
                     Body: fileStream,
                     ContentType: "video/mp4",
-                    Key: channel + "____part___" + i + "___" + d + ".mp4"
+                    Key: process.env.RECORD_ID+"_"+channel + "____part___" + i + "___" + d + ".mp4"
                 };
 
                 const loc = await manageUploadST(uploadParams, region);

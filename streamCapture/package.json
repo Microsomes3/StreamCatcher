@@ -19,6 +19,7 @@
     "puppeteer": "^19.7.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-screen-recorder": "^2.1.2",
     "video-stitch": "^1.7.1"
   }
 }
