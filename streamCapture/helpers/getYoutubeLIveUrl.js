@@ -6,7 +6,9 @@ function getYoutubeLiveUrl(url){
         var browser = null;
 
         try{
-            browser = await puppeteer.launch({headless: false});
+            browser = await puppeteer.launch({headless: false,
+            args:["--no-sandbox","--disable-setuid-sandbox","--display=:99"]
+            });
             var page = await browser.newPage();
             
             await page.goto(url,{
@@ -42,6 +44,7 @@ function getYoutubeLiveUrl(url){
             resolve(liveLink)
 
         }catch(e){
+            console.log(e)
             resolve("https://www.youtube.com/watch?v=0")
         }
         finally{
