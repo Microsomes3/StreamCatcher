@@ -157,6 +157,15 @@ function recordRequests() {
       <p className='text-xs bg-red-700 text-white px-2 py-1 rounded-md'> Comments will not captured </p>
       }
 
+      {request.trigger == 'wheneverlive' &&
+        <p className='px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl'>Record Whenever Live</p>
+      }
+
+{request.trigger == 'specifictime' &&
+        <p className='px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl'>Record At Specific Time at around: {request.triggerTime}</p>
+      }
+
+
       <p className='text-sm'>Click to view recordings</p>
     </div></Link>
   ))

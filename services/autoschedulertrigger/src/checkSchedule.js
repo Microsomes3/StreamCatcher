@@ -21,6 +21,27 @@ function uuidv4() {
     );
 }
 
+function getRecordRequestById(id){
+    return new Promise(async (resolve,reject)=>{
+        try{
+
+            const params = {
+                TableName: process.env.RECORD_REQUEST_TABLE || "RecordRequestTable",
+                Key: {
+                    id
+                }
+            }
+            const results = await documentClient.get(params).promise();
+            resolve(results.Item || {});
+
+        }catch(e){
+            console.log(e);
+            reject({});
+        }
+
+    })
+}
+
 
 function handleFunc(){
     return new Promise(async (resolve,reject)=>{
@@ -44,7 +65,7 @@ function handleFunc(){
                     "date": moment().format('YYYY-MM-DD'),
                     "time": moment().format('HH:mm:ss'),
                     "hour": moment().format('HH'),
-                    "minute": moment().format('mm'),
+                    "minute": moment().format('mm')
                 }
             };
             
@@ -52,8 +73,7 @@ function handleFunc(){
     
              const param = {
                 MessageBody: JSON.stringify({
-                    ...flattenRecordRequests[i],
-                    autoRecordId: l.id,
+                    ...flattenRecordRequests[i]
                 }),
                 QueueUrl: process.env.AUTO_SCHEDULE_QUEUE_URL,
             }
