@@ -80,6 +80,18 @@ function recordRequests() {
   )}
 
   <div className='flex flex-col sm:flex-row py-4'>
+  
+    <Link to={'/recordings/' + username + '/all'} className='mb-2 sm:mb-0'>
+      <div className='py-2 pl-4 sm:pl-8'>
+      
+        <Link to={'/demo'}>
+          <button className='bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md w-full sm:w-auto'>
+            Back to YouTubers Status
+          </button>
+        </Link>
+      </div>
+    </Link>
+
     <Link to={'/addrecordrequest/' + username} className='mb-2 sm:mb-0'>
       <div className='py-2 pl-4 sm:pl-8'>
         <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto'>
@@ -87,15 +99,13 @@ function recordRequests() {
         </button>
       </div>
     </Link>
-    <Link to={'/recordings/' + username + '/all'} className='mb-2 sm:mb-0'>
-      <div className='py-2 pl-4 sm:pl-8'>
-        <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md w-full sm:w-auto'>
+    
+    <div className='py-2 pl-4 sm:pl-8 space-x-3 ml-auto flex'>
+    <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md w-full sm:w-auto'>
           View All Recordings
         </button>
-      </div>
-    </Link>
-    <div className='py-2 pl-4 sm:pl-8 ml-auto flex'>
       <div className='pr-4'>
+        
         <button
           onClick={() => fetchRequests(username, setAllRequests, setIsLoading)}
           className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto'
@@ -104,11 +114,7 @@ function recordRequests() {
         </button>
       </div>
       <div>
-        <Link to={'/demo'}>
-          <button className='bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md w-full sm:w-auto'>
-            Back to YouTubers Status
-          </button>
-        </Link>
+     
       </div>
     </div>
   </div>
@@ -129,11 +135,12 @@ function recordRequests() {
 
 {allRequests.length > 0 &&
   filteredRequests.map((request) => (
-    <div className='rounded-md shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
+  <Link to={'/viewrecordings/'+request.id+'/'+username}>  <div className='rounded-md shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
       <p className='font-bold'>{request.label}</p>
       <p className='text-sm'>Will Record for {Math.floor(request.duration / 60)} minutes and {request.duration % 60} seconds everyday</p>
       <p className='text-sm'>{request.friendlyCreatedAt}</p>
-    </div>
+      <p className='text-sm'>Click to view recordings</p>
+    </div></Link>
   ))
 
 

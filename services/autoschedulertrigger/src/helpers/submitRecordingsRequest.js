@@ -30,32 +30,45 @@ function makeRecordRequest({ requestId }) {
 
             const data = await documentWriter.get(params).promise();
 
-            const { maxparts, duration, minruntime, isRecordStart = false,isComments = false, username} = data.Item;
+            if (!data.Item) {
+                reject({
+                  statusCode: 404,
+                  headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Credentials": true,
+                  },
+                  body: JSON.stringify({
+                    error: "Record not found!"
+                  }),
+                });
+              }              
 
-          
-           console.log({
+            const { maxparts, duration, minruntime, isRecordStart = false, isComments = false, username } = data.Item;
+
+
+            console.log({
                 maxparts,
                 duration,
                 minruntime,
                 isRecordStart,
                 isComments,
                 username,
-           })
+            })
 
 
-        
+
             var storageToUse = 30;
 
 
-            if(username == "@griffingaming"){
+            if (username == "@griffingaming") {
                 storageToUse = 50;
             }
 
-            if(duration < 1500){
+            if (duration < 1500) {
                 storageToUse = 20;
             }
 
-            if(duration> 17000){
+            if (duration > 17000) {
                 storageToUse = 50;
             }
 
@@ -81,7 +94,7 @@ function makeRecordRequest({ requestId }) {
 
             const uniqueRecordId = uuidv4();
 
-           
+
 
             const ecsparams = {
                 cluster: "griffin-record-cluster",
@@ -94,7 +107,7 @@ function makeRecordRequest({ requestId }) {
                             name: "griffin-autoscheduler-service-dev-EC2Task",
                             environment: [
                                 {
-                                    name:"recordUpdateApi",
+                                    name: "recordUpdateApi",
                                     value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress"
                                 },
                                 {
@@ -102,7 +115,7 @@ function makeRecordRequest({ requestId }) {
                                     value: "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex"
                                 },
                                 {
-                                    name:'channel',
+                                    name: 'channel',
                                     value: username
                                 },
                                 {
@@ -114,23 +127,23 @@ function makeRecordRequest({ requestId }) {
                                     value: uniqueRecordId
                                 },
                                 {
-                                    name:"isComments",
+                                    name: "isComments",
                                     value: isComments == true ? "yes" : "no"
                                 },
                                 {
-                                    name:"isRecordStart",
+                                    name: "isRecordStart",
                                     value: isRecordStart == true ? "yes" : "no"
                                 },
                                 {
-                                    name:"timeout",
-                                    value: duration.toString()+"s"
+                                    name: "timeout",
+                                    value: duration.toString() + "s"
                                 },
                                 {
-                                    name:"maxparts",
+                                    name: "maxparts",
                                     value: maxparts.toString()
                                 },
                                 {
-                                    name:"minruntime",
+                                    name: "minruntime",
                                     value: minruntime.toString()
                                 }
                             ],
@@ -147,7 +160,7 @@ function makeRecordRequest({ requestId }) {
                         assignPublicIp: "ENABLED",
                     }
                 },
-                tags:[
+                tags: [
                     {
                         key: "recordid",
                         value: uniqueRecordId
@@ -157,7 +170,7 @@ function makeRecordRequest({ requestId }) {
 
             // console.log(ecsparams.overrides.containerOverrides[0].environment);
 
-           
+
             const ecsdata = await ecs.runTask(ecsparams).promise();
 
             const taskArn = ecsdata.tasks[0].taskArn;
@@ -175,7 +188,7 @@ function makeRecordRequest({ requestId }) {
                     timestarted: moment().unix(),
                     timeended: null,
                     createdAt: new Date().getTime(),
-                    progressState:{
+                    progressState: {
                         currentRecordedRunTime: 0,
                         totalParts: 0,
                         storageUsed: 0,
@@ -185,6 +198,25 @@ function makeRecordRequest({ requestId }) {
             };
 
             await documentWriter.put(paramsStatuses).promise();
+
+            try {
+                const addRecordTablePending = {
+                    TableName: process.env.RECORD_TABLE || 'RecordTable',
+                    Item: {
+                        id: uniqueRecordId,
+                        recordrequestid: requestId,
+                        date: moment().format("YYYY-MM-DD"),
+                        keys: [],
+                        username: username,
+                        status: "pending",
+                        createdAt: new Date().getTime(),
+                    },
+                };
+
+                await documentWriter.put(addRecordTablePending).promise();
+            } catch (e) {
+                console.log(e);
+             }
 
             resolve({
                 statusCode: 200,

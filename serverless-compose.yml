@@ -7,6 +7,8 @@ services:
       - record
       - liveChecker
       - recordRequests
+    params:
+      record_table_arn: ${record.RecordTableArn}
 
 
   utilitiesapi:

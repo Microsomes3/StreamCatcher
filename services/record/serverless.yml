@@ -95,6 +95,10 @@ provider:
 
 resources:
   Outputs:
+    RecordTableArn:
+      Value: !GetAtt RecordTable.Arn
+      Export:
+        Name: RecordTableArn
     RecordBucket:
       Value: !Ref RecordInputBucket
       Export:

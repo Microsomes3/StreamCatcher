@@ -82,6 +82,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: !GetAtt AutoScheduleV2Table.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: ${param:record_table_arn}
   
 
 resources:

@@ -96,6 +96,12 @@ function ViewAllRecordings() {
     }, [rqid,tableMode]);
 
 
+    useEffect(()=>{
+      //store tablemode in localstorage
+      localStorage.setItem("tableMode",tableMode)
+    },[tableMode])
+
+
     function handleRequestDownload(rqid, setAllStatuses){
       setIsLoading(true);
         axios.post(`https://c3z399rsmd.execute-api.us-east-1.amazonaws.com/dev/RecordByRequestIDAdhoc/${rqid}`)
@@ -103,7 +109,9 @@ function ViewAllRecordings() {
                 console.log(data)
                 setIsLoading(false);
                 alert("Request Sent, please check back in a few minutes")
+                //change  tablemdoe to statuses
                 handleGetAllStatuses({rqid, setAllStatuses});
+              
             }).catch((err) => {
                 console.log(err)
                 alert("try again in a few minutes")
@@ -120,12 +128,12 @@ function ViewAllRecordings() {
       <div className='px-2 mt-12 mx-2 py-3 rounded-md bg-gray-800'>
         {filter === "old" && (
           <div className="flex flex-col md:flex-row items-center justify-between md:px-12">
-            <button
-              onClick={() => handleRequestDownload(rqid, setAllStatuses)}
-              className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-md mb-4 md:mb-0 md:mr-4"
-            >
-              Request Download Now
-            </button>
+             <Link to={'/requests/'+username}>
+                <button className="bg-red-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
+                  Back to Record Requests
+                </button>
+              </Link>
+           
             <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
               <button
                 onClick={() => location.reload()}
@@ -133,12 +141,14 @@ function ViewAllRecordings() {
               >
                 Refresh
               </button>
-              <Link to={'/requests/'+username}>
-                <button className="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
-                  Back to Record Requests
-                </button>
-              </Link>
-              <div className="relative inline-block w-64">
+              <button
+              onClick={() => handleRequestDownload(rqid, setAllStatuses)}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-md mb-4 md:mb-0 md:mr-4"
+            >
+              Request Download Now
+            </button>
+             
+              {/* <div className="relative inline-block w-64">
                 <select
                   value={tableMode}
                   onChange={(e) => {
@@ -151,7 +161,7 @@ function ViewAllRecordings() {
                   <option value="recordings">Recordings</option>
                   <option value="statuses">Statuses</option>
                 </select>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

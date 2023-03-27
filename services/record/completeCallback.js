@@ -42,6 +42,7 @@ module.exports.handler = async (event) => {
             recordrequestid:requestId,
             date: moment().format("YYYY-MM-DD"),
             keys: keys,
+            status: "completed",
             username:"use request id to find out",
             createdAt: new Date().getTime(),
         },

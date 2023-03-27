@@ -42,6 +42,9 @@ function handleFunc(){
                 Item: {
                     "recordrequestid": flattenRecordRequests[i].id,
                     "date": moment().format('YYYY-MM-DD'),
+                    "time": moment().format('HH:mm:ss'),
+                    "hour": moment().format('HH'),
+                    "minute": moment().format('mm'),
                 }
             };
             

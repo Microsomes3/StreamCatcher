@@ -167,7 +167,7 @@ function TYTable() {
 
     <div className="px-4 mb-6">
     <input
-      className="w-full h-12 px-4 text-black rounded-md text-white bg-white dark:bg-gray-800"
+      className="w-full h-12 px-4  rounded-md text-white bg-gray-800"
       type="text"
       placeholder="Search... @griffin"
       onChange={(event) => { setSearchTerm(event.target.value) }}
@@ -184,7 +184,7 @@ function TYTable() {
      
      <Link
      to={`/requests/${youtuber.username}`}
-     ><div key={youtuber.username} className="bg-white cursor-pointer hover:bg-gray-700 hover:scale-90  dark:bg-gray-800  rounded-md shadow mb-4">
+     ><div key={youtuber.username} className=" cursor-pointer hover:bg-gray-700 hover:scale-90 bg-gray-800  rounded-md shadow mb-4">
          
         <div className="px-4 py-3 flex justify-between items-center">
           

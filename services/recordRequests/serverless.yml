@@ -97,15 +97,15 @@ functions:
   HandleEventsFromECS:
     handler: HandleEventFromEcs.handler
 
-  ProcessCreateTask:
-    handler: processCreateTaskFromRDQueue.handler
-    events:
-      - sqs:
-          arn:
-            Fn::GetAtt:
-              - ProcessTaskCreationQueue
-              - Arn
-          batchSize: 1
+  # ProcessCreateTask:
+  #   handler: processCreateTaskFromRDQueue.handler
+  #   events:
+  #     - sqs:
+  #         arn:
+  #           Fn::GetAtt:
+  #             - ProcessTaskCreationQueue
+  #             - Arn
+  #         batchSize: 1
   OnRecordRequestCreate:
     handler: OnRecordRequestCreate.handler
     events:
