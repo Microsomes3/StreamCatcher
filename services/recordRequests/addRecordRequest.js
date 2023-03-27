@@ -133,6 +133,7 @@ module.exports.handler = async (event) => {
             isComments,
             isRecordStart: false,
             label,
+            triggerTime
         },
     };
 
