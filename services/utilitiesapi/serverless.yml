@@ -16,6 +16,7 @@ functions:
       - http:
           path: /getLiveStatusFromYoutube/{username}
           method: get
+          cors: true
     
   GetLiveIndex:
     handler: src/getliveindex.handler
@@ -27,6 +28,7 @@ functions:
       - http:
           path: /getLiveIndex/{username}
           method: post
+          cors: true
 plugins:
   - serverless-prune-plugin
 

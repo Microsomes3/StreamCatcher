@@ -30,19 +30,19 @@ async function getVideoRuntime(filePath) {
                     storage: 1
                 });
 
-                try{
-                const d = info.streams[0].duration
-                const s = fs.statSync(filePath).size;
-                resolve({
-                    duration: d,
-                    storage: s
-                });
-            }catch(e){
-                resolve({
-                    duration: 1,
-                    storage: 1
-                });
-            }
+                try {
+                    const d = info.streams[0].duration
+                    const s = fs.statSync(filePath).size;
+                    resolve({
+                        duration: d,
+                        storage: s
+                    });
+                } catch (e) {
+                    resolve({
+                        duration: 1,
+                        storage: 1
+                    });
+                }
             });
         } catch (error) {
             resolve({
@@ -89,7 +89,7 @@ async function postUpdateToAPI() {
 
     try {
 
-        const c = await axios.put(process.env.recordUpdateApi+"/"+process.env.RECORD_ID, {
+        const c = await axios.put(process.env.recordUpdateApi + "/" + process.env.RECORD_ID, {
             "currentRuntime": allRunetimes,
             "totalPartsRecorded": totalParts,
             "storageUsed": totalStorage,
@@ -98,7 +98,7 @@ async function postUpdateToAPI() {
         message = c.data.message;
     } catch (e) {
         console.log(e);
-     }
+    }
 
     return {
         message: message
@@ -110,7 +110,7 @@ async function postUpdateToAPI() {
 function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
     console.log("trying to download", url, output, timeout, livetimeout, partNo)
     return new Promise((resolve, reject) => {
-        const child = spawn('ffmpeg', ['-i', url,'-r','30', '-c', 'copy', output]);
+        const child = spawn('ffmpeg', ['-i', url, '-r', '30', '-c', 'copy', output]);
 
         //create videos folder if it doesn't exist
         if (!fs.existsSync("videos")) {
@@ -163,9 +163,9 @@ function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
             clearTimeout(timeoutId);
             clearInterval(checkLastFileAdded);
 
-            try{
-            await postUpdateToAPI();
-            }catch(e){}
+            try {
+                await postUpdateToAPI();
+            } catch (e) { }
 
             clearInterval(progressUpdate);
 
@@ -199,7 +199,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
         for (var i = 0; i < parts; i++) {
 
             try {
-                const indexData = await axios.post(process.env.getIndexapi +"/"+ process.env.channel);
+                const indexData = await axios.post(process.env.getIndexapi + "/" + process.env.channel);
                 const indexUrl = indexData.data.index;
                 const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
             } catch (e) {
@@ -284,84 +284,91 @@ function manageUploadST(params, region) {
     }
 
     try {
-      const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
-      console.log({ channel, timeout, bucket, region, isComments })
-  
-      const isLive = await mustCheckLive(channel);
-      if (isLive.status) {
-        const videoId = isLive.link.split("?v=")[1];
-        console.log("video id", videoId);
-  
-        const [downloadResult, comments] = await Promise.all([
-          tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime,stopCapturingComments),
-          fetchComments({ url: "https://youtube.com/live_chat?is_popout=1&v=" + videoId })
-        ]);
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments } = getAllRequiredInfoForTask();
+        console.log({ channel, timeout, bucket, region, isComments })
 
-        //upload comments
-            fs.writeFileSync("comments_g.json", JSON.stringify(comments));
-            const fileStream = fs.createReadStream("comments_g.json");
-            const d = moment().format("YYYY-MM-DD-HH-mm-ss");
-            const uploadParams = {
-                Bucket: bucket,
-                Body: fileStream,
-                ContentType: "application/json",
-                Key: process.env.RECORD_ID + "____comments___" + d + ".json"
-            };
-  
-            const loc = await manageUploadST(uploadParams, region);
+        const isLive = await mustCheckLive(channel);
+        if (isLive.status) {
+            const videoId = isLive.link.split("?v=")[1];
+            console.log("video id", videoId);
 
-            console.log("comments uploaded", loc);
-  
-        const { paths, status, reason } = downloadResult;
-  
-        const allLocs = [];
-        for (var i = 0; i < paths.length; i++) {
-          const fileStream = fs.createReadStream(paths[i]);
-          const d = moment().format("YYYY-MM-DD-HH-mm-ss");
-  
-          const uploadParams = {
-            Bucket: bucket,
-            Body: fileStream,
-            ContentType: "video/mp4",
-            Key: channel + "____part___" + i + "___" + d + ".mp4"
-          };
-  
-          const loc = await manageUploadST(uploadParams, region);
-          allLocs.push(loc);
+            const [downloadResult, comments] = await Promise.all([
+                tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments),
+                isComments == "yes" ? fetchComments({ url: "https://youtube.com/live_chat?is_popout=1&v=" + videoId }) : () => {
+                    return new Promise((resolve, reject) => {
+                        resolve()
+                    })
+                }
+            ]);
+
+
+            if (isComments == "yes") {
+
+                //upload comments
+                fs.writeFileSync("comments_g.json", JSON.stringify(comments));
+                const fileStream = fs.createReadStream("comments_g.json");
+                const d = moment().format("YYYY-MM-DD-HH-mm-ss");
+                const uploadParams = {
+                    Bucket: bucket,
+                    Body: fileStream,
+                    ContentType: "application/json",
+                    Key: process.env.RECORD_ID + "____comments___" + d + ".json"
+                };
+
+                const loc = await manageUploadST(uploadParams, region);
+
+                console.log("comments uploaded", loc);
+            }
+
+            const { paths, status, reason } = downloadResult;
+
+            const allLocs = [];
+            for (var i = 0; i < paths.length; i++) {
+                const fileStream = fs.createReadStream(paths[i]);
+                const d = moment().format("YYYY-MM-DD-HH-mm-ss");
+
+                const uploadParams = {
+                    Bucket: bucket,
+                    Body: fileStream,
+                    ContentType: "video/mp4",
+                    Key: channel + "____part___" + i + "___" + d + ".mp4"
+                };
+
+                const loc = await manageUploadST(uploadParams, region);
+                allLocs.push(loc);
+            }
+
+            console.log("send callback");
+            console.log(allLocs);
+            console.log("status", status);
+            console.log("reason", reason);
+
+            try {
+                const response = await axios.post(process.env.completionCallbackUrl, {
+                    requestId: process.env.RECORD_REQUEST_ID,
+                    keys: allLocs,
+                    status: {
+                        status: status,
+                        reason: reason
+                    },
+                    recordId: process.env.RECORD_ID,
+                }, {
+                    timeout: 10000 // timeout after 10 seconds
+                });
+
+                console.log("callback response", response.data);
+            } catch (e) { }
+        } else {
+            console.log("NOT LIVE");
+            //kill
+            process.exit(0);
         }
-  
-        console.log("send callback");
-        console.log(allLocs);
-        console.log("status", status);
-        console.log("reason", reason);
-  
-        try {
-          const response = await axios.post(process.env.completionCallbackUrl, {
-            requestId: process.env.RECORD_REQUEST_ID,
-            keys: allLocs,
-            status: {
-              status: status,
-              reason: reason
-            },
-            recordId: process.env.RECORD_ID,
-          }, {
-            timeout: 10000 // timeout after 10 seconds
-          });
-  
-          console.log("callback response", response.data);
-        } catch (e) { }
-      } else {
-        console.log("NOT LIVE");
-        //kill
-        process.exit(0);
-      }
-  
-      console.log(isLive)
+
+        console.log(isLive)
     } catch (e) {
-      console.log(e);
+        console.log(e);
     } finally {
-      console.log("done")
-      process.exit(0);
+        console.log("done")
+        process.exit(0);
     }
-  })();
-  
+})();

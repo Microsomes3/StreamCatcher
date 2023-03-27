@@ -9,7 +9,7 @@ function getAllRequiredInfoForTask(){
     const parts = process.env.parts || 1;
     const timeoutupdated= process.env.lastupdatedtimeout || 300;
     const minruntime = process.env.minruntime || 60;
-    const isComments = process.env.isComments || true;
+    const isComments = process.env.isComments || "yes";
 
 
     return {

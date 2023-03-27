@@ -53,7 +53,8 @@ function makeRecordRequest({ requestId }) {
             
             const channel = data.Item.username
 
-            const isComments = data.Item.isComments || false
+            const isComments = data.Item.isComments == true ? "yes": "no";
+
 
 
             if (!data.Item) {
@@ -121,7 +122,7 @@ function makeRecordRequest({ requestId }) {
                                 },
                                 {
                                     name: "isComments",
-                                    value: isComments.toString()
+                                    value: isComments
                                 }
                             ]
 
