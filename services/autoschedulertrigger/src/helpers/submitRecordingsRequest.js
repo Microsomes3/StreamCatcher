@@ -43,7 +43,7 @@ function makeRecordRequest({ requestId }) {
            })
 
 
-
+        
             var storageToUse = 30;
 
 
@@ -81,6 +81,8 @@ function makeRecordRequest({ requestId }) {
 
             const uniqueRecordId = uuidv4();
 
+           
+
             const ecsparams = {
                 cluster: "griffin-record-cluster",
                 taskDefinition: process.env.EC2_TASK_DEFINITION || "griffin-autoscheduler-service-dev-EC2Task2",
@@ -112,28 +114,28 @@ function makeRecordRequest({ requestId }) {
                                     value: uniqueRecordId
                                 },
                                 {
-                                    name: "parts",
-                                    value: maxparts.toString()
-                                },
-                                {
-                                    name: "minruntime",
-                                    value: minruntime.toString()
-                                },
-                                {
-                                    name:"timeout",
-                                    value: duration.toString()
-                                },
-                                {
-                                    name: "isComments",
+                                    name:"isComments",
                                     value: isComments == true ? "yes" : "no"
                                 },
                                 {
-                                    name: "isRecordStart",
+                                    name:"isRecordStart",
                                     value: isRecordStart == true ? "yes" : "no"
+                                },
+                                {
+                                    name:"timeout",
+                                    value: duration.toString()+"s"
+                                },
+                                {
+                                    name:"maxparts",
+                                    value: maxparts.toString()
+                                },
+                                {
+                                    name:"minruntime",
+                                    value: minruntime.toString()
                                 }
                             ],
-                            cpu: isComments == "yes" ? 512 : 256,
-                            memory: isComments == "yes" ? 1024 : 512
+                            cpu: isComments == true ? 512 : 256,
+                            memory: isComments == true ? 1024 : 512
                         },
                     ],
                 },
@@ -152,6 +154,8 @@ function makeRecordRequest({ requestId }) {
                     }
                 ]
             };
+
+            // console.log(ecsparams.overrides.containerOverrides[0].environment);
 
            
             const ecsdata = await ecs.runTask(ecsparams).promise();
@@ -194,13 +198,6 @@ function makeRecordRequest({ requestId }) {
 
     })
 }
-
-
-makeRecordRequest({
-    requestId:"633046ff-dbfe-4e56-9f2e-390f6c3253d6"
-}).then((data) => {
-    console.log(data);
-})
 
 module.exports = {
     makeRecordRequest
