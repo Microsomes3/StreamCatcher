@@ -15,7 +15,7 @@ function uuidv4() {
 
 
 module.exports.handler = async (event) => {
-    const {username, duration, from, to, trigger, maxparts, minruntime, isComments, label, triggerTime} = JSON.parse(event.body);
+    const {username, duration, from, to, trigger, maxparts, minruntime, isComments, label, triggerTime, shouldRecordStart} = JSON.parse(event.body);
 
     if (!username || !duration || !from || !to || !trigger, !maxparts || !minruntime || !label || !triggerTime) {
         return {
@@ -114,8 +114,15 @@ module.exports.handler = async (event) => {
         };
     }
 
-
-
+    //check if shouldRecordStart is a boolean
+    if (typeof shouldRecordStart !== 'boolean') {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                error: 'shouldRecordStart must be a boolean',
+            }),
+        };
+    }
 
     const params = {
         TableName: process.env.RECORD_REQUEST_TABLE,
@@ -133,7 +140,8 @@ module.exports.handler = async (event) => {
             isComments,
             isRecordStart: false,
             label,
-            triggerTime
+            triggerTime,
+            shouldRecordStart
         },
     };
 

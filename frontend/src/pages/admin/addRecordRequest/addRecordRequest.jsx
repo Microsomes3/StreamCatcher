@@ -7,6 +7,7 @@ function AddYoutuber() {
     const [duration, setDuration] = useState(30);
     const [triggerOptions, setTriggerOptions] = useState('wheneverlive')
     const [triggerTime, setTriggerTime] = useState('0');
+    const [shouldRecordStart, setShouldRecordStart] = useState(false);
 
     const [enableComments, setEnableComments] = useState(false);
     const [label, setLabel] = useState('');
@@ -44,6 +45,7 @@ function AddYoutuber() {
             to: "sun0-24",
             trigger: triggerOptions,
             triggerTime: triggerTime,
+            shouldRecordStart: shouldRecordStart,
             callback: "",
             maxparts: 1,
             minruntime: parseInt(duration / 4),
@@ -193,6 +195,18 @@ function AddYoutuber() {
                             </div>
                         </div>
                     </div>
+
+                    <label htmlFor="enable-comments" className="text-white mt-6 font-bold mb-2 flex items-center">
+                        <input
+                            type="checkbox"
+                            id="enable-comments"
+                            name="enable-comments"
+                            checked={shouldRecordStart}
+                            onChange={() => setShouldRecordStart(!shouldRecordStart)}
+                            className="appearance-none w-5 h-5 border border-gray-400 rounded-md checked:bg-blue-500 checked:border-transparent focus:outline-none"
+                        />
+                        <span className="text-sm ml-2">Record From Start (experimental)</span>
+                    </label>
 
 
                     <label htmlFor="enable-comments" className="text-white mt-6 font-bold mb-2 flex items-center">

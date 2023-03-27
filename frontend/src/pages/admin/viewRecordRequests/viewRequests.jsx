@@ -135,10 +135,28 @@ function recordRequests() {
 
 {allRequests.length > 0 &&
   filteredRequests.map((request) => (
-  <Link to={'/viewrecordings/'+request.id+'/'+username}>  <div className='rounded-md shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
+  <Link key={request.id} to={'/viewrecordings/'+request.id+'/'+username}>  <div className='rounded-md text-center shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
       <p className='font-bold'>{request.label}</p>
       <p className='text-sm'>Will Record for {Math.floor(request.duration / 60)} minutes and {request.duration % 60} seconds everyday</p>
       <p className='text-sm'>{request.friendlyCreatedAt}</p>
+
+      {request.isComments &&
+      <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'> Comments will be captured </p>
+      }
+
+      {request.shouldRecordStart == true &&
+              <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'>Will record from start</p>
+      }
+
+{request.shouldRecordStart == false &&
+              <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'>Will record from current</p>
+      }
+
+
+{request.isComments==false &&
+      <p className='text-xs bg-red-700 text-white px-2 py-1 rounded-md'> Comments will not captured </p>
+      }
+
       <p className='text-sm'>Click to view recordings</p>
     </div></Link>
   ))
