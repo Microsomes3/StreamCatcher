@@ -22,7 +22,8 @@ function getAllRequiredInfoForTask(){
         timeoutupdated,
         minruntime,
         isComments,
-        isRecordStart
+        isRecordStart,
+        getIndexAPI
     }
 
 }

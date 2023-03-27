@@ -198,6 +198,8 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
     return new Promise(async (resolve, reject) => {
 
         const newT = convertTimeoutTOMS(timeout);
+        
+        console.log("will timeout in:", newT);
 
         //i should record for partMin, then check if the stream is still live and if so, record again and swtich the file name
 
@@ -309,11 +311,6 @@ function tryDownloadStart(channel,timeout,livetimeout,stopCapturingComments){
             process.kill(child.pid, 'SIGINT');
           }, newT);
 
-          
-
-
-
-
     })
 }
 
@@ -355,10 +352,9 @@ function manageUploadST(params, region) {
 
     try {
         const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI } = getAllRequiredInfoForTask();
-        console.log({ channel, timeout, bucket, region, isComments })
+        console.log({ channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI})
 
         const isLive = await mustCheckLive(channel);
-
     
         if (isLive.status) {
 
@@ -366,14 +362,20 @@ function manageUploadST(params, region) {
 
             const videoId = liveLink.split("?v=")[1];
             console.log("video id", videoId);
+            
+            
+            var isRecordFromStart = false;
+
+            console.log("isRecordFromStart>", isRecordFromStart);
+            
 
             const [downloadResult,downloadResult2, commentsP] = await Promise.all([
-                isRecordStart == "yes" ? tryDownloadStart(channel,timeout,timeoutupdated,stopCapturingComments): ()=>{
+                isRecordFromStart == true ? tryDownloadStart(channel,timeout,timeoutupdated,stopCapturingComments): ()=>{
                     return new Promise((resolve,reject)=>{
                         resolve()
                     })
                 },
-                isRecordStart == "no" ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments, getIndexAPI, channel):() => {
+                isRecordFromStart== false ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments, getIndexAPI, channel):() => {
                     return new Promise((resolve, reject) => {
                         resolve()
                     })
