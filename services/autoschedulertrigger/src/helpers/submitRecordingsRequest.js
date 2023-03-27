@@ -21,13 +21,6 @@ function makeRecordRequest({ requestId }) {
                 region: process.env.AWS_REGION_T || 'us-east-1'
             });
 
-            const cloudformation = new aws.CloudFormation({
-                region: process.env.AWS_REGION_T || 'us-east-1'
-            });
-
-            const IdHash = sha256(requestId).toString();
-            const sname = "c" + IdHash;
-
             const params = {
                 TableName: process.env.RECORD_REQUEST_TABLE || 'RecordRequestTable',
                 Key: {
@@ -37,31 +30,24 @@ function makeRecordRequest({ requestId }) {
 
             const data = await documentWriter.get(params).promise();
 
-            var mp = 0;
+            const { maxparts, duration, minruntime, isRecordStart = false,isComments = false, username} = data.Item;
 
-            try{
+          
+           console.log({
+                maxparts,
+                duration,
+                minruntime,
+                isRecordStart,
+                isComments,
+                username,
+           })
 
-                mp = data.Item.maxparts || 1
-
-            }catch(e){
-                mp=1;
-            }
-
-            const minruntime = data.Item.minruntime || 1
-
-            const timeout = data.Item.duration+"s" || "30s"
-            
-            const channel = data.Item.username
-
-            const isComments = data.Item.isComments == true ? "yes": "no";
-
-            const isRecordStart = data.Item.isRecordStart == true ? "yes": "no";
 
 
             var storageToUse = 30;
 
 
-            if(channel == "@griffingaming"){
+            if(username == "@griffingaming"){
                 storageToUse = 50;
             }
 
@@ -97,7 +83,7 @@ function makeRecordRequest({ requestId }) {
 
             const ecsparams = {
                 cluster: "griffin-record-cluster",
-                taskDefinition: process.env.EC2_TASK_DEFINITION,
+                taskDefinition: process.env.EC2_TASK_DEFINITION || "griffin-autoscheduler-service-dev-EC2Task2",
                 launchType: "FARGATE",
                 //extra env vars
                 overrides: {
@@ -115,7 +101,7 @@ function makeRecordRequest({ requestId }) {
                                 },
                                 {
                                     name:'channel',
-                                    value: channel
+                                    value: username
                                 },
                                 {
                                     name: "RECORD_REQUEST_ID",
@@ -127,7 +113,7 @@ function makeRecordRequest({ requestId }) {
                                 },
                                 {
                                     name: "parts",
-                                    value: mp.toString()
+                                    value: maxparts.toString()
                                 },
                                 {
                                     name: "minruntime",
@@ -135,23 +121,19 @@ function makeRecordRequest({ requestId }) {
                                 },
                                 {
                                     name:"timeout",
-                                    value: timeout
+                                    value: duration.toString()
                                 },
                                 {
                                     name: "isComments",
-                                    value: isComments
+                                    value: isComments == true ? "yes" : "no"
                                 },
                                 {
                                     name: "isRecordStart",
-                                    value: isRecordStart
+                                    value: isRecordStart == true ? "yes" : "no"
                                 }
                             ],
                             cpu: isComments == "yes" ? 512 : 256,
-                            memory: isComments == "yes" ? 1024 : 512,
-                            ephemeralStorage:{
-                                sizeInGiB:  storageToUse
-                            }
-
+                            memory: isComments == "yes" ? 1024 : 512
                         },
                     ],
                 },
@@ -171,6 +153,7 @@ function makeRecordRequest({ requestId }) {
                 ]
             };
 
+           
             const ecsdata = await ecs.runTask(ecsparams).promise();
 
             const taskArn = ecsdata.tasks[0].taskArn;
@@ -183,7 +166,7 @@ function makeRecordRequest({ requestId }) {
                     recordrequestid: requestId,
                     taskArn: taskArn,
                     status: "PENDING",
-                    username: channel,
+                    username: username,
                     friendlyDate: moment().format("YYYY-MM-DD"),
                     timestarted: moment().unix(),
                     timeended: null,
@@ -211,6 +194,13 @@ function makeRecordRequest({ requestId }) {
 
     })
 }
+
+
+makeRecordRequest({
+    requestId:"633046ff-dbfe-4e56-9f2e-390f6c3253d6"
+}).then((data) => {
+    console.log(data);
+})
 
 module.exports = {
     makeRecordRequest

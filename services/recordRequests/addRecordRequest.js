@@ -30,7 +30,7 @@ module.exports.handler = async (event) => {
                     "trigger",
                     "maxparts",
                     "minruntime",
-                    "isComments"
+                    "isComments",
                 ]
             }),
         };
@@ -130,6 +130,7 @@ module.exports.handler = async (event) => {
             createdAt: moment().unix(),
             friendlyCreatedAt: moment().format('MMMM Do YYYY, h:mm:ss a'),
             isComments,
+            isRecordStart: false,
             label,
         },
     };

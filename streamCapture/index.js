@@ -194,7 +194,7 @@ function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
     });
 }
 
-function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopCommentCapture) {
+function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopCommentCapture,getIndexAPI, channel) {
     return new Promise(async (resolve, reject) => {
 
         const newT = convertTimeoutTOMS(timeout);
@@ -204,7 +204,7 @@ function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopComm
         for (var i = 0; i < parts; i++) {
 
             try {
-                const indexData = await axios.post(process.env.getIndexapi + "/" + process.env.channel);
+                const indexData = await axios.post(getIndexAPI + "/" + channel);
                 const indexUrl = indexData.data.index;
                 const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
             } catch (e) {
@@ -354,7 +354,7 @@ function manageUploadST(params, region) {
     }
 
     try {
-        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart } = getAllRequiredInfoForTask();
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI } = getAllRequiredInfoForTask();
         console.log({ channel, timeout, bucket, region, isComments })
 
         const isLive = await mustCheckLive(channel);
@@ -373,7 +373,7 @@ function manageUploadST(params, region) {
                         resolve()
                     })
                 },
-                isRecordStart == "no" ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments):() => {
+                isRecordStart == "no" ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments, getIndexAPI, channel):() => {
                     return new Promise((resolve, reject) => {
                         resolve()
                     })

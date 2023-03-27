@@ -11,6 +11,7 @@ function getAllRequiredInfoForTask(){
     const minruntime = process.env.minruntime || 60;
     const isComments = process.env.isComments || "yes";
     const isRecordStart = process.env.isRecordStart || "no";
+    const getIndexAPI = process.env.getIndexapi || "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex";
 
     return {
         channel,
