@@ -13,4 +13,13 @@ layers:
       - nodejs16.x
       - nodejs18.x
     licenseInfo: MIT
+  ffmpeg:
+    path: ./ffmpeg
+    description: ffmpeg
+    compatibleRuntimes:
+      - nodejs12.x
+      - nodejs14.x
+      - nodejs16.x
+      - nodejs18.x
+    licenseInfo: MIT
     
