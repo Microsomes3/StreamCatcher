@@ -18,7 +18,7 @@ module.exports.handler = async (event) => {
         },
     };
 
-    const result = await documentClient.delete(params).promise();
+    await documentClient.delete(params).promise();
 
     return {
         statusCode: 200,

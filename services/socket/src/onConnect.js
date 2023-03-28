@@ -18,7 +18,7 @@ module.exports.handler = async (event) => {
         },
     };
 
-    const result = await documentClient.put(params).promise();
+    await documentClient.put(params).promise();
 
     return {
         statusCode: 200,

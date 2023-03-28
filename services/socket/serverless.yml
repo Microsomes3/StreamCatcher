@@ -1,7 +1,5 @@
 service: socket-service
 
-
-
 provider:
   name: aws
   stage: dev
@@ -9,14 +7,24 @@ provider:
   environment:
     AWS_REGION_T: !Ref AWS::Region
     SOCKET_CONNECTIONS_TABLE: !Ref ConnectionTable
+    WS_ENDPOINT: wss://7hivo8j534.execute-api.us-east-1.amazonaws.com/dev
+    ConnectionIndex: recordid-index
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - apigatewaymanagementapi:*
+      Resource: "*"
     - Effect: Allow
       Action:
         - dynamodb:PutItem
         - dynamodb:GetItem
         - dynamodb:DeleteItem
         - dynamodb:Scan
-      Resource: !GetAtt ConnectionTable.Arn
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: arn:aws:dynamodb:us-east-1:574134043875:table/ConnectionTable/index/recordid-index 
 
 resources:
   Resources:
@@ -48,6 +56,12 @@ resources:
         Name: ConnectionTable
 
 functions:
+  SendSignal:
+    handler: src/sendSignal.handler
+    events:
+      - http:
+          path: sendSignalT/{id}
+          method: post
   OnConnect:
     handler: src/onConnect.handler
     events:
@@ -63,3 +77,6 @@ functions:
     events:
       - websocket:
           route: $default
+
+plugins:
+  - serverless-offline
