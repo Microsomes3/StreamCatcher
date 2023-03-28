@@ -1,6 +1,9 @@
 
 services:
 
+  socket:
+    path: services/socket
+
   autoscheduler:
     path: services/autoschedulertrigger
     dependsOn:
@@ -15,6 +18,7 @@ services:
     path: services/utilitiesapi
     params:
       ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
+      ffmpeg: ${ytdlp_layer.FfmpegLambdaLayerQualifiedArn}
 
   liveChecker:
     path: services/liveChecker

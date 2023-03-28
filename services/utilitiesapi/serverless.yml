@@ -4,8 +4,47 @@ service: griffin-util2-service
 provider:
   name: aws
   memorySize: 128
+  environment:
+    DEMO_CLIP_BUCKET: !Ref DemoClipBucket
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: "*"
+
+resources:
+  Resources:
+    DemoClipBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: griffin-demo-clip
+        AccessControl: PublicRead
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+              AllowedOrigins:
+                - '*'
+              MaxAge: 3000
+        VersioningConfiguration:
+          Status: Enabled
 
 functions:
+  GetDemoLiveClip:
+    handler: src/demoClip.handler
+    memorySize: 256
+    timeout: 30
+    layers:
+      - ${param:ytdlpArn}
+      - ${param:ffmpeg}
+    events:
+      - http:
+          path: /getDemoLiveClip/{username}
+          method: get
+          cors: true
+
   GetLiveStatus:
     handler: src/getLiveStatus.handler
     memorySize: 256
