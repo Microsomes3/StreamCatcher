@@ -1,20 +1,14 @@
 const { spawn, exec } = require('child_process');
 
-const util = require('util');
 const moment = require("moment");
 const axios = require("axios");
 const fs = require("fs");
 const aws = require("aws-sdk");
-const path = require("path");
-const { convertTimeoutTOMS } = require('./helpers/dateHelper')
-// const { getVideoRuntime } = require('./helpers/CalculateRuntimeHelper')
 const { mustCheckLive } = require('./helpers/checkLive')
 const { getAllRequiredInfoForTask } = require('./helpers/taskInfoHelper')
 const { getYoutubeLiveUrl } = require('./helpers/getYoutubeLIveUrl')
 const { fetchComments, stopCapturingComments } = require('./helpers/scrapeComments')
-
-var ffprobe = require('ffprobe'),
-    ffprobeStatic = require('ffprobe-static');
+const { tryDownload } = require('./helpers/streamHelper')
 
 const xvfbProcess = spawn("Xvfb", [":99", "-screen", "0", "1024x768x16"]);
 xvfbProcess.stdout.on("data", (data) => {
@@ -26,293 +20,6 @@ xvfbProcess.stderr.on("data", (data) => {
 xvfbProcess.on("close", (code) => {
   console.log(`child process exited with code ${code}`);
 });
-
-async function getVideoRuntime(filePath) {
-    return new Promise((resolve, reject) => {
-        try {
-            ffprobe(filePath, { path: ffprobeStatic.path }, function (err, info) {
-                if (err) resolve({
-                    duration: 1,
-                    storage: 1
-                });
-
-                try {
-                    const d = info.streams[0].duration
-                    const s = fs.statSync(filePath).size;
-                    resolve({
-                        duration: d,
-                        storage: s
-                    });
-                } catch (e) {
-                    resolve({
-                        duration: 1,
-                        storage: 1
-                    });
-                }
-            });
-        } catch (error) {
-            resolve({
-                duration: 1,
-                storage: 1
-            });
-        }
-    })
-
-}
-
-async function postUpdateToAPI() {
-
-    //check videos directory
-
-    var doesVidesoDirExist = fs.existsSync("videos");
-
-    var totalParts = 0;
-    var totalStorage = 0;
-    var allRunetimes = 0;
-
-
-    if (doesVidesoDirExist) {
-
-        totalParts = fs.readdirSync("videos").length;
-
-        const paths = fs.readdirSync("videos").map((f) => {
-            return path.join("videos", f);
-        })
-
-        console.log(paths);
-
-
-        for (var i = 0; i < paths.length; i++) {
-            const r = await getVideoRuntime(paths[i]);
-            allRunetimes += parseFloat(r.duration);
-            totalStorage += r.storage;
-
-        }
-
-    }
-
-    var message = "oo";
-
-    try {
-
-        const c = await axios.put(process.env.recordUpdateApi + "/" + process.env.RECORD_ID, {
-            "currentRuntime": allRunetimes,
-            "totalPartsRecorded": totalParts,
-            "storageUsed": totalStorage,
-            "totalTimeSoFar": allRunetimes
-        })
-        message = c.data.message;
-    } catch (e) {
-    }
-
-    return {
-        message: message
-    }
-
-}
-
-
-function tryDownloadVIAFFMPEG(url, output, timeout, livetimeout, partNo) {
-    console.log("trying to download", url, output, timeout, livetimeout, partNo)
-    return new Promise((resolve, reject) => {
-        const child = spawn('ffmpeg', ['-i', url, '-r', '30', '-c', 'copy', output]);
-
-        //create videos folder if it doesn't exist
-        if (!fs.existsSync("videos")) {
-            fs.mkdirSync("videos");
-        }
-
-
-        const checkLastFileAdded = setInterval(() => {
-            console.log("checking for new file")
-
-            try {
-                //get details of output file
-                const o = fs.statSync(output);
-
-                //check difference between last modified and now
-                const now = moment().unix();
-                const lastUpdatedFile = moment(o.mtime).unix();
-
-                const diff = now - lastUpdatedFile;
-
-
-                if (diff > livetimeout) {
-                    console.log("stream is no longer live, stopping ffmpeg")
-                    child.kill('SIGINT');
-                    clearInterval(checkLastFileAdded);
-                } else {
-                    console.log("stream is still live, continuing", diff)
-                }
-
-            } catch (e) {
-            }
-
-        }, 1000)
-
-        const timeoutId = setTimeout(() => {
-            console.log('Timeout exceeded, stopping ffmpeg...');
-            child.kill('SIGINT');
-        }, timeout);
-
-
-        var updateTimeout = 60000 * 5; // 5 minutes
-
-        const progressUpdate = setInterval(async () => {
-            const r = await postUpdateToAPI()
-            console.log(r);
-        }, updateTimeout);
-
-
-        child.on('exit', async (code) => {
-            clearTimeout(timeoutId);
-            clearInterval(checkLastFileAdded);
-
-            try {
-                await postUpdateToAPI();
-            } catch (e) { }
-
-            clearInterval(progressUpdate);
-
-
-            if (code === 0) {
-                console.log('Download complete');
-                resolve();
-            } else {
-                // reject(`FFMPEG exited with code ${code}`);
-                resolve();
-            }
-        });
-
-        child.stderr.on('data', (data) => {
-            // console.log(`stderr: ${data}`);
-        });
-
-        child.stdout.on('data', (data) => {
-            // console.log(`stdout: ${data}`);
-        });
-    });
-}
-
-function tryDownload2(timeout, videoId, parts, livetimeout, minruntime, stopCommentCapture,getIndexAPI, channel) {
-    return new Promise(async (resolve, reject) => {
-
-        const newT = convertTimeoutTOMS(timeout);
-        
-        console.log("will timeout in:", newT);
-
-        //i should record for partMin, then check if the stream is still live and if so, record again and swtich the file name
-
-        for (var i = 0; i < parts; i++) {
-
-            try {
-                const indexData = await axios.post(getIndexAPI + "/" + channel);
-                const indexUrl = indexData.data.index;
-                const c = await tryDownloadVIAFFMPEG(indexUrl, `videos/output_${i}pt.mp4`, newT, livetimeout, i);
-            } catch (e) {
-                console.log("moving on");
-                console.log(e);
-            }
-        }
-
-        const videos = fs.readdirSync("videos");
-
-        const visibleVideos = videos.filter((v) => {
-            const fileName = path.basename(v);
-            return !fileName.startsWith('.');
-        });
-        const paths = visibleVideos.map((v) => `videos/${v}`);
-
-        var allRunetimes = 0;
-
-        for (var i = 0; i < paths.length; i++) {
-            const runtime = await getVideoRuntime(paths[i]).duration;
-            allRunetimes += runtime;
-        }
-
-        var status = "";
-        var reason = "";
-
-
-        if (allRunetimes < minruntime) {
-            console.log("not enough runtime, trying again");
-            status = "failed";
-            reason = "not enough runtime";
-        } else {
-            status = "success";
-            reason = "success";
-        }
-
-       const comments = await stopCommentCapture();
-
-        resolve({
-            status: status,
-            reason: reason,
-            paths: paths,
-            comments: comments.allComments
-        })
-
-    })
-}
-
-function tryDownloadStart(channel,timeout,livetimeout,stopCapturingComments){
-    return new Promise((resolve,reject)=>{
-        const newT = convertTimeoutTOMS(timeout);
-
-        //if videos folder doesn't exist, create it
-        if(!fs.existsSync("videos")){
-            fs.mkdirSync("videos");
-        }
-
-        const url = `https://www.youtube.com/${channel}/live`;
-
-
-        const outputFolder = 'videos';
-        const ytldCommand = `yt-dlp --live-from-start -o ./${outputFolder}/%(title)s.%(ext)s" --merge-output-format mp4 ${url}`;
-
-
-        const child = spawn('yt-dlp', ytldCommand.split(' '), {
-            detached: true,
-            stdio: 'inherit'
-          });
-          
-          child.on('exit', async (code) => {
-            console.log(`yt-dlp process exited with code ${code}`);
-            
-            stopCapturingComments().then((comments)=>{
-                
-
-
-            //get all mp4 files in videos folder
-
-            const videos = fs.readdirSync("videos");
-
-            const visibleVideos = videos.filter((v) => {
-                const fileName = path.basename(v);
-                return !fileName.startsWith('.');
-            });
-
-            const paths = visibleVideos.map((v) => `videos/${v}`);
-
-        
-            resolve({
-                status: "success",
-                reason: "success",
-                paths: paths,
-                comments: comments.allComments
-            })
-
-            })
-
-          });
-          
-          const timeoutId = setTimeout(() => {
-            console.log('Timeout exceeded, stopping yt-dlp...');
-            process.kill(child.pid, 'SIGINT');
-          }, newT);
-
-    })
-}
 
 function manageUploadST(params, region) {
     return new Promise((resolve, reject) => {
@@ -351,8 +58,8 @@ function manageUploadST(params, region) {
     }
 
     try {
-        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI } = getAllRequiredInfoForTask();
-        console.log({ channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI})
+        const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI,wssocket } = getAllRequiredInfoForTask();
+        console.log({ channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI,wssocket})
 
         const isLive = await mustCheckLive(channel);
     
@@ -366,16 +73,24 @@ function manageUploadST(params, region) {
             
             var isRecordFromStart = false;
 
+            console.log(">>",isRecordStart)
+
+            if(isRecordStart == "yes"){
+                isRecordFromStart=true;
+            }
+
+
             console.log("isRecordFromStart>", isRecordFromStart);
             
 
+          
             const [downloadResult,downloadResult2, commentsP] = await Promise.all([
-                isRecordFromStart == true ? tryDownloadStart(channel,timeout,timeoutupdated,stopCapturingComments): ()=>{
+                isRecordFromStart == true ? tryDownload(channel,timeout,stopCapturingComments,"start",wssocket): ()=>{
                     return new Promise((resolve,reject)=>{
                         resolve()
                     })
                 },
-                isRecordFromStart== false ?tryDownload2(timeout, videoId, parts, timeoutupdated, minruntime, stopCapturingComments, getIndexAPI, channel):() => {
+                isRecordFromStart== false ?tryDownload(channel,timeout,stopCapturingComments,"current",wssocket):() => {
                     return new Promise((resolve, reject) => {
                         resolve()
                     })
@@ -392,12 +107,12 @@ function manageUploadST(params, region) {
             var reason = ""
             var comments = []
 
-            if (isRecordStart == "yes") {
+            if (isRecordFromStart == true) {
                 paths = downloadResult.paths;
                 status = downloadResult.status;
                 reason = downloadResult.reason;
                 comments = downloadResult.comments;
-            }else if(isRecordStart == "no"){
+            }else if(isRecordFromStart == false){
                 paths = downloadResult2.paths;
                 status = downloadResult2.status;
                 reason = downloadResult2.reason;
@@ -467,6 +182,23 @@ function manageUploadST(params, region) {
             } catch (e) { }
         } else {
             console.log("NOT LIVE");
+
+            try{
+            const response = await axios.post(process.env.completionCallbackUrl, {
+                requestId: process.env.RECORD_REQUEST_ID,
+                keys: allLocs,
+                status: {
+                    status: "failed",
+                    reason: process.env.channel+" is not live"
+                },
+                recordId: process.env.RECORD_ID,
+            }, {
+                timeout: 10000 // timeout after 10 seconds
+            });
+        }catch(err){}
+
+
+
             //kill
             process.exit(0);
         }
