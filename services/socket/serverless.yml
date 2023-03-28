@@ -5,6 +5,7 @@ service: socket-service
 provider:
   name: aws
   stage: dev
+  memorySize: 128
   environment:
     AWS_REGION_T: !Ref AWS::Region
     SOCKET_CONNECTIONS_TABLE: !Ref ConnectionTable
@@ -26,6 +27,15 @@ resources:
         AttributeDefinitions:
           - AttributeName: connectionId
             AttributeType: S
+          - AttributeName: recordid
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: recordid-index
+            KeySchema:
+              - AttributeName: recordid
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         KeySchema:
           - AttributeName: connectionId
             KeyType: HASH
