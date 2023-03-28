@@ -58,19 +58,6 @@ function handleFunc(){
     
         for(let i=0; i<flattenRecordRequests.length; i++){
            
-            const params = {
-                TableName: process.env.AUTO_SCHEDULE_TABLEV2,
-                Item: {
-                    "recordrequestid": flattenRecordRequests[i].id,
-                    "date": moment().format('YYYY-MM-DD'),
-                    "time": moment().format('HH:mm:ss'),
-                    "hour": moment().format('HH'),
-                    "minute": moment().format('mm')
-                }
-            };
-            
-            const l = await documentClient.put(params).promise();
-    
              const param = {
                 MessageBody: JSON.stringify({
                     ...flattenRecordRequests[i]
@@ -93,8 +80,6 @@ function handleFunc(){
 
     })
 }
-
-
 
 
 module.exports.handler = async (event) => {

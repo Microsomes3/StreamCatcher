@@ -1,0 +1,55 @@
+service: socket-service
+
+
+
+provider:
+  name: aws
+  stage: dev
+  environment:
+    AWS_REGION_T: !Ref AWS::Region
+    SOCKET_CONNECTIONS_TABLE: !Ref ConnectionTable
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:Scan
+      Resource: !GetAtt ConnectionTable.Arn
+
+resources:
+  Resources:
+    ConnectionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ConnectionTable
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+  Outputs:
+    ConnectionTable:
+      Value:
+        Ref: ConnectionTable
+      Export:
+        Name: ConnectionTable
+
+functions:
+  OnConnect:
+    handler: src/onConnect.handler
+    events:
+      - websocket:
+          route: $connect
+  OnDisconnect:
+    handler: src/onDisconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+  OnMessage:
+    handler: src/onMessage.handler
+    events:
+      - websocket:
+          route: $default

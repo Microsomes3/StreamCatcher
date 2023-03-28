@@ -80,7 +80,6 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
         const items = await documentClient.query(params).promise();
 
         let isExist = false;
-
         var hour = null;
         var minute = null;
 
@@ -104,6 +103,7 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
                 isExist = true;
                 hour = moment().hour();
                 minute = moment().minute();
+                console.log("item already exists");
             } else {
 
                 //check if trigger time is += 5 minutes of current time and if it is then trigger the action and isExist = false
@@ -122,22 +122,21 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
                 console.log(hour,minute)
                 console.log(moment().hour(),moment().minute())
             }
+        }
 
+        if (!isExist) {
+            const params = {
+                TableName: process.env.AUTO_SCHEDULE_TABLEV2 || 'griffin-autoscheduler-service-dev-AutoScheduleV2Table-1OQJML172K83Y',
+                Item: {
+                    "recordrequestid": requestID,
+                    "date": moment().format('YYYY-MM-DD'),
+                    "time": moment().format('HH:mm:ss'),
+                    "hour": hour,
+                    "minute": minute,
+                }
+            };
 
-            if (!isExist) {
-                const params = {
-                    TableName: process.env.AUTO_SCHEDULE_TABLEV2 || 'griffin-autoscheduler-service-dev-AutoScheduleV2Table-1OQJML172K83Y',
-                    Item: {
-                        "recordrequestid": requestID,
-                        "date": moment().format('YYYY-MM-DD'),
-                        "time": moment().format('HH:mm:ss'),
-                        "hour": hour,
-                        "minute": minute,
-                    }
-                };
-
-                const l = await documentClient.put(params).promise();
-            }
+            const l = await documentClient.put(params).promise();
         }
 
         resolve(isExist);

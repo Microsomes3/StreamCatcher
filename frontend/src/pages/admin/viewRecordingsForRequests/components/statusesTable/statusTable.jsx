@@ -68,24 +68,27 @@ function RecordStatusesTable({ statuses }) {
 
     return (
         <div className='px-12 bg-gray-900 py-3 rounded-md mt-2 overflow-x-auto'>
-            <div class="p-2 rounded-md mt-6 text-white">
-                <div class="flex flex-col sm:flex-row justify-around">
-                    <div class="w-52 h-52 mb-4 sm:mb-0 flex items-center justify-center flex-col rounded-md bg-red-600">
-                        <p class="text-base font-medium">Total Pending</p>
-                        <p class="text-4xl font-bold">{totalPending}</p>
-                    </div>
+          
+          <div class="p-2 rounded-md mt-6 text-white">
+  <div class="flex flex-col sm:flex-row justify-around">
+    <div class="w-full sm:w-52 h-52 mb-4 sm:mb-0 flex items-center justify-center flex-col rounded-md bg-red-600">
+      <p class="text-base font-medium">Total Pending</p>
+      <p class="text-2xl sm:text-4xl font-bold">{totalPending}</p>
+    </div>
 
-                    <div class="w-52 h-52 mb-4 sm:mb-0 flex items-center justify-center flex-col rounded-md bg-green-600">
-                        <p class="text-base font-medium">Total Completed</p>
-                        <p class="text-4xl font-bold">{totalComplete}</p>
-                    </div>
+    <div class="w-full sm:w-52 h-52 mb-4 sm:mb-0 flex items-center justify-center flex-col rounded-md bg-green-600">
+      <p class="text-base font-medium">Total Completed</p>
+      <p class="text-2xl sm:text-4xl font-bold">{totalComplete}</p>
+    </div>
 
-                    <div class="w-52 h-52 flex items-center justify-center flex-col rounded-md bg-yellow-600">
-                        <p class="text-base font-medium">Total Failed</p>
-                        <p class="text-4xl font-bold">{totalFailed}</p>
-                    </div>
-                </div>
-            </div>
+    <div class="w-full sm:w-52 h-52 flex items-center justify-center flex-col rounded-md bg-yellow-600">
+      <p class="text-base font-medium">Total Failed</p>
+      <p class="text-2xl sm:text-4xl font-bold">{totalFailed}</p>
+    </div>
+  </div>
+</div>
+
+
 
             <div class="grid grid-cols-8 gap-4 bg-gray-800 text-white mt-12 p-4">
 
@@ -93,6 +96,29 @@ function RecordStatusesTable({ statuses }) {
                 {filteredStatuses.map((status) => (
                     <div class="col-span-8 sm:col-span-4 lg:col-span-8 grid grid-cols-8 gap-4 border-t mt-12 rounded-md border-gray-600 pt-4" key={status.id}>
                        
+                       <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
+                            <p class="text-base font-medium">Channel</p>
+                            <p class="text-2xl font-bold">{status.username}</p>
+                            </div>
+                            
+                        <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
+                            <p class="text-base font-medium">Record Id ID</p>
+                            <p class="text-2xl font-bold">{status.id}</p>
+                            </div>
+
+                            <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
+                            <p class="text-base font-medium">Record Date</p>
+                            <p class="text-2xl font-bold">{status.friendlyDate}</p>
+                            </div>
+
+                            <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
+                            <p class="text-base font-medium">Taken</p>
+                            <p class="text-2xl font-bold">
+                             {moment.unix(status.timeended).diff(moment.unix(status.timestarted), 'minutes')}
+                            </p>
+                            </div>
+
+                          
                        
                     </div>
 
