@@ -10,6 +10,14 @@ module.exports.handler = async (event) => {
     //onconnect event
     const connectionId = event.requestContext.connectionId;
 
+    //handle ping
+    if(event.body === 'ping'){
+        return {
+            statusCode: 200,
+            body: 'pong',
+        };
+    }
+
     const {action}=JSON.parse(event.body)
 
     switch(action){

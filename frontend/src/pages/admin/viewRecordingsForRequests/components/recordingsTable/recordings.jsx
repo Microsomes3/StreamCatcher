@@ -4,36 +4,36 @@ import moment from 'moment';
 
 function RecordingsTable({ recordings }) {
 
-    const [sortByDate, setSortByDate] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+  const [sortByDate, setSortByDate] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const [filteredRecordings, setFilteredRecordings] = useState([]);
+  const [filteredRecordings, setFilteredRecordings] = useState([]);
 
-    useEffect(() => {
-        setFilteredRecordings(recordings);
-    }, [recordings]);
-
-
-const sortLabel = sortByDate ? 'Sort by oldest first' : 'Sort by newest first';
+  useEffect(() => {
+    setFilteredRecordings(recordings);
+  }, [recordings]);
 
 
-function handleSortByDate(){
+  const sortLabel = sortByDate ? 'Sort by oldest first' : 'Sort by newest first';
+
+
+  function handleSortByDate() {
 
     setFilteredRecordings((prev) => {
-        return prev.sort((a, b) => {
-            return sortByDate ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt);
-        });
+      return prev.sort((a, b) => {
+        return sortByDate ? new Date(a.createdAt) - new Date(b.createdAt) : new Date(b.createdAt) - new Date(a.createdAt);
+      });
     });
 
     setSortByDate((prev) => !prev);
 
-    
 
-}
 
-    
+  }
 
-return (
+
+
+  return (
     <div className="flex flex-col mt-12 text-white">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold">Recordings</h2>
@@ -64,32 +64,38 @@ return (
           >
             <div className="flex  text-center items-center">
               <div className="text-gray-400 mr-4">
-                {moment(recording.date).format('MMM D, YYYY')}
+                {moment(recording.createdAt).format('MMM D, YYYY h:mm A')}
               </div>
               <div className="flex flex-col">
-                
-                {recording.keys.length ==0 && <div className="text-gray-400">Pending...</div>}
+
+                {recording.keys.length == 0 && <div className="text-gray-400">Pending...</div>}
 
                 {recording.keys.map((key) => (
-                  <a
-                    key={key}
-                    href={`https://d213lwr54yo0m8.cloudfront.net/${key}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-green-500 hover:text-green-400"
-                  >
-                    {key}
-                  </a>
+
+                  <div className="flex space-x-3">
+                    <button className="bg-green-700 text-black px-2 py-1 rounded-md hover:bg-green-600 dark:bg-green-900 dark:text-white dark:hover:bg-green-800">
+                      Watch
+                    </button>
+                    <a
+                      key={key}
+                      href={`https://d213lwr54yo0m8.cloudfront.net/${key}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-green-500 hover:text-green-400"
+                    ><button className="bg-red-700 text-white px-2 py-1 rounded-md hover:bg-red-600 dark:bg-red-900 dark:hover:bg-red-800">
+                        Download
+                      </button></a>
+                  </div>
                 ))}
               </div>
             </div>
-           
+
           </div>
         ))}
       </div>
     </div>
   );
-  
+
 }
 
 export default RecordingsTable;

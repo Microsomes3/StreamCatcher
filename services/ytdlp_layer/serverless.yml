@@ -22,4 +22,14 @@ layers:
       - nodejs16.x
       - nodejs18.x
     licenseInfo: MIT
+  
+  ytdlparm:
+    path: ./ytdlparm
+    description: youtube-dlp parm
+    compatibleRuntimes:
+      - nodejs12.x
+      - nodejs14.x
+      - nodejs16.x
+      - nodejs18.x
+    licenseInfo: MIT
     

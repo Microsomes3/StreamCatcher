@@ -3,6 +3,7 @@ service: griffin-recordservice-service
 
 provider:
   name: aws
+  memorySize: 128
   environment:
     RECORD_REQUEST_TABLE: !Ref RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
@@ -147,6 +148,7 @@ functions:
           cors: true
   recordRequest:
     handler: addRecordRequest.handler
+    memorySize: 128
     events:
       - http:
           path: /recordRequest

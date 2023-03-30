@@ -6,8 +6,9 @@ function AddYoutuber() {
     const [youtubers, setYoutubers] = useState([]);
     const [duration, setDuration] = useState(30);
     const [triggerOptions, setTriggerOptions] = useState('wheneverlive')
-    const [triggerTime, setTriggerTime] = useState('0');
+    const [triggerTime, setTriggerTime] = useState('1');
     const [shouldRecordStart, setShouldRecordStart] = useState(false);
+    const [triggerInterval, setTriggerInterval] = useState('5m');
 
     const [enableComments, setEnableComments] = useState(false);
     const [label, setLabel] = useState('');
@@ -39,18 +40,14 @@ function AddYoutuber() {
         // do something with the form data
 
         axios.post("https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest", {
-            username: username,
-            duration: parseInt(duration),
-            from: "mon0-24",
-            to: "sun0-24",
-            trigger: triggerOptions,
-            triggerTime: triggerTime,
-            shouldRecordStart: shouldRecordStart,
-            callback: "",
-            maxparts: 1,
-            minruntime: parseInt(duration / 4),
-            isComments: enableComments,
-            label: label,
+            "label":label,
+            "username":username,
+            "duration":parseInt(duration),
+            "trigger":triggerOptions,
+            "isComments":enableComments,
+            "triggerTime":triggerTime,
+            "triggerInterval":triggerInterval,
+            "shouldRecordStart":shouldRecordStart
         }).then((data) => {
             console.log(data);
             alert('Record request added successfully, it may take a few minutes to show up');
@@ -143,8 +140,9 @@ function AddYoutuber() {
                     <div class="flex flex-col mt-6 items-center">
 
                         <label htmlFor="youtuber" className="text-white font-bold mb-2">
-                            Select Trigger Option:
+                            Select Trigger Option: {triggerInterval}
                         </label>
+                        
                         <select
                             name="youtuber"
                             id="youtuber"
@@ -153,9 +151,27 @@ function AddYoutuber() {
                         >
                             <option value={'wheneverlive'}>Whenever Live</option>
                             <option value={'specifictime'}>Specific Time</option>
+                            <option value={'interval'}>Interval</option>
                         </select>
 
                     </div>
+
+                    {triggerOptions == "interval" &&
+                        <select
+                            name="youtuber"
+                            id="youtuber"
+                            className="block appearance-none w-full bg-gray-800 border border-gray-700 text-white py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-500 mb-4"
+                            onChange={(e) => { setTriggerInterval(e.target.value) }}
+                        >
+                            <option value={'5m'}>Every 5 minutes</option>
+                            <option value={'10m'}>Every 10 minutes</option>
+                            <option value={'20m'}>Every 20 minutes</option>
+                            <option value={'30m'}>Every 30 minutes</option>
+                            <option value={'1hr'}>Every 1 hour</option>
+                            <option value={'2hr'}>Every 2 hours</option>
+                            <option value={'3hr'}>Every 3 hours</option>
+                            </select>
+                    }
 
                    {triggerOptions== "specifictime"? <div>
 

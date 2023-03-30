@@ -106,16 +106,18 @@ function RecordStatusesTable({ statuses }) {
                             <p class="text-2xl font-bold">{status.id}</p>
                             </div>
 
+
                             <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
                             <p class="text-base font-medium">Record Date</p>
                             <p class="text-2xl font-bold">{status.friendlyDate}</p>
+                            <p>{moment.unix(status.timeended).format('YYYY-MM-DD HH:MM a')}</p>
                             </div>
 
                             <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
                             <p class="text-base font-medium">Taken</p>
-                            <p class="text-2xl font-bold">
+                            {status.timeended!=null ?<p class="text-2xl font-bold">
                              {moment.unix(status.timeended).diff(moment.unix(status.timestarted), 'minutes')}
-                            </p>
+                            </p>:<p>Pending</p>}
                             </div>
 
                           

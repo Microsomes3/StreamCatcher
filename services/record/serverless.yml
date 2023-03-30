@@ -10,6 +10,7 @@ provider:
   memorySize: 128
   runtime: nodejs18.x
   environment:
+    RECORD_BUCKET: !Ref RecordInputBucket
     RECORD_TABLE: !Ref RecordTable
     RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
     AWS_REGION_T: !Ref AWS::Region
@@ -91,6 +92,10 @@ provider:
       Action:
         - sqs:*
       Resource:  "*"
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource:  !GetAtt RecordInputBucket.Arn
 
 
 resources:

@@ -1,6 +1,6 @@
 const aws = require('aws-sdk');
 
-const { checkWhichRequestsShouldTrigger, markAsRecording } = require('./recordHelper')
+const { checkWhichRequestsShouldTrigger} = require('./recordHelper')
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || 'us-east-1',
@@ -50,6 +50,7 @@ function getAllRecordRequestsToSchedule(){
     });
 
 
+
     var allLiveUsernamesAndTheirRequests = [];
     
     for(let i=0; i<liveYoutubersFiltered.length; i++){
@@ -85,6 +86,8 @@ function getAllRecordRequestsToSchedule(){
             livelink,
             requests
         });
+
+        console.log("requests to trigger", requestsToTrigger.length );
 
       
         allRecordRequestsToTrigger.push(requestsToTrigger);

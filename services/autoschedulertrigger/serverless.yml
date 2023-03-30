@@ -1,5 +1,10 @@
 service: griffin-autoscheduler-service
 
+plugins:
+  - serverless-dotenv-plugin
+useDotenv: true
+
+
 provider:
   name: aws
   memorySize: 128
@@ -15,10 +20,15 @@ provider:
     RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
     RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
     EC2_TASK_DEFINITION: !Ref EC2Task
+    EC2_CONTAINER_NAME: !Sub ${AWS::StackName}-EC2Task
     AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
     CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
     AUTO_SCHEDULE_TABLEV2: !Ref AutoScheduleV2Table
+    SLIM_TASK_DEFINITION: !Ref SlipTask
+    SLIP_TASk_CONTAINER_NAME: !Sub ${AWS::StackName}-SlipTask
 
+
+    MONGO_CONNECITON: ${env:MONGO_CONNECITON}
   
   iamRoleStatements:
     - Effect: Allow
@@ -140,6 +150,34 @@ resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::574134043875:policy/CFFULL
+    SlipTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: !Sub ${AWS::StackName}-SlipTask
+        Cpu: 256
+        Memory: 512
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-SlipTask
+            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: completionCallbackUrl
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
     EC2Task:
       Type: AWS::ECS::TaskDefinition
       Properties:
@@ -200,7 +238,7 @@ functions:
           batchSize: 1
   TriggerAdhocRecord:
     handler: src/RecordByRequestIDAdhoc.handler
-    timeout: 45
+    timeout: 30
     events:
       - http:
           path: RecordByRequestIDAdhoc/{recordrequestid}

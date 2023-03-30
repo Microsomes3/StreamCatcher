@@ -104,7 +104,7 @@ function makeRecordRequest({ requestId }) {
                 overrides: {
                     containerOverrides: [
                         {
-                            name: "griffin-autoscheduler-service-dev-EC2Task",
+                            name: process.env.EC2_CONTAINER_NAME,
                             environment: [
                                 {
                                     name: "recordUpdateApi",

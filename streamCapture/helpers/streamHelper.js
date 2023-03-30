@@ -31,6 +31,15 @@ function tryDownload(channel,timeout,stopCapturingComments,mode="start",wssocket
                 const WebSocket = require('ws');
                 const ws = new WebSocket(wssocket);
 
+                const interval = setInterval(function ping() {
+                    ws.ping();
+                }, 30000);
+
+                ws.on('close', function close() {
+                    console.log("disconnected from websocket");
+                    clearInterval(interval);
+                });
+
                 ws.on('open', function open() {
                     console.log("connected to websocket");
 

@@ -72,6 +72,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/YoutubersToCheckTable/index/priority-index"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt YoutubeLiveScheduleTable.Arn
   
 resources:
   Outputs:
@@ -88,6 +92,21 @@ resources:
       Export:
         Name: AggregateIsLiveIndex
   Resources:
+    YoutubeLiveScheduleTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: YoutubeLiveScheduleTable
+        AttributeDefinitions:
+          - AttributeName: youtuberid
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: youtuberid
+            KeyType: HASH
+          - AttributeName: date
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
     AggregateCurrentYoutuberLive:
       Type: AWS::DynamoDB::Table
       Properties:
