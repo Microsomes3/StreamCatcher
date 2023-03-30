@@ -86,32 +86,6 @@ function AddYoutuber() {
                         ))}
                     </select>
 
-                    <div className="duration-input hidden md:block">
-                        <label htmlFor="duration" className="text-white font-bold mb-2">
-                            Duration:
-                        </label>
-
-                        <div className="relative w-full">
-                            <input
-                                type="range"
-                                id="duration"
-                                name="duration"
-                                min="15" // minimum duration of 30 minutes in seconds
-                                max="21600" // maximum duration of 6 hours in seconds
-                                value={duration}
-                                onChange={(event) => setDuration(event.target.value)}
-                                className="absolute w-full h-2 opacity-0"
-                            />
-                            <div className="h-2 bg-gray-700 rounded-full">
-                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${((duration - 1800) / 19800) * 100}%` }}></div>
-                            </div>
-
-                            <div className="text-white text-xs w-52 flex justify-between mt-1">
-                                <span>15 sec</span>
-                                <span>6 hours</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className='mt-5 flex flex-col space-x-3'>
                         <label className='text-white px-2 text-sm pb-2 pl-3 font-bold'>Duration (seconds)</label>
@@ -223,22 +197,6 @@ function AddYoutuber() {
                         />
                         <span className="text-sm ml-2">Record From Start (experimental)</span>
                     </label>
-
-
-                    <label htmlFor="enable-comments" className="text-white mt-6 font-bold mb-2 flex items-center">
-                        <input
-                            type="checkbox"
-                            id="enable-comments"
-                            name="enable-comments"
-                            checked={enableComments}
-                            onChange={() => setEnableComments(!enableComments)}
-                            className="appearance-none w-5 h-5 border border-gray-400 rounded-md checked:bg-blue-500 checked:border-transparent focus:outline-none"
-                        />
-                        <span className="text-sm ml-2">Enable Capture Comments</span>
-                    </label>
-
-
-
 
                     <button
                         type="submit"

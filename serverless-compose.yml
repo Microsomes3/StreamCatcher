@@ -22,11 +22,13 @@ services:
 
   liveChecker:
     path: services/liveChecker
+    dependsOn:
+      - ytdlp_layer
     params:
       recordCallBackUrl: ${record.ServiceEndpoint}/CallBackReceivedLiveEvents
       recordRequestTable: ${recordRequests.RecordRequestTable}
       recordRequestTableArn: ${recordRequests.RecordRequestTableArn}
-      ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
+      ytdlpArn: ${ytdlp_layer.YtdlparmLambdaLayerQualifiedArn}
 
 
   

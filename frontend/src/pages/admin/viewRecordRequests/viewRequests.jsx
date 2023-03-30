@@ -130,63 +130,62 @@ function recordRequests() {
 
                 {allRequests.length === 0 && <div className='text-white text-2xl mt-12'>No Record Requests for this user</div>}
 
-                {allRequests.length > 0 ?
-                    <div className="overflow-x-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {allRequests.length > 0 &&
+    filteredRequests.map((request) => (
+      <Link
+        key={request.id}
+        to={"/viewrecordings/" + request.id + "/" + username}
+        className="rounded-md text-center shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6"
+      >
+        <p className="font-bold">{request.label}</p>
+        <p className="text-sm">
+          Will Record for {Math.floor(request.duration / 60)} minutes and{" "}
+          {request.duration % 60} seconds everyday
+        </p>
+        <p className="text-sm">{request.friendlyCreatedAt}</p>
 
-{allRequests.length > 0 &&
-  filteredRequests.map((request) => (
-  <Link key={request.id} to={'/viewrecordings/'+request.id+'/'+username}>  <div className='rounded-md text-center shadow-md space-y-3 flex flex-col items-center justify-center text-xl cursor-pointer hover:scale-105 bg-gray-700 text-white mt-6 py-4 px-6'>
-      <p className='font-bold'>{request.label}</p>
-      <p className='text-sm'>Will Record for {Math.floor(request.duration / 60)} minutes and {request.duration % 60} seconds everyday</p>
-      <p className='text-sm'>{request.friendlyCreatedAt}</p>
+        {request.isComments && (
+          <p className="text-xs bg-green-700 text-white px-2 py-1 rounded-md">
+            Comments will be captured
+          </p>
+        )}
 
-      {request.isComments &&
-      <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'> Comments will be captured </p>
-      }
+        {request.shouldRecordStart == true && (
+          <p className="text-xs bg-green-700 text-white px-2 py-1 rounded-md">
+            Will record from start
+          </p>
+        )}
 
-      {request.shouldRecordStart == true &&
-              <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'>Will record from start</p>
-      }
+        {request.shouldRecordStart == false && (
+          <p className="text-xs bg-green-700 text-white px-2 py-1 rounded-md">
+            Will record from current
+          </p>
+        )}
 
-{request.shouldRecordStart == false &&
-              <p className='text-xs bg-green-700 text-white px-2 py-1 rounded-md'>Will record from current</p>
-      }
+        {request.isComments == false && (
+          <p className="text-xs bg-red-700 text-white px-2 py-1 rounded-md">
+            Comments will not be captured
+          </p>
+        )}
 
+        {request.trigger == "wheneverlive" && (
+          <p className="px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl">
+            Record Whenever Live
+          </p>
+        )}
 
-{request.isComments==false &&
-      <p className='text-xs bg-red-700 text-white px-2 py-1 rounded-md'> Comments will not captured </p>
-      }
+        {request.trigger == "specifictime" && (
+          <p className="px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl">
+            Record At Specific Time at around: {request.triggerTime}
+          </p>
+        )}
 
-      {request.trigger == 'wheneverlive' &&
-        <p className='px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl'>Record Whenever Live</p>
-      }
+        <p className="text-sm">Click to view recordings</p>
+      </Link>
+    ))}
+</div>
 
-{request.trigger == 'specifictime' &&
-        <p className='px-2 py-1 bg-green-700 text-white rounded-md shadow-3xl'>Record At Specific Time at around: {request.triggerTime}</p>
-      }
-
-
-      <p className='text-sm'>Click to view recordings</p>
-    </div></Link>
-  ))
-
-
-  }
-
-
-
-
-
-
-                      
-
-
-
-
-
-                     
-                    </div>
-                    : <div></div>}
 
             </div>
 

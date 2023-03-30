@@ -1,0 +1,25 @@
+{
+  "name": "streamcapture",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1338.0",
+    "axios": "^1.3.4",
+    "ffprobe": "^1.1.2",
+    "ffprobe-static": "^3.1.0",
+    "moment": "^2.29.4",
+    "pupeteer": "^0.0.1",
+    "puppeteer": "^19.7.5",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-screen-recorder": "^2.1.2",
+    "video-stitch": "^1.7.1"
+  }
+}

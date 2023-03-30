@@ -24,7 +24,7 @@ provider:
     AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
     CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
     AUTO_SCHEDULE_TABLEV2: !Ref AutoScheduleV2Table
-    SLIM_TASK_DEFINITION: !Ref SlipTask
+    SLIM_TASK_DEFINITION: !Sub ${AWS::StackName}-SlipTaskARM
     SLIP_TASk_CONTAINER_NAME: !Sub ${AWS::StackName}-SlipTask
 
 
@@ -153,7 +153,10 @@ resources:
     SlipTask:
       Type: AWS::ECS::TaskDefinition
       Properties:
-        Family: !Sub ${AWS::StackName}-SlipTask
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: !Sub ${AWS::StackName}-SlipTaskARM
         Cpu: 256
         Memory: 512
         EphemeralStorage:
@@ -166,6 +169,7 @@ resources:
         ContainerDefinitions:
           - Name: !Sub ${AWS::StackName}-SlipTask
             Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
+ 
             LogConfiguration:
               LogDriver: awslogs
               Options:

@@ -43,13 +43,11 @@ function makeRecordRequest({ requestId }) {
                 });
               }              
 
-            const { maxparts, duration, minruntime, isRecordStart = false, isComments = false, username } = data.Item;
+            const {duration, isRecordStart = false, isComments = false, username } = data.Item;
 
 
             console.log({
-                maxparts,
                 duration,
-                minruntime,
                 isRecordStart,
                 isComments,
                 username,
@@ -98,13 +96,13 @@ function makeRecordRequest({ requestId }) {
 
             const ecsparams = {
                 cluster: "griffin-record-cluster",
-                taskDefinition: process.env.EC2_TASK_DEFINITION || "griffin-autoscheduler-service-dev-EC2Task2",
+                taskDefinition: process.env.SLIM_TASK_DEFINITION,
                 launchType: "FARGATE",
                 //extra env vars
                 overrides: {
                     containerOverrides: [
                         {
-                            name: process.env.EC2_CONTAINER_NAME,
+                            name: process.env.SLIP_TASk_CONTAINER_NAME,
                             environment: [
                                 {
                                     name: "recordUpdateApi",
@@ -137,18 +135,8 @@ function makeRecordRequest({ requestId }) {
                                 {
                                     name: "timeout",
                                     value: duration.toString() + "s"
-                                },
-                                {
-                                    name: "maxparts",
-                                    value: maxparts.toString()
-                                },
-                                {
-                                    name: "minruntime",
-                                    value: minruntime.toString()
                                 }
                             ],
-                            cpu: isComments == true ? 512 : 256,
-                            memory: isComments == true ? 1024 : 512
                         },
                     ],
                 },

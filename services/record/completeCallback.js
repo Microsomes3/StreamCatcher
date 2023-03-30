@@ -22,6 +22,7 @@ module.exports.handler = async (event) => {
         keys,
         recordId,
         status,
+        friendlyName="--"
     } = JSON.parse(event.body);
 
     if (!requestId || !keys || !recordId, !status) {
@@ -45,6 +46,7 @@ module.exports.handler = async (event) => {
             status: "completed",
             username:"use request id to find out",
             createdAt: new Date().getTime(),
+            friendlyName:friendlyName
         },
     };
 

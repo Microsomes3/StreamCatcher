@@ -184,6 +184,15 @@ resources:
           deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
           maxReceiveCount: 3
 functions:
+  TestArm:
+    handler: testArm.handler
+    layers:
+      - ${param:ytdlpArn}
+    events:
+      - http:
+          path: /testArm
+          method: get
+          cors: true
   GetCallbackByYoutubeUsername:
     handler: getCallbacksByUsername.getCallbacksByUsername
     events:

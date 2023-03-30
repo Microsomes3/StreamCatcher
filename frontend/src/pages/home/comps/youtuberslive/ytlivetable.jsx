@@ -180,23 +180,31 @@ function TYTable() {
       </div>
     ) : null}
 
-    {filteredYoutubers.map((youtuber) => (
-     
-     <Link
-     to={`/requests/${youtuber.username}`}
-     ><div key={youtuber.username} className=" cursor-pointer hover:bg-gray-700 hover:scale-90 bg-gray-800  rounded-md shadow mb-4">
-         
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {filteredYoutubers.map((youtuber) => (
+    <Link
+      className=""
+      to={`/requests/${youtuber.username}`}
+      key={youtuber.username}
+    >
+      <div className="cursor-pointer hover:bg-gray-700 hover:scale-90 bg-gray-800 rounded-md shadow mb-4">
         <div className="px-4 py-3 flex justify-between items-center">
-          
-          <Link to={`/requests/${youtuber.username}`} className="font-bold space-x-3 flex text-blue-500">
-             <img
-            className="h-8 w-8 rounded-full object-cover"
-            src="https://via.placeholder.com/150x150.png?text=Youtube+Icon"
-            alt="Youtube Channel"
-          />
-          <p>{youtuber.username}</p>
+          <Link
+            to={`/requests/${youtuber.username}`}
+            className="font-bold space-x-3 flex text-blue-500"
+          >
+            <img
+              className="h-8 w-8 rounded-full object-cover"
+              src="https://via.placeholder.com/150x150.png?text=Youtube+Icon"
+              alt="Youtube Channel"
+            />
+            <p>{youtuber.username}</p>
           </Link>
-          <div className={`w-4 h-4 rounded-full ${youtuber.islive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <div
+            className={`w-4 h-4 rounded-full ${
+              youtuber.islive ? "bg-green-500" : "bg-red-500"
+            }`}
+          ></div>
         </div>
         <div className="px-4 py-3 flex justify-between">
           <div>Last Updated:</div>
@@ -204,12 +212,16 @@ function TYTable() {
         </div>
         <div className="px-4 py-3 flex justify-between">
           <div>Record Requests:</div>
-          <div className="text-white bg-black rounded-md px-3 py-1">{youtuber.recordRequests} record requests</div>
+          <div className="text-white bg-black rounded-md px-3 py-1">
+            {youtuber.recordRequests} record requests
+          </div>
         </div>
         <div className="h-8 bg-gray-200 rounded-b-md overflow-hidden"></div>
-      
-      </div></Link>
-    ))}
+      </div>
+    </Link>
+  ))}
+</div>
+
   </div>
 </div>
 

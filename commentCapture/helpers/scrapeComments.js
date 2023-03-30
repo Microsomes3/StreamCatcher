@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer");
 const moment = require("moment");
+const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 
 
 var isCapturingComments = true; // flag variable
