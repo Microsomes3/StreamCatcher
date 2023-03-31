@@ -14,30 +14,6 @@ function uuidv4() {
     });
 }
 
-// function processLiveStatus(liveStatus) {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-
-//         const params = {
-//             TableName: process.env.LIVE_CHECKER_TABLE,
-//             Item: {
-//                 id: uuidv4(),
-//                 createdAt: moment().unix(),
-//                 updatedAt: moment().unix(),
-//                 channel: liveStatus.username,
-//                 status: JSON.stringify(liveStatus),
-//                 isLive: liveStatus.isLive,
-//                 liveLink: liveStatus.liveLink,
-//             },
-//         };
-
-//         await documentWriter.put(params).promise();
-
-//     })
-// }
-
-
-
 function handleFunc(username){
     return new Promise((resolve,reject)=>{
         const ex = "/opt/yt-dlp_linux";

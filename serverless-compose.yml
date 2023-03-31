@@ -18,7 +18,6 @@ services:
     path: services/utilitiesapi
     params:
       ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
-      ffmpeg: ${ytdlp_layer.FfmpegLambdaLayerQualifiedArn}
 
   liveChecker:
     path: services/liveChecker
@@ -28,7 +27,7 @@ services:
       recordCallBackUrl: ${record.ServiceEndpoint}/CallBackReceivedLiveEvents
       recordRequestTable: ${recordRequests.RecordRequestTable}
       recordRequestTableArn: ${recordRequests.RecordRequestTableArn}
-      ytdlpArn: ${ytdlp_layer.YtdlparmLambdaLayerQualifiedArn}
+      ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
 
 
   

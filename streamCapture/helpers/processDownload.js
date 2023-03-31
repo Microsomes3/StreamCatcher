@@ -3,6 +3,7 @@ const fs = require('fs');
 const moment = require('moment');
 const { manageUploadST } = require('./uploadHelper')
 const { publishProgressUpdate } = require('./publishProgressUpdate')
+const { generateThumbnail } = require('./generateThumbnail')
 function processDownload({
     channel,
     isRecordStart,
@@ -31,13 +32,10 @@ function processDownload({
                 Bucket: bucket,
                 Body: fileStream,
                 ContentType: "video/mp4",
-                Key: "pussylulu+"+mode+ recordRequestId + "_" + channel + "_" + recordID + "_" + currentDateTime + ".mp4"
+                Key: mode + recordRequestId + "_" + channel + "_" + recordID + "_" + currentDateTime + ".mp4"
             };
 
             const loc = await manageUploadST(uploadParams);
-
-            console.log(loc)
-
 
             await publishProgressUpdate({
                 status: status,
@@ -48,6 +46,24 @@ function processDownload({
                 paths: [loc],
                 friendlyName: friendlyName
             })
+
+            try {
+               await generateThumbnail(paths[0], "thump.jpeg")
+
+                const thumbParams = {
+                    Bucket: bucket,
+                    Body: fs.createReadStream("thump.jpeg"),
+                    ContentType: "image/jpeg",
+                    Key: recordID + "_thump.jpeg"
+                };
+
+                const thumbLoc = await manageUploadST(thumbParams);
+            } catch (e) {
+                console.log(e);
+             }
+
+
+
 
             resolve()
 

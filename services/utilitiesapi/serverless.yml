@@ -38,7 +38,6 @@ functions:
     timeout: 30
     layers:
       - ${param:ytdlpArn}
-      - ${param:ffmpeg}
     events:
       - http:
           path: /getDemoLiveClip/{username}

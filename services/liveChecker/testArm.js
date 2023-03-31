@@ -8,7 +8,7 @@ module.exports.handler = async (event, context, callback) => {
 
     const files = fs.readdirSync('/opt');
 
-    const isLive = await getLiveStatusv2('/opt/yt-dlp_linux_aarch64', '@GriffinGaming');
+    const isLive = await getLiveStatusv2('/opt/yt-dlp_linux_armv7l', '@CreepsMcPasta');
 
     return {
         statusCode: 200,

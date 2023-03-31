@@ -186,6 +186,7 @@ resources:
 functions:
   TestArm:
     handler: testArm.handler
+    architecture: arm64
     layers:
       - ${param:ytdlpArn}
     events:
