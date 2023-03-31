@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM arm64v8/ubuntu:latest
 
 RUN apt-get update -y
 
@@ -39,8 +39,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ENV DISPLAY=:99
-
-RUN apt install chromium-browser -y
 
 
 RUN npm install

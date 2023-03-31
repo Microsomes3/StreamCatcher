@@ -23,8 +23,8 @@ async function start() {
 		console.log("downloading alex jones content");
 
 		const { paths, status } = await processDownload({
-			url: "https://banned.video/channel/the-alex-jones-show",
-			timeout: 60000
+			url: "https://freespeech.akamaized.net/hls/live/2024573/live2/playlist.m3u8",
+			timeout: parseInt(process.env.timeout) || 120000
 		})
 
 		console.log(">",paths,status)

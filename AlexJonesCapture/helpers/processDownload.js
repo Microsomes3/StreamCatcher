@@ -1,85 +1,53 @@
-const { launch, getStream } = require("puppeteer-stream");
 const fs = require("fs");
 const { convertFile } = require("./convertFile");
-const pt = require("puppeteer-core")
-const puppeteer = require("puppeteer")
+const {spawn} = require("child_process");
+
 
 function processDownload({
     url,
     timeout
 }) {
     return new Promise(async (resolve, reject) => {
-
-        var browser = null;
-
-        console.log(puppeteer.executablePath());
-
-        //if exists test.webm delete it
-        if (fs.existsSync(__dirname + "/test.webm")) {
-            fs.unlinkSync(__dirname + "/test.webm");
-        }
-
-        //if exists test.mp4 delete it
-        if (fs.existsSync(__dirname + "/test.mp4")) {
-            fs.unlinkSync(__dirname + "/test.mp4");
-        }
-
         try {
-            browser = await launch({
-                // executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-                executablePath: puppeteer.executablePath(),
-                args:[
-                    '--no-sandbox',
-                ],
-                defaultViewport:{
-                    width:1500,
-                    height:1000
-                }
+            console.log(">", url, timeout)
+            //download m3u8
+            const child = spawn("ffmpeg", [
+                "-i",
+                url,
+                "-c",
+                "copy",
+                "-bsf:a",
+                "aac_adtstoasc",
+                "-t",
+                timeout / 1000,
+                "-y",
+                "test.mp4"
+            ]);
+
+            child.stdout.on("data", (data) => {
+                console.log(`stdout: ${data}`);
             });
 
-            const page = await browser.newPage();
-            await page.goto("https://banned.video/channel/the-alex-jones-show");
-            await page.waitForSelector(".player__button svg");
-            var dm = await page.evaluate(() => {
-                return {
-                    x: document.querySelectorAll(".player__button svg")[2].getBoundingClientRect().x,
-                    y: document.querySelectorAll(".player__button svg")[2].getBoundingClientRect().y,
-                }
+            child.stderr.on("data", (data) => {
+                console.error(`stderr: ${data}`);
             });
-
-            await page.mouse.click(dm.x, dm.y);
-
-            const stream = await getStream(page, { audio: true, video: true });
-            console.log("recording");
-            const file = fs.createWriteStream(__dirname + "/test.webm");
-
-            stream.pipe(file);
-
-
-            setTimeout(async ()=>{
-                await stream.destroy();
-                file.close();
-                browser.close();
-                await convertFile(__dirname+"/test.webm", "test.mp4");
-
-                resolve({
-                    paths:["test.mp4"],
-                    status:"success"
-                })
-
-            },timeout)
-
 
     
+            child.on("close", async (code) => {
+                console.log(`child process exited with code ${code}`);
+                resolve({
+                    paths:["test.mp4"],
+                    status: code
+                });
+            }
+            );
         } catch (e) {
             console.log(e);
             reject(e);
         } finally {
-            if (browser) {
-                await browser.close();
-            }
+
         }
-        
+
     })
 }
 
