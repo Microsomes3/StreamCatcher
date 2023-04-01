@@ -1,73 +1,68 @@
 
-const { getAllRecordRequestsToSchedule } = require('./helpers/checkScheduleStandalone');
 const aws = require('aws-sdk');
 
 const moment = require('moment');
-
-const { makeConnection, disconnect } = require('./helpers/db')
-
-const mongoose = require('mongoose');
-const mongoconnectionstring = process.env.MONGO_CONNECITON;
-
-mongoose.connect(mongoconnectionstring, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        console.log('connected')
-    })
-
 
 const sqs = new aws.SQS({
     region: process.env.AWS_REGION_T || 'us-east-1',
 });
 
+const documentClient = new aws.DynamoDB.DocumentClient({
+    region: process.env.AWS_REGION_T || 'us-east-1',
+});
+
 function handleFunc() {
     return new Promise(async (resolve, reject) => {
-
-
-        const recordRequests = await getAllRecordRequestsToSchedule();
-
-
-        console.log("total record requests to trigger", recordRequests.length);
-
-        var flattenRecordRequests = recordRequests.flat(1);
-
-        var messageIds = [];
-        var allResponses = [];
-
-        for (let i = 0; i < flattenRecordRequests.length; i++) {
-
-            const param = {
-                MessageBody: JSON.stringify({
-                    ...flattenRecordRequests[i]
-                }),
-                QueueUrl: process.env.AUTO_SCHEDULE_QUEUE_URL,
-            }
-
-            await sqs.sendMessage(param).promise();
-
-            resolve({
-                messageIds,
-                flattenRecordRequests,
-                allResponses
-            })
-
+        try{
+        const params = {
+            TableName: process.env.AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE || "AggregateCurrentYoutuberLive",
         }
 
+        const data = await documentClient.scan(params).promise();
+
+        var allYoutubersEligibleToCheck = [];
+       
+        for(let i = 0; i < data.Items.length; i++) {
+            const lastUpdated = moment(data.Items[i].updatedAt);
+            const currentTime = moment().subtract(1, 'hour');
+            const diff = currentTime.diff(lastUpdated, 'minutes');
+          
+            if(diff <30 && data.Items[i].isLive === true){
+                allYoutubersEligibleToCheck.push(data.Items[i]);
+            }
+            
+        }
+        
+        for(let i = 0; i < allYoutubersEligibleToCheck.length; i++) {
+            const params = {
+                QueueUrl: process.env.CHECK_SCHEDULE_QUEUE_URL || "https://sqs.us-east-1.amazonaws.com/574134043875/griffin-autoscheduler-service-dev-CheckScheduleQueue",
+                MessageBody: JSON.stringify({
+                    youtuber: allYoutubersEligibleToCheck[i].youtubeusername
+                })
+            }
+
+            await sqs.sendMessage(params).promise();
+        }
+
+        console.log("allYoutubersEligibleToCheck", allYoutubersEligibleToCheck.length);
+        resolve();
+    }catch(e){
+        console.log(e);
+        reject(e);
+    }
     })
 }
 
 
 
 module.exports.handler = async (event) => {
-
     try {
-        const { messageIds, flattenRecordRequests, allResponses } = await handleFunc();
-
-        const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+        await handleFunc();
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                currentTime: currentTime
+                message: "Success",
             }),
         };
     } catch (e) {

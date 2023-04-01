@@ -9,7 +9,12 @@ async function sendShitpostLink(link) {
     return true;
 }
 
+async function sendToUser(link, user) {
+    await rest.post(`/users/${user}/messages`, { body: { content: link } });
+    return true;
+}
 
 module.exports = {
     sendShitpostLink,
+    sendToUser
 }

@@ -1,12 +1,12 @@
 const aws = require('aws-sdk');
-const {
-    getAllItemsOnDateAndRequest,
-    addCronItem
 
-} = require('./db')
+const {
+    checkIfRequestExists,
+    addScheduledTask,
+    getScheduledTask
+} = require('./databaseHelper')
 
 const { makeRecordRequest } = require('./submitRecordingsRequest')
-
 
 const moment = require('moment');
 
@@ -61,83 +61,78 @@ function convertTriggerTimeToMoment(triggerTime) {
 function handleIntervelHandler(requestDetails, dateToUse) {
     return new Promise(async (resolve, reject) => {
         const { id, trigger, triggerInterval } = requestDetails;
+        const intervalTimeSeconds = convertTriggerTimeToMoment(triggerInterval);
 
-        const intervalTime = convertTriggerTimeToMoment(triggerInterval);
-        const date = dateToUse;
-        const lid = id.toString();
-        const items = await getAllItemsOnDateAndRequest(id, date);
 
-        if (items.length == 0) {
+        const item = await getScheduledTask({
+            requestid: id
+        })
+
+        if(item == null){
             resolve(false);
             return;
         }
 
-        const lastItem = items[items.length - 1];
-
-        const created = moment(lastItem.created)
+        const ttime= item.hour+":"+item.minute+":00";
+        const ttimeM = moment(ttime, "HH:mm:ss");
         const now = moment();
 
-        console.log("created", created);
-        console.log("now", now);
+        const diff = now.diff(ttimeM, 'seconds');
 
-        const diff = now.diff(created, 'seconds');
-
-        console.log(diff);
-
-        if (diff > intervalTime) {
-            resolve(false);
+        
+        if (diff >= 0 && diff <= intervalTimeSeconds) {
+            resolve(true);
             return;
         }
 
-
-        resolve(true);
+        resolve(false);
+        
     })
 }
 
 function handleSpecificTimeHandler(requestDetails, dateToUse) {
     return new Promise(async (resolve, reject) => {
-        const { id, trigger, triggerTime } = requestDetails;
+        try {
+            const { id, trigger, triggerTime } = requestDetails;
 
-        console.log("sepcific time")
+            console.log("sepcific time")
 
-        var ltriggerTime = triggerTime;
+            var ltriggerTime = triggerTime;
 
-        const nmtriggerTime = moment(ltriggerTime, "HH:mm:ss");
+            const nmtriggerTime = moment(ltriggerTime, "HH:mm:ss");
 
-        console.log("nmtriggerTime", nmtriggerTime);
+            console.log("nmtriggerTime", nmtriggerTime);
 
-        const items = await getAllItemsOnDateAndRequest(id, dateToUse);
+            const now = moment();
+            const diff = nmtriggerTime.diff(now, 'minutes');
 
-        const now = moment();
-        const diff = nmtriggerTime.diff(now, 'minutes');
+            console.log("diff", diff);
 
-        if (diff > 0 && diff <= 5) {
-            //check if no items if so trigger
-            if (items.length == 0) {
-                resolve(false);
-                return;
-            }
+            if (diff >= 0 && diff <= 3) {
+                //check if no items if so trigger
+                var hour = ltriggerTime.split(":")[0];
+                var minute = ltriggerTime.split(":")[1];
 
-            var hour = ltriggerTime.split(":")[0];
-            var minute = ltriggerTime.split(":")[1];
+                //check if exists
+                const item = await getScheduledTask({
+                    requestid: id
+                })
 
-            //check if exists
-            const exists = items.filter((item) => {
-                if (item.hour == hour && item.minute == minute) {
-                    return true;
+                if (item == null) {
+                    console.log("doesnt exist");
+                    resolve(false);
                 }
-            })
 
-            if (exists.length == 0) {
-                resolve(false);
-                return;
+                resolve(true);
+
+
+            } else {
+                console.log("not within range")
+
+                resolve(true);
             }
-
-            resolve(true);
-
-        } else {
-            console.log("not within range")
-
+        } catch (e) {
+            console.log(e);
             resolve(true);
         }
 
@@ -146,22 +141,18 @@ function handleSpecificTimeHandler(requestDetails, dateToUse) {
 
 function handleWheneverLiveHandler(requestDetails, dateToUse) {
     return new Promise(async (resolve, reject) => {
-        const { id, trigger, triggerTime } = requestDetails;
+        try {
+            const { id } = requestDetails;
+            const isExist = await checkIfRequestExists({
+                requestid: id,
+            })
 
-        console.log("lll")
-
-        const items = await getAllItemsOnDateAndRequest(id, dateToUse);
-
-
-        console.log("items", items);
-
-
-        if (items.length == 0) {
-            resolve(false);
-            return;
+            resolve(isExist);
+        } catch (e) {
+            console.log(e);
+            resolve(true)
         }
 
-        resolve(true);
     })
 }
 
@@ -172,11 +163,7 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
     return new Promise(async (resolve, reject) => {
 
         let isExist = true;
-
-
         const requestDetails = await getRecordRequestById(requestID);
-
-        console.log(requestDetails)
 
         switch (requestDetails.trigger) {
             case "interval":
@@ -191,30 +178,46 @@ function checkRequestIDExistsInAutoRecordTableWithSpecifiedDate({
 
         }
 
+        var hour = "--";
+        var minute = "--";
 
+        switch(requestDetails.trigger){
+            case "interval":
+                hour = moment().format('HH');
+                minute = moment().format('mm');
+                break;
+            case "specifictime":
+                try {
+                    hour = requestDetails.triggerTime.split(":")[0];
+                    minute = requestDetails.triggerTime.split(":")[1];
+                } catch (e) { }
+                break;
+            case "wheneverlive":
+                hour = moment().format('HH');
+                minute = moment().format('mm');
+                break;
+        }
+
+
+        console.log(isExist, hour, minute)
 
         if (!isExist) {
+            try {
 
-            var hour = "--";
-            var minute = "--";
+                console.log("hour", requestDetails);
 
-            try{
-                 hour = requestDetails.triggerTime.split(":")[0];
-             minute = requestDetails.triggerTime.split(":")[1];
-            }catch(e){}
-
-            try{
-           
-
-            console.log("hour", requestDetails);
-
-            addCronItem(requestID, date, hour, minute);
-            }catch(e){
+                await addScheduledTask({
+                    requestid: requestID,
+                    hour,
+                    minute,
+                    trigger: requestDetails.trigger,
+                    username:requestDetails.username,
+                })
+            } catch (e) {
 
                 //log this request id to file
                 const fs = require('fs');
-                fs.appendFile('error.txt', requestID +'\n', function (err) {});
-
+                fs.appendFile('error.txt', requestID + '\n', function (err) { });
             }
 
         }

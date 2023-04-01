@@ -26,6 +26,8 @@ provider:
     AUTO_SCHEDULE_TABLEV2: !Ref AutoScheduleV2Table
     SLIM_TASK_DEFINITION: !Sub ${AWS::StackName}-SlipTaskARM
     SLIP_TASk_CONTAINER_NAME: !Sub ${AWS::StackName}-SlipTask
+    AUTO_SCHEDULE_TABLEV3: !Ref AutoScheduleV3Table
+    CHECK_SCHEDULE_QUEUE_URL: !GetAtt CheckScheduleQueue.QueueUrl
 
 
     MONGO_CONNECITON: ${env:MONGO_CONNECITON}
@@ -96,10 +98,32 @@ provider:
       Action:
         - dynamodb:*
       Resource: ${param:record_table_arn}
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt CheckScheduleQueue.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt AutoScheduleV3Table.Arn
   
 
 resources:
   Resources:
+    AutoScheduleV3Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: recordrequestid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: recordrequestid
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
     AutoScheduleV2Table:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -160,7 +184,7 @@ resources:
         Cpu: 256
         Memory: 512
         EphemeralStorage:
-          SizeInGiB: 21
+          SizeInGiB: 50
         RequiresCompatibilities:
           - FARGATE
         NetworkMode: awsvpc
@@ -217,6 +241,13 @@ resources:
         VisibilityTimeout: 300
         MessageRetentionPeriod: 1209600
         ReceiveMessageWaitTimeSeconds: 20
+    CheckScheduleQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub ${AWS::StackName}-CheckScheduleQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+        ReceiveMessageWaitTimeSeconds: 20
   Outputs:
     AutoScheduleQueueUrl:
       Value: !GetAtt AutoScheduleQueue.QueueUrl
@@ -248,8 +279,21 @@ functions:
           path: RecordByRequestIDAdhoc/{recordrequestid}
           method: post
           cors: true
-
-
+  CheckYoutubeQueuerq:
+    handler: src/processRequestsQueue.handler
+    timeout: 45
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - CheckScheduleQueue
+              - Arn
+          batchSize: 1
+  DeleteScheduleDaily:
+    handler: src/deleteAllScheduleDaily.handler
+    timeout: 45
+    events:
+      - schedule: cron(0 0 * * ? *)
 custom:
   prune:
     automatic: true
