@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../../../../pages/auth/authwatch";
 import { app } from "../../../../assets/fb";
+import moment from "moment";
 import {
     getFirestore,
     getDocs,
@@ -55,6 +56,7 @@ function Track() {
             //add youtuber name to db
             const doc = await addDoc(docRef, {
                 name: youtuberName,
+                created: moment().format("YYYY-MM-DD HH:mm:ss"),
             });
 
             if (doc.id) {
@@ -142,66 +144,66 @@ function Track() {
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold">Youtubers You Are Tracking</h2>
                     <div className="mt-4">
-                        {allYoutubers.map((youtuber) => (
-                            <div key={youtuber.id} className="bg-gray-800 p-4 rounded-md mb-4">
-                                {editYoutuberId === youtuber.id ? (
-                                    <form onSubmit={handleEdit} className="space-y-4">
-                                        <div className="flex flex-col">
-                                            <label htmlFor="editYoutuberName" className="text-sm">
-                                                Youtuber Name:
-                                            </label>
-                                            <input
-                                                type="text"
-                                                id="editYoutuberName"
-                                                value={editYoutuberName}
-                                                onChange={(e) => setEditYoutuberName(e.target.value)}
-                                                placeholder="Youtuber Name @whthekiller"
-                                                className="border border-gray-600 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                                            />
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <button
-                                                type="submit"
-                                                className="bg-blue-500 text-white px-4 py-2 rounded w-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                Save
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setEditYoutuberId(null);
-                                                    setEditYoutuberName("");
-                                                }}
-                                                className="bg-red-500 text-white px-4 py-2 rounded w-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <>
-                                        <p className="text-xl font-bold">{youtuber.name}</p>
-                                        <div className="flex justify-end">
-                                            <button
-                                                onClick={() => {
-                                                    setEditYoutuberId(youtuber.id);
-                                                    setEditYoutuberName(youtuber.name);
-                                                }}
-                                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(youtuber.id)}
-                                                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))}
+                    {allYoutubers.map((youtuber) => (
+    <div key={youtuber.id} className="bg-gray-800 p-4 rounded-md mb-4">
+        {editYoutuberId === youtuber.id ? (
+            <form onSubmit={handleEdit} className="space-y-4">
+                <div className="flex flex-col">
+                    <label htmlFor="editYoutuberName" className="text-sm">
+                        Youtuber Name:
+                    </label>
+                    <input
+                        type="text"
+                        id="editYoutuberName"
+                        value={editYoutuberName}
+                        onChange={(e) => setEditYoutuberName(e.target.value)}
+                        placeholder="Youtuber Name @whthekiller"
+                        className="border border-gray-600 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    />
+                </div>
+                <div className="flex justify-between">
+                    <button
+                        type="submit"
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+                    >
+                        Save
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEditYoutuberId(null);
+                            setEditYoutuberName("");
+                        }}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        ) : (
+            <>
+                <p className="text-xl font-bold">{youtuber.name}</p>
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => {
+                            setEditYoutuberId(youtuber.id);
+                            setEditYoutuberName(youtuber.name);
+                        }}
+                        className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={() => handleDelete(youtuber.id)}
+                        className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </>
+        )}
+    </div>
+))}
                     </div>
                 </div>
             </div>

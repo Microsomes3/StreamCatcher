@@ -14,7 +14,7 @@ function DashboardHome() {
   }, [user]);
 
   return (
-    <div className="bg-gray-900 h-screen text-white flex flex-col">
+    <div className="bg-gray-900 text-white flex flex-col">
       <div className="h-12 mt-4 py-12 bg-gray-800 ml-12 mr-12 rounded-t-md flex items-center justify-around">
         <div
           className={`menu-item ${
