@@ -38,6 +38,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/demo' element={<Home />} />
       <Route path='/auth' element={<SignUp />} />
       <Route path='/dashboard' element={<DashboardHome></DashboardHome>} ></Route>
+      <Route path='/dashboard/:comp' element={<DashboardHome></DashboardHome>} ></Route>
+      <Route path='/dashboard/:comp/:section' element={<DashboardHome></DashboardHome>} ></Route>
       <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
       <Route path='/addyoutuber' element={<AddYoutuber></AddYoutuber>} />
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />

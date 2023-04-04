@@ -14,6 +14,9 @@ import {
     addDoc,
     setDoc,
     deleteDoc,
+    doc,
+    onSnapshot
+
 } from "firebase/firestore";
 
 const INTERVAL_OPTIONS = ["10m", "20m", "30m", "1hr", "2hr", "3hr"];
@@ -77,7 +80,7 @@ function RecordRequests() {
             docSnap.forEach((doc) => {
                 recordrequests.push({
                     id: doc.id,
-                    youtuberId: doc.data().youtuberId,
+                    youtuberId: doc.data().youtubeName,
                     trigger: doc.data().trigger,
                     intervalValue: doc.data().intervalValue,
                     specificTime: doc.data().specificTime,
@@ -94,6 +97,20 @@ function RecordRequests() {
 
         getDoc();
     },[user])
+
+
+    const handleDelete = async (id) => {
+        const userId = user[1];
+
+        const docRef = doc(collection(fb, "users", userId, "recordrequests"), id);
+
+        await deleteDoc(docRef);
+
+        alert("Record request deleted successfully");
+
+    };
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -141,6 +158,8 @@ function RecordRequests() {
             setDuration(30);
 
             alert("Record request submitted successfully");
+
+            location.reload();
         }
 
     };
@@ -159,7 +178,8 @@ function RecordRequests() {
             </div>
 
             {openRecordRequests && (
-                <form onSubmit={handleSubmit} className="px-6 py-4">
+                    <div className="mt-8 justify-center flex flex-col">
+                    <form onSubmit={handleSubmit} className="px-6 py-4">
                      <div className="mb-4">
                         <label htmlFor="youtuber" className="block text-lg mb-2">
                             Youtuber:
@@ -260,11 +280,12 @@ function RecordRequests() {
                     <button
                         type="button"
                         onClick={() => setOpenRecordRequests(false)}
-                        className="text-blue-500 mt-4 text-center hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="text-blue-500  w-full mt-4 text-center hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         Cancel
                     </button>
                 </form>
+                </div>
             )}
 
 {openRecordRequests && (
@@ -279,23 +300,28 @@ function RecordRequests() {
             
             {allRequests.length > 0 ? (
                 <div className="grid grid-cols-4 gap-4">
-                    <div className="font-bold">Youtuber</div>
-                    <div className="font-bold">Trigger</div>
-                    <div className="font-bold">Interval / Specific Time</div>
-                    <div className="font-bold">Duration</div>
-
                     {allRequests.map((recordRequest) => (
-                        <React.Fragment key={recordRequest.id}>
-                            <div>{recordRequest.youtuberId}</div>
-                            <div>{recordRequest.trigger}</div>
-                            <div>
-                                {recordRequest.trigger === "interval"
-                                    ? recordRequest.intervalValue
-                                    : recordRequest.specificTime}
-                                {recordRequest.trigger !== "interval" && <p>--</p>}
-                            </div>
-                            <div>{recordRequest.duration} minutes</div>
-                        </React.Fragment>
+                    <div className="bg-gray-800 rounded-md shadow-lg px-4 py-3 mb-4" key={recordRequest.id}>
+                    <div className="text-lg font-medium text-white mb-2">Name: {recordRequest.youtuberId}</div>
+                    <div className="text-gray-400 text-sm mb-2">Trigger: {recordRequest.trigger}</div>
+                    <div className="text-gray-400 text-sm mb-2">
+                        {recordRequest.trigger === "interval" ? recordRequest.intervalValue : recordRequest.specificTime}
+                        {recordRequest.trigger !== "interval" && <p>--</p>}
+                    </div>
+                    <div className="text-gray-400 text-sm mb-2">Duration: {recordRequest.duration} minutes</div>
+                    <div className="text-gray-400 text-sm mb-2">Created: {moment(recordRequest.created).format('YYYY-MM-DD hh:mm a')}</div>
+                
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => handleDelete(recordRequest.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                
                     ))}
                 </div>
             ) : (

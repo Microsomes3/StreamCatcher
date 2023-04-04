@@ -9,6 +9,8 @@ import {
     addDoc,
     setDoc,
     deleteDoc,
+    onSnapshot,
+    doc
 } from "firebase/firestore";
 
 function Track() {
@@ -19,6 +21,7 @@ function Track() {
     const [openAddYoutuber, setOpenAddYoutuber] = useState(false);
     const [editYoutuberId, setEditYoutuberId] = useState(null);
     const [editYoutuberName, setEditYoutuberName] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const user = useContext(AuthContext);
 
     useEffect(() => {
@@ -26,12 +29,13 @@ function Track() {
 
         const docRef = collection(fb, "users", userId, "youtubers");
 
-        const getDoc = async () => {
-            const docSnap = await getDocs(docRef);
+        //snapshot
 
+
+        const unsubscribe = onSnapshot(docRef, (querySnapshot) => {
             const youtubers = [];
 
-            docSnap.forEach((doc) => {
+            querySnapshot.forEach((doc) => {
                 youtubers.push({
                     id: doc.id,
                     name: doc.data().name,
@@ -39,9 +43,17 @@ function Track() {
             });
 
             setAllYoutubers(youtubers);
-        };
 
-        getDoc();
+            setIsLoading(false);
+
+        });
+
+
+
+        return unsubscribe;
+
+
+
     }, [user]);
 
     const handleSubmit = async (e) => {
@@ -72,7 +84,7 @@ function Track() {
     const handleEdit = async (e) => {
         e.preventDefault();
 
-        const docRef = collection(fb, "users", user[1], "youtubers", editYoutuberId);
+        const docRef =doc (fb, "users", user[1], "youtubers", editYoutuberId);
 
         await setDoc(docRef, {
             name: editYoutuberName,
@@ -90,16 +102,24 @@ function Track() {
     };
 
     const handleDelete = async (id) => {
-        const docRef = collection(fb, "users", user[1], "youtubers", id);
-        await deleteDoc(docRef);
+        const docRef = doc(fb, "users", user[1], "youtubers", id);
 
+        //ask are you sure
+
+        const confirm = window.confirm("Are you sure you want to delete this youtuber?");
+
+        if (!confirm) {
+            return;
+        }
+
+        await deleteDoc(docRef, id);
         const updatedYoutubers = allYoutubers.filter((youtuber) => youtuber.id !== id);
-
         setAllYoutubers(updatedYoutubers);
     };
 
     return (
         <div className="bg-gray-900 text-white   mt-6 rounded-md shadow-2xl">
+            
             <div className="container mx-auto py-12 px-4">
                 {!openAddYoutuber && (
                     <div
@@ -143,13 +163,14 @@ function Track() {
 
                 <div className="mt-8">
                     <h2 className="text-2xl font-bold">Youtubers You Are Tracking</h2>
-                    <div className="mt-4">
+                    <div className="mt-4 grid grid-cols-4 gap-4">
+                        
                     {allYoutubers.map((youtuber) => (
     <div key={youtuber.id} className="bg-gray-800 p-4 rounded-md mb-4">
         {editYoutuberId === youtuber.id ? (
             <form onSubmit={handleEdit} className="space-y-4">
                 <div className="flex flex-col">
-                    <label htmlFor="editYoutuberName" className="text-sm">
+                    <label htmlFor="editYoutuberName" className="text-sm font-medium text-gray-400 mb-1">
                         Youtuber Name:
                     </label>
                     <input
@@ -161,7 +182,7 @@ function Track() {
                         className="border border-gray-600 px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     />
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-end mt-4">
                     <button
                         type="submit"
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
@@ -182,20 +203,20 @@ function Track() {
             </form>
         ) : (
             <>
-                <p className="text-xl font-bold">{youtuber.name}</p>
-                <div className="flex justify-end">
+                <p className="text-lg font-bold text-white">{youtuber.name}</p>
+                <div className="flex justify-end mt-4">
                     <button
                         onClick={() => {
                             setEditYoutuberId(youtuber.id);
                             setEditYoutuberName(youtuber.name);
                         }}
-                        className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
                     >
                         Edit
                     </button>
                     <button
                         onClick={() => handleDelete(youtuber.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                     >
                         Delete
                     </button>
@@ -204,6 +225,10 @@ function Track() {
         )}
     </div>
 ))}
+
+
+                       {allYoutubers.length ==0 && <p>No record requests found.</p>}
+
                     </div>
                 </div>
             </div>
