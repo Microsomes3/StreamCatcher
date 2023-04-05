@@ -1,32 +1,20 @@
 const axios = require('axios');
+const { spawn } = require('child_process');
 
 function mustCheckLive(channel) {
+    return new Promise((resolve, reject) => {
 
-    const getChannelStatusURI = process.env.getChannelStatusURI || "https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatus/";
+        const url = `https://www.youtube.com/${channel}/live`;
 
-    return new Promise(async (resolve, reject) => {
-        var maxTries = 3;
-        var currentTry = 0;
+        var ls = spawn("yt-dlp", ['-f', 'bestvideo[height<=?1080][vcodec^=avc1]+bestaudio/best', '-g', url]);
 
-        var toReturn = false;
+        ls.stdout.on('data', (data) => {
+            resolve(true);
+        })
 
-        for (var i = 0; i < maxTries; i++) {
-
-            try {
-                const isLive = await axios.get(getChannelStatusURI + channel);
-                toReturn = isLive.data;
-                break;
-            } catch (e) {
-                console.log(e);
-            }
-
-            currentTry++;
-
-        }
-
-        resolve(toReturn)
-
-
+        ls.stderr.on('data', (data) => {
+            resolve(false)
+        })
     })
 }
 

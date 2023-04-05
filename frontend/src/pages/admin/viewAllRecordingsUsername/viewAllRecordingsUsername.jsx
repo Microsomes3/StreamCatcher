@@ -12,20 +12,32 @@ function ViewAllRecordingsByUsername() {
     const { username } = useParams();
 
     const [recordings, setRecordings] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
 
-
-    useEffect(() => {
+    const loadAllRecordings = () => {
+        setIsLoading(true)
         axios.get(`https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GetRecordingsByUsername/${username}`)
-            .then((data) => {
-                setRecordings(data.data.results)
-            })
-    }, [username])
+        .then((data) => {
+            setRecordings(data.data.results)
+            setIsLoading(false)
+        })
+    }
+
+    useEffect(()=>{
+        loadAllRecordings()
+    },[username])
+
+
+
+    
 
 
 
 
     return (
         <div className='bg-black h-screen'>
+
+
             <div className="h-12 flex items-center justify-center bg-white">
                 <p className="font-bold text-center">View all Recordings: {username}</p>
             </div>
@@ -42,7 +54,10 @@ function ViewAllRecordingsByUsername() {
 
 
             <div className='bg-gray-900 rounded-md p-12 m-12 mt-2'>
-                <RecordTable recordings={recordings} />
+            
+     
+                <RecordTable isLoading={isLoading} recordings={recordings} />
+                
             </div>
 
         </div>

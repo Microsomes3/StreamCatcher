@@ -49,7 +49,10 @@ function Billing() {
     ];
 
     const toggleFAQ = (index) => {
-      alert(index);
+      const faq = allFaqs[index];
+      faq.isOpen = !faq.isOpen;
+
+      setAllFaqs([...allFaqs]);
     }
 
     useEffect(() => {
@@ -126,14 +129,21 @@ function Billing() {
         {currentSection === "faq" && (
           <div className="grid gap-6 ml-12 mr-12 mt-12">
            
-           {allFaqs.map(item=> <div onClick={(e)=> toggleFAQ(item)} className={`bg-${isDarkMode ? 'gray-700' : 'gray-100'} cursor-pointer hover:bg-gray-600 rounded-lg p-6`}>
-              <h2 className="text-xl font-semibold">{item.question}</h2>
-             
-             {item.isOpen && <p className="mb-4">
-                You can update your billing information by logging into your account and going to the Billing section.
-              </p>}
-              
-            </div>)}
+           {allFaqs.map((item, index) => (
+  <div
+    onClick={(e) => toggleFAQ(index)}
+    className={`bg-${isDarkMode ? "gray-700" : "gray-100"} cursor-pointer hover:bg-gray-600 rounded-lg p-6`}
+  >
+    <h2 className="text-xl font-semibold">{item.question}</h2>
+
+    {item.isOpen && (
+      <p className="mb-4">
+        You can update your billing information by logging into your account and going to the Billing section.
+      </p>
+    )}
+  </div>
+))}
+
           
           </div>
         )}

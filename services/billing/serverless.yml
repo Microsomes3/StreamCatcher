@@ -1,0 +1,23 @@
+service: streamcatcher-billing-service
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
+
+provider:
+  name: aws
+  memorySize: 128
+  environment:
+    STRIPE_SECRET: ${env:STRIPE_SECRET}
+
+useDotenv: true
+
+
+functions:
+  payment:
+    handler: src/payment.handler
+    events:
+      - http:
+          path: /payment
+          method: post
+          cors: true

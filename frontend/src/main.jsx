@@ -19,6 +19,8 @@ import ViewAllRecordingsByUsername from './pages/admin/viewAllRecordingsUsername
 
 import LandingPage from './pages/landing/landing'
 
+import BillingAddForm from './pages/dashboard/billingpage/addonForm';
+
 import { AuthProvider } from './pages/auth/authwatch'
 
 import PrivateRoute from './routes/privateRouter'
@@ -47,6 +49,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/recordings/:username/:filter' element={<ViewAllRecordingsByUsername></ViewAllRecordingsByUsername>} />
+      <Route path='/billing/addon' element={<BillingAddForm></BillingAddForm>} />
       </Routes>
     </BrowserRouter>
     </AuthProvider>

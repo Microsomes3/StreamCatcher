@@ -25,37 +25,37 @@ function tryDownload(channel,timeout,stopCapturingComments,mode="start",wssocket
             // console.error(`yt-dlp stderr: ${data}`);
             });
 
-            try{
+            // try{
 
-                //connect to websocket
-                const WebSocket = require('ws');
-                const ws = new WebSocket(wssocket);
+            //     //connect to websocket
+            //     const WebSocket = require('ws');
+            //     const ws = new WebSocket(wssocket);
 
-                const interval = setInterval(function ping() {
-                    ws.ping();
-                }, 30000);
+            //     const interval = setInterval(function ping() {
+            //         ws.ping();
+            //     }, 30000);
 
-                ws.on('close', function close() {
-                    console.log("disconnected from websocket");
-                    clearInterval(interval);
-                });
+            //     ws.on('close', function close() {
+            //         console.log("disconnected from websocket");
+            //         clearInterval(interval);
+            //     });
 
-                ws.on('open', function open() {
-                    console.log("connected to websocket");
+            //     ws.on('open', function open() {
+            //         console.log("connected to websocket");
 
-                    ws.send(JSON.stringify({
-                        "action":"registerreceiver",
-                        "recordid": process.env.RECORD_ID
-                    }));
-                });
+            //         ws.send(JSON.stringify({
+            //             "action":"registerreceiver",
+            //             "recordid": process.env.RECORD_ID
+            //         }));
+            //     });
 
-                ws.on('message', function incoming(data) {
-                    console.log(data);
-                })
+            //     ws.on('message', function incoming(data) {
+            //         console.log(data);
+            //     })
 
 
 
-            }catch(e){}
+            // }catch(e){}
 
 
         
@@ -84,35 +84,8 @@ function tryDownload(channel,timeout,stopCapturingComments,mode="start",wssocket
                 comments:[]
             })
         }
-        //   child.on('exit', async (code) => {
-        //     console.log(`yt-dlp process exited with code ${code}`);
-            
-        //     stopCapturingComments().then((comments)=>{
-                
+       
 
-
-        //     //get all mp4 files in videos folder
-
-        //     const videos = fs.readdirSync("videos");
-
-        //     const visibleVideos = videos.filter((v) => {
-        //         const fileName = path.basename(v);
-        //         return !fileName.startsWith('.');
-        //     });
-
-        //     const paths = visibleVideos.map((v) => `videos/${v}`);
-
-        
-        //     resolve({
-        //         status: "success",
-        //         reason: "success",
-        //         paths: paths,
-        //         comments: comments.allComments
-        //     })
-
-        //     })
-
-        //   });
     })
 }
 

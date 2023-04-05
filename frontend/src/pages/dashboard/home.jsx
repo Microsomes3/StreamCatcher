@@ -32,7 +32,7 @@ function DashboardHome() {
   }, [comp]);
 
   return (
-    <div className="bg-gray-900 text-white flex flex-col">
+    <div className="bg-gray-900 text-white flex flex-col min-h-screen">
       <div className=" mt-12 mb-3 bg-gray-900 ml-12 mr-12  rounded-t-md flex items-center justify-around">
         <div
           className={`menu-item ${

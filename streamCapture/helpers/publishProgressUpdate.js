@@ -13,7 +13,7 @@ function publishProgressUpdate({
 }){
     return new Promise(async (resolve,reject)=>{
         try {
-            await axios.post(statusCallbackUrl, {
+            const res = await axios.post(statusCallbackUrl, {
                 requestId: recordRequestId,
                 keys: paths,
                 friendlyName:friendlyName,
@@ -25,7 +25,7 @@ function publishProgressUpdate({
             }, {
                 timeout: 10000 // timeout after 10 seconds
             });
-            resolve()
+            resolve(res)
         } catch (err) { 
             resolve()
         }finally{

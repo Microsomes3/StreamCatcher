@@ -69,7 +69,7 @@ function Navigation() {
 
 
   return (
-    <nav className={`flex flex-wrap justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-black text-white'} py-4 md:px-6 lg:px-8`}>
+    <nav className={`flex flex-wrap justify-between items-center ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-900 text-white'} py-4 md:px-6 lg:px-8`}>
     <div className="pl-3 text-2xl md:text-3xl font-bold">
       <a href="/" onClick={handleHomeClick}>Live Clipper</a>
     </div>

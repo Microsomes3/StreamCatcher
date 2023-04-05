@@ -43,7 +43,7 @@ module.exports.handler = async (event) => {
             recordrequestid:requestId,
             date: moment().format("YYYY-MM-DD"),
             keys: keys,
-            status: "completed",
+            status: status.status == "success" ? "completed" : status.status,
             username:"use request id to find out",
             createdAt: new Date().getTime(),
             friendlyName:friendlyName
@@ -51,11 +51,8 @@ module.exports.handler = async (event) => {
     };
 
    
-
-    var toE=null;
-
     try {
-        toE= await documentClient.put(params).promise();
+      await documentClient.put(params).promise();
     } catch (err) {
         console.log(err);
     }
@@ -92,8 +89,7 @@ module.exports.handler = async (event) => {
         statusCode: 200,
         body: JSON.stringify({
            requestId,
-           keys,
-           toE
+           keys
         }),
     }
 };

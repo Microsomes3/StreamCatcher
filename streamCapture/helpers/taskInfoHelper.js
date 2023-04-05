@@ -2,8 +2,8 @@
 
 function getAllRequiredInfoForTask(){
 
-    const channel = process.env.channel || "@CreepksMcPasta";
-    const timeout = process.env.timeout || "15s";
+    const channel = process.env.channel || "@DSPGaming";
+    const timeout = process.env.timeout || "300s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
     const parts = process.env.parts || 1;
