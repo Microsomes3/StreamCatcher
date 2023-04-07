@@ -126,6 +126,15 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: friendlyDate
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: friendlyDate-index
+            KeySchema:
+              - AttributeName: friendlyDate
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
         KeySchema:
           - AttributeName: id
             KeyType: HASH

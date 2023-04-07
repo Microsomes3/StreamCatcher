@@ -10,7 +10,7 @@ function uuidv4() {
     );
 }
 
-function makeRecordRequest({ requestId }) {
+function makeRecordRequest({ requestId, auto }) {
     return new Promise(async (resolve, reject) => {
 
         try {
@@ -104,6 +104,10 @@ function makeRecordRequest({ requestId }) {
                         {
                             name: process.env.SLIP_TASk_CONTAINER_NAME,
                             environment: [
+                                {
+                                    name: "IS_AUTO",
+                                    value: auto == true ? "yes" : "no"
+                                },
                                 {
                                     name: "recordUpdateApi",
                                     value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress"

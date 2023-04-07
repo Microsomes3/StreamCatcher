@@ -57,7 +57,7 @@ function processDownload({
                 
                 var bucketToUse = bucket;
 
-                if(pathsl.length ==3 ){
+                if(pathsl.length >=3 ){
                     bucketToUse = "griffin-record-input-parts";
                 }
                 

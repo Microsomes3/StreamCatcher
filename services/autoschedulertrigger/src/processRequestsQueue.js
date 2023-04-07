@@ -13,6 +13,7 @@ async function handleFunc(youtuber){
         youtuber: youtuber
     });
 
+    
     if(requests.length === 0){
         resolve(false);
     }else{
@@ -30,7 +31,8 @@ async function handleFunc(youtuber){
             const params = {
                 QueueUrl: process.env.AUTO_SCHEDULE_QUEUE_URL || "https://sqs.us-east-1.amazonaws.com/574134043875/griffin-autoscheduler-service-dev-AutoScheduleQueue",
                 MessageBody: JSON.stringify({
-                    ...request
+                    request:request,
+                    auto:true
                 })
             }
 
@@ -44,6 +46,7 @@ async function handleFunc(youtuber){
 
    })
 }
+
 
 module.exports.handler = async (event, context) => {
     //get message from queue

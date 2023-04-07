@@ -2,8 +2,8 @@
 
 function getAllRequiredInfoForTask(){
 
-    const channel = process.env.channel || "@DSPGaming";
-    const timeout = process.env.timeout || "300s";
+    const channel = process.env.channel || "@GriffinGaming";
+    const timeout = process.env.timeout || "40000s";
     const bucket = process.env.bucket || "griffin-record-input";
     const region = process.env.region || "us-east-1";
     const parts = process.env.parts || 1;
@@ -13,9 +13,10 @@ function getAllRequiredInfoForTask(){
     const isRecordStart = process.env.isRecordStart || "yes";
     const getIndexAPI = process.env.getIndexapi || "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex";
     const wssocket = process.env.wssocket || "wss://7hivo8j534.execute-api.us-east-1.amazonaws.com/dev";
-    const recordID = process.env.RECORD_ID || "1234567890";
+    const recordID = process.env.RECORD_ID || "1930";
     const recordRequestId = process.env.RECORD_REQUEST_ID || "1234567890";
     const statusCallbackUrl = process.env.completionCallbackUrl || "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback";
+    const isAuto = process.env.IS_AUTO || "no";
 
     return {
         channel,
@@ -31,7 +32,8 @@ function getAllRequiredInfoForTask(){
         wssocket,
         recordID,
         statusCallbackUrl,
-        recordRequestId
+        recordRequestId,
+        isAuto
     }
 
 }

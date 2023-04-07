@@ -3,12 +3,13 @@ const { makeRecordRequest } = require('./helpers/submitRecordingsRequest');
 
 
 
-function handleFunc(request){
+function handleFunc(request,auto){
 return new Promise(async (resolve,reject)=>{
 
 
     const c =await makeRecordRequest({
         requestId: request.id,
+        auto: auto,
     });
 
     resolve(c);
@@ -20,9 +21,9 @@ return new Promise(async (resolve,reject)=>{
 module.exports.handler = async (event) => {
 
     //queue message
-    const requestInfo = JSON.parse(event.Records[0].body);
+    const {request, auto} = JSON.parse(event.Records[0].body);
 
-    const status = await handleFunc(requestInfo);
+    const status = await handleFunc(request,auto);
 
 
     return {

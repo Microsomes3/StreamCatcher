@@ -8,17 +8,17 @@ const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || 'us-east-1',
 });
 
-function getRecordRequestById(id){
-    return new Promise((resolve,reject)=>{
+function getRecordRequestById(id) {
+    return new Promise((resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_REQUEST_TABLE || 'RecordRequestTable',
             Key: {
                 "id": id
             },
         }
-        documentClient.get(params).promise().then((data)=>{
+        documentClient.get(params).promise().then((data) => {
             resolve(data.Item);
-        }).catch((err)=>{
+        }).catch((err) => {
             reject(err);
         })
 
@@ -30,11 +30,12 @@ module.exports.handler = async (event) => {
     const requestID = event.pathParameters.recordrequestid;
 
     try {
-        const data = await getRecordRequestById(requestID);
+        const request = await getRecordRequestById(requestID);
 
         const params = {
             MessageBody: JSON.stringify({
-                ...data
+                request: request,
+                auto: false
             }),
             QueueUrl: process.env.AUTO_SCHEDULE_QUEUE_URL
         }

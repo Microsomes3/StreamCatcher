@@ -10,3 +10,7 @@ node_modules
 
 *.mp4
 ultralowlatency/code.zip
+
+experiment
+
+*.zip

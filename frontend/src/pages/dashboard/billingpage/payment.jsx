@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import { loadStripe } from "@stripe/stripe-js";
 
+import axios from "axios";
+
 
 function payment(props){
     const [stripePromise, setStripePromise] = useState(null);
@@ -10,6 +12,10 @@ function payment(props){
     useEffect(()=>{
         setStripePromise(loadStripe(import.meta.env.VITE_STRIPE_PUB));
     },[])
+
+    useEffect(()=>{
+        alert("stripePromise: "+stripePromise);
+    },[clientSecret])
 
     return (
         <>

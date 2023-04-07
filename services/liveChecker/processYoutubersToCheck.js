@@ -39,6 +39,7 @@ module.exports.processYoutubersToCheck = async (event) => {
         Item: {
             id: uuidv4(),
             createdAt: moment().unix(),
+            friendlyDate: moment().format('YYYY-MM-DD'),
             updatedAt: moment().unix(),
             channel: usernameToCheck,
             status: JSON.stringify(result),

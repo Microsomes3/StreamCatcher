@@ -34,7 +34,8 @@ function addScheduledTask({
     requestid,
     hour,
     minute,
-    trigger
+    trigger,
+    channel
 }) {
     return new Promise(async (resolve, reject) => {
         const params = {
@@ -43,7 +44,8 @@ function addScheduledTask({
                 recordrequestid: requestid,
                 hour,
                 minute,
-                trigger
+                trigger,
+                channel
             }
         }
         try {

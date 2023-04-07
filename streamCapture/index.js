@@ -75,13 +75,15 @@ function startDownloadProcess() {
     return new Promise(async (resolve, reject) => {
 
         console.log("starting download process")
+        
 
 
 
         try {
 
-            const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI, wssocket, recordID, statusCallbackUrl } = getAllRequiredInfoForTask();
+            const { channel, timeout, bucket, region, parts, timeoutupdated, minruntime, isComments, isRecordStart, getIndexAPI, wssocket, recordID, statusCallbackUrl, isAuto } = getAllRequiredInfoForTask();
             console.log(getAllRequiredInfoForTask())
+            console.log("auto",isAuto)
             const isLive = await mustCheckLive(channel);
 
 
