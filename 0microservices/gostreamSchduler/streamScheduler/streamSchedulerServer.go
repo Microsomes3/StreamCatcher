@@ -3,6 +3,9 @@ package streamscheduler
 import (
 	"context"
 	"net/http"
+	"sync"
+
+	"microsomes.com/streamscheduler/handlers"
 )
 
 type StreamSchedulerServer struct {
@@ -11,20 +14,31 @@ type StreamSchedulerServer struct {
 }
 
 func NewStreamSchedulerServer() *StreamSchedulerServer {
+
 	return &StreamSchedulerServer{
 		server: http.Server{
-			Addr: ":9005",
+			Addr: ":9007",
 		},
 		StreamScheduler: NewStreamScheduler(),
 	}
 }
 
-func (s *StreamSchedulerServer) Start(ctx context.Context) error {
+func (s *StreamSchedulerServer) Start(wg *sync.WaitGroup, ctx context.Context) error {
 	//if context killed stop server
+
+	go s.StreamScheduler.StartAllWorkers(wg)
+
 	go func() {
 		<-ctx.Done()
+		wg.Done()
 		s.server.Shutdown(ctx)
 	}()
+
+	addJob := handlers.AddJob{
+		AddJobrequestToQueue: s.StreamScheduler.ScheduleJob,
+	}
+
+	http.HandleFunc("/schedule", addJob.ServeHTTP)
 
 	return s.server.ListenAndServe()
 }

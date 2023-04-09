@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
-	"microsomes.com/streamscheduler/streamscheduler"
+	streamscheduler "microsomes.com/streamscheduler/streamScheduler"
 )
 
 func main() {
+
 	server := streamscheduler.NewStreamSchedulerServer()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go server.Start(ctx)
+	wg := &sync.WaitGroup{}
+	go server.Start(wg, ctx)
 
 	//wait for os signal
 	sigCn := make(chan os.Signal, 1)
@@ -23,4 +26,5 @@ func main() {
 	<-sigCn
 	fmt.Println("os signal received, shutting down")
 	cancel()
+	wg.Wait()
 }

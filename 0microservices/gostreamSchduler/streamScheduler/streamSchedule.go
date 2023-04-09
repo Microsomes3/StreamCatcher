@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"microsomes.com/streamscheduler/utils"
 )
@@ -18,7 +17,7 @@ type StreamScheduler struct {
 func NewStreamScheduler() *StreamScheduler {
 	return &StreamScheduler{
 		totalWorkers:    10,
-		toScheduleQueue: make(chan utils.JobRequest, 100),
+		toScheduleQueue: make(chan utils.JobRequest, 5),
 		workerQueue:     make(chan chan utils.JobRequest, 100),
 	}
 }
@@ -38,7 +37,9 @@ func (s *StreamScheduler) worker(wg *sync.WaitGroup) {
 	defer wg.Done()
 	for job := range s.toScheduleQueue {
 		fmt.Println("processing", job)
-		time.Sleep(time.Second * 5)
+
+		AssignJobToServer(job) //tasked with assigning job to server, if provision a server, if not assign to existing server
+
 		fmt.Println("job done")
 	}
 
