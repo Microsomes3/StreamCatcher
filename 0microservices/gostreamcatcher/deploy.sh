@@ -4,7 +4,7 @@ echo $R2_SECRET_KEY
 echo "is destroy? (y/n)"
 read destroy
 
-t=gorecordserver11
+t=gorecordserver13
 
 if [ $destroy = "y" ]; then
     aws cloudformation delete-stack --stack-name $t

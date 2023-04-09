@@ -3,9 +3,9 @@ Description=gostreamdownloader
 After=multi-user.target
 
 [Service]
-User=root
-Group=root
-ExecStart=/home/ubuntu/godwn
+User=ubuntu
+Group=ubuntu
+ExecStart=/bin/bash -c 'source /home/ubuntu/.bashrc && /home/ubuntu/godwn'
 
 [Install]
 WantedBy=multi-user.target

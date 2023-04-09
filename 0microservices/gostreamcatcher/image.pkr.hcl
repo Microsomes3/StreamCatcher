@@ -8,7 +8,7 @@ packer {
 }
 
 source "amazon-ebs" "griffinbuilder" {
-    ami_name = "gostreambuilder-v15"
+    ami_name = "gostreambuilder-v20"
     source_ami = "ami-0c6c29c5125214c77"
     region = "us-east-1"
     instance_type = "t4g.micro"
@@ -34,6 +34,12 @@ build {
         destination = "/home/ubuntu/godwn"
     }
 
+
+     provisioner "file" {
+        source = ".env"
+        destination = "/home/ubuntu/.env"
+    }
+
      provisioner "file" {
         source = "bin/goapi.service"
         destination = "/home/ubuntu/goapi.service"
@@ -43,22 +49,20 @@ build {
 
  
   inline = [
-    "sudo apt-get update",
-      "sleep 10",
-     "sudo apt-get install -y python3-pip",
-      "sleep 10",
-     "sudo pip install yt-dlp",
-     "sudo apt-get install -y unzip",
-     "sudo apt-get install -y screen",
-     "sudo apt-get install -y golang",
-     "sudo apt-get install ffmpeg -y",
-     "sudo echo 'export R2_ACCESS_KEY=${var.R2AccessKey}' >> ~/.bashrc",
-     "sudo echo 'export R2_SECRET_KEY=${var.R2SecretKey}' >> ~/.bashrc",
-     "sudo chmod +x /home/ubuntu/godwn",
-     "sudo mv /home/ubuntu/goapi.service /etc/systemd/system/goapi.service",
-     "sudo systemctl daemon-reload",
-      "sudo systemctl enable goapi.service",
-      "sudo systemctl start goapi.service",
+  "sudo apt-get update",
+    "sleep 10",
+    "sudo apt-get install -y python3-pip",
+    "sleep 10",
+    "sudo pip install yt-dlp",
+    "sudo apt-get install -y unzip",
+    "sudo apt-get install -y screen",
+    "sudo apt-get install -y golang",
+    "sudo apt-get install ffmpeg -y",
+    "sudo chmod +x /home/ubuntu/godwn",
+    "sudo mv /home/ubuntu/goapi.service /etc/systemd/system/goapi.service",
+    "sudo systemctl daemon-reload",
+    "sudo systemctl enable goapi.service",
+    "sudo systemctl start goapi.service",
 
     ]
 }

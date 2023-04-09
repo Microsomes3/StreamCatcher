@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"microsomes.com/stgo/utils"
 )
 
 type DLPUploader struct{}
@@ -17,8 +18,8 @@ const (
 )
 
 var bucket = aws.String("maeplet")
-var ACCESSKEY = os.Getenv("R2_ACCESS_KEY")
-var SECRETKEY = os.Getenv("R2_SECRET_KEY")
+var ACCESSKEY = utils.ACCESS
+var SECRETKEY = utils.SECRET
 
 func (d *DLPUploader) UploadFile(file *os.File, key string, index string) (string, error) {
 
