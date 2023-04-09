@@ -181,10 +181,10 @@ resources:
           OperatingSystemFamily: LINUX
           CpuArchitecture: ARM64
         Family: !Sub ${AWS::StackName}-SlipTaskARM
-        Cpu: 256
-        Memory: 512
+        Cpu: 512
+        Memory: 1024
         EphemeralStorage:
-          SizeInGiB: 50
+          SizeInGiB: 100
         RequiresCompatibilities:
           - FARGATE
         NetworkMode: awsvpc

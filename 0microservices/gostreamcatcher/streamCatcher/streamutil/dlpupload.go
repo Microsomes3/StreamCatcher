@@ -31,7 +31,10 @@ func (d *DLPUploader) UploadFile(file *os.File, key string, index string) (strin
 
 	s3Session := session.New(&s3Config)
 
-	uploader := s3manager.NewUploader(s3Session)
+	uploader := s3manager.NewUploader(s3Session, func(u *s3manager.Uploader) {
+		u.PartSize = 20 * 1024 * 1024 // 20MB per part
+		u.Concurrency = 5
+	})
 
 	fkey := index + "_" + key
 
@@ -47,6 +50,9 @@ func (d *DLPUploader) UploadFile(file *os.File, key string, index string) (strin
 	//get events
 
 	if err != nil {
+
+		fmt.Println(err.Error())
+
 		return "", err
 	}
 
