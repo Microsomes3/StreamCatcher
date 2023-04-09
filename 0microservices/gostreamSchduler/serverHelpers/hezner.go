@@ -3,11 +3,9 @@ package serverhelpers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
 
 	"microsomes.com/streamscheduler/utils"
@@ -51,7 +49,7 @@ func (h *Hezner) CreateServerWithSnapshot(name string) error {
 	return nil
 }
 
-type CreateRespoinse struct {
+type CreateResponse struct {
 	Server struct {
 		ID      int       `json:"id"`
 		Name    string    `json:"name"`
@@ -60,11 +58,14 @@ type CreateRespoinse struct {
 	} `json:"server"`
 }
 
-func (h *Hezner) CreateServer(name string) (CreateRespoinse, error) {
+func (h *HezerServerResponse) GetServer(serverId string) {}
+
+func (h *Hezner) CreateServer(name string) (CreateResponse, error) {
+	fmt.Println("Creating server with name: " + name)
 	imageToUse := HEZNER_IMAGE
 	initScript, err := utils.DownloadText(imageToUse)
 	if err != nil {
-		return CreateRespoinse{}, err
+		return CreateResponse{}, err
 	}
 
 	apiToken := HEXNER_TOKEN
@@ -83,17 +84,17 @@ func (h *Hezner) CreateServer(name string) (CreateRespoinse, error) {
 		"user_data":          initScript,
 	}
 	response, err := HetznerAPICreateRequest(apiToken, bodyData)
+	fmt.Println(err)
 	if err != nil {
-		return CreateRespoinse{}, err
+		return CreateResponse{}, err
 	}
-	fmt.Println(string(response))
 
-	var crResponse CreateRespoinse
+	var crResponse CreateResponse
 
 	err = json.Unmarshal(response, &crResponse)
 
 	if err != nil {
-		return CreateRespoinse{}, err
+		return CreateResponse{}, err
 	}
 
 	return crResponse, nil
@@ -190,11 +191,6 @@ func HetznerAPICreateRequest(apiToken string, bodyData map[string]interface{}) (
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
-	}
-
-	//check of responseBody string contains "error"
-	if strings.Contains(string(responseBody), "error") {
-		return nil, errors.New(string(responseBody))
 	}
 
 	return responseBody, nil
