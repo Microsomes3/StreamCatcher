@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  GODownladerImage:
+    Type: String
+    Default: ami-0b6355e39164a722e
+  InstanceSize:
+    Type: String
+    Default: t4g.small
+    AllowedValues:
+      - t4g.small
+      - t4g.medium
+  R2AccessKey:
+    Type: String
+  R2SecretKey:
+    Type: String
+
+Resources:
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub ${AWS::StackName}-EC2SecurityGroup
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9005
+          ToPort: 9005
+          CidrIp: 0.0.0.0/0
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref GODownladerImage
+      InstanceType: !Ref InstanceSize
+      SecurityGroupIds:
+        - !Ref EC2SecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 50
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            sudo apt-get update -y
+        
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-EC2Instance
+Outputs:
+  EC2InstancePublicIP:
+    Description: Public IP of the EC2 instance
+    Value: !GetAtt EC2Instance.PublicIp
