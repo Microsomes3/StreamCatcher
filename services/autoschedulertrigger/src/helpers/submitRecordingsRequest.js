@@ -96,49 +96,41 @@ function makeRecordRequest({ requestId, auto }) {
 
             const ecsparams = {
                 cluster: "griffin-record-cluster",
-                taskDefinition: process.env.SLIM_TASK_DEFINITION,
+                taskDefinition: "griffin-autoscheduler-service-dev-GOEcsTask",
                 launchType: "FARGATE",
                 //extra env vars
                 overrides: {
                     containerOverrides: [
                         {
-                            name: process.env.SLIP_TASk_CONTAINER_NAME,
+                            name: 'griffin-autoscheduler-service-dev-GOEcsContainer',
                             environment: [
                                 {
-                                    name: "IS_AUTO",
-                                    value: auto == true ? "yes" : "no"
+                                    name:'reqid',
+                                    value:requestId
                                 },
                                 {
-                                    name: "recordUpdateApi",
-                                    value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/UpdateProgress"
+                                    name:'updatehook',
+                                    value:'https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback'
                                 },
                                 {
-                                    name: "getIndexapi",
-                                    value: "https://5pyt5gawvk.execute-api.us-east-1.amazonaws.com/dev/getLiveIndex"
-                                },
-                                {
-                                    name: 'channel',
-                                    value: username
+                                    name: 'url',
+                                    value: `https://www.youtube.com/${username}/live`
                                 },
                                 {
                                     name: "RECORD_REQUEST_ID",
                                     value: requestId
                                 },
                                 {
-                                    name: "RECORD_ID",
+                                    name: "jobid",
                                     value: uniqueRecordId
                                 },
                                 {
-                                    name: "isComments",
-                                    value: isComments == true ? "yes" : "no"
-                                },
-                                {
-                                    name: "isRecordStart",
-                                    value: isRecordStart == true ? "yes" : "no"
+                                    name: "isstart",
+                                    value: isRecordStart == true ? "true" : "false"
                                 },
                                 {
                                     name: "timeout",
-                                    value: duration.toString() + "s"
+                                    value: duration.toString()
                                 }
                             ],
                         },
@@ -159,8 +151,6 @@ function makeRecordRequest({ requestId, auto }) {
                     }
                 ]
             };
-
-            // console.log(ecsparams.overrides.containerOverrides[0].environment);
 
 
             const ecsdata = await ecs.runTask(ecsparams).promise();
@@ -222,6 +212,8 @@ function makeRecordRequest({ requestId, auto }) {
 
     })
 }
+
+// makeRecordRequest({requestId:"5f7156b7-78e7-47a1-b346-3b995ff86a13"})
 
 module.exports = {
     makeRecordRequest

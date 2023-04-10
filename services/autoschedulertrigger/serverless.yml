@@ -28,6 +28,8 @@ provider:
     SLIP_TASk_CONTAINER_NAME: !Sub ${AWS::StackName}-SlipTask
     AUTO_SCHEDULE_TABLEV3: !Ref AutoScheduleV3Table
     CHECK_SCHEDULE_QUEUE_URL: !GetAtt CheckScheduleQueue.QueueUrl
+    GOECS_CONTAINER_NAME: !Sub ${AWS::StackName}-GOEcsContainer
+    GOECS_TASK_DEFINITION: !Sub ${AWS::StackName}-GoECSTask
 
 
     MONGO_CONNECITON: ${env:MONGO_CONNECITON}
@@ -181,10 +183,10 @@ resources:
           OperatingSystemFamily: LINUX
           CpuArchitecture: ARM64
         Family: !Sub ${AWS::StackName}-SlipTaskARM
-        Cpu: 512
-        Memory: 1024
+        Cpu: 256
+        Memory: 512
         EphemeralStorage:
-          SizeInGiB: 100
+          SizeInGiB: 50
         RequiresCompatibilities:
           - FARGATE
         NetworkMode: awsvpc
@@ -234,6 +236,40 @@ resources:
                 Value: !Ref AWS::Region
               - Name: completionCallbackUrl
                 Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
+    
+    GOEcsTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: !Sub ${AWS::StackName}-GOEcsTask
+        Cpu: 256
+        Memory: 512
+
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-GOEcsContainer
+            Image: public.ecr.aws/m8l7i2c5/gostreamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: updatehook
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
+    
     AutoScheduleQueue:
       Type: AWS::SQS::Queue
       Properties:

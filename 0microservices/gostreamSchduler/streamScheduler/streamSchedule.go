@@ -9,16 +9,18 @@ import (
 )
 
 type StreamScheduler struct {
-	totalWorkers    int
-	toScheduleQueue chan utils.JobRequest
-	workerQueue     chan chan utils.JobRequest
+	totalWorkers        int
+	toScheduleQueue     chan utils.JobRequest
+	workerQueue         chan chan utils.JobRequest
+	lockIdleCheckServer *sync.Mutex
 }
 
-func NewStreamScheduler() *StreamScheduler {
+func NewStreamScheduler(lockIdleCheckServer *sync.Mutex) *StreamScheduler {
 	return &StreamScheduler{
-		totalWorkers:    10,
-		toScheduleQueue: make(chan utils.JobRequest, 5),
-		workerQueue:     make(chan chan utils.JobRequest, 100),
+		totalWorkers:        10,
+		toScheduleQueue:     make(chan utils.JobRequest, 5),
+		workerQueue:         make(chan chan utils.JobRequest, 100),
+		lockIdleCheckServer: lockIdleCheckServer,
 	}
 }
 
@@ -38,8 +40,9 @@ func (s *StreamScheduler) worker(wg *sync.WaitGroup) {
 	for job := range s.toScheduleQueue {
 		fmt.Println("processing", job)
 
-		AssignJobToServer(job) //tasked with assigning job to server, if provision a server, if not assign to existing server
-
+		s.lockIdleCheckServer.Lock() //this is locked to ensure during provisioning a server isnt killed by the server killer, acting on out of date info
+		AssignJobToServer(job)       //tasked with assigning job to server, if provision a server, if not assign to existing server
+		s.lockIdleCheckServer.Unlock()
 		fmt.Println("job done")
 	}
 

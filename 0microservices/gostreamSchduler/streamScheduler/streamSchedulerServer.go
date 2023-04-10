@@ -13,13 +13,13 @@ type StreamSchedulerServer struct {
 	StreamScheduler *StreamScheduler
 }
 
-func NewStreamSchedulerServer() *StreamSchedulerServer {
+func NewStreamSchedulerServer(lockIdleCheckServer *sync.Mutex) *StreamSchedulerServer {
 
 	return &StreamSchedulerServer{
 		server: http.Server{
 			Addr: ":9007",
 		},
-		StreamScheduler: NewStreamScheduler(),
+		StreamScheduler: NewStreamScheduler(lockIdleCheckServer),
 	}
 }
 

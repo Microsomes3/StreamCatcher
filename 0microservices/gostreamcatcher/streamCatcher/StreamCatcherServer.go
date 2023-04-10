@@ -22,7 +22,7 @@ func NewStreamCatcherServer(socketServer *StreamCatcherSocketServer) *StreamCatc
 		client: http.Server{
 			Addr: ":9005",
 		},
-		StreamCatcher: NewStreamCatcher(socketServer),
+		StreamCatcher: NewStreamCatcher(socketServer, nil),
 	}
 }
 

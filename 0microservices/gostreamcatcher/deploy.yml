@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
   GODownladerImage:
     Type: String
-    Default: ami-09e63262a553e542f
+    Default: ami-0a17f6da5c4cfe0cb
   InstanceSize:
     Type: String
     Default: t4g.small

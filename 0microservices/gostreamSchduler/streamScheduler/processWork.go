@@ -1,6 +1,8 @@
 package streamscheduler
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +18,70 @@ import (
 
 var lockFind sync.Mutex = sync.Mutex{}
 
+func IsServerReady(serverId string, signalReady chan bool, responseChan chan string) {
+	bbyr, err := serverhelpers.HeznerGetServerById(serverhelpers.HEXNER_TOKEN, serverId)
+
+	if err != nil {
+		signalReady <- false
+	}
+
+	var serverResponse serverhelpers.HeznerServer
+
+	err = json.Unmarshal(bbyr, &serverResponse)
+
+	responseChan <- serverResponse.Server.PublicNet.Ipv4.IP
+
+	if err != nil {
+		signalReady <- false
+	}
+
+	fmt.Println("server status is", serverResponse.Server.PublicNet.Ipv4.IP)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+
+	wg1 := sync.WaitGroup{}
+
+	wg1.Add(1)
+
+	go func(wg1 sync.WaitGroup, ctx context.Context) {
+		defer cancel()
+		defer wg1.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("context done")
+				signalReady <- false
+				return
+			default:
+				fmt.Println("checking server status")
+
+				serverIpString := fmt.Sprintf("%v", serverResponse.Server.PublicNet.Ipv4.IP)
+				s, err := utils.GetServerWorkerStatus(serverIpString)
+
+				if err != nil {
+					fmt.Println("error getting server status", err)
+				} else {
+
+					fmt.Println(s)
+
+					fmt.Println("server is ready, signal ready")
+
+					ctx.Done()
+					signalReady <- true
+					return
+
+				}
+
+				time.Sleep(30 * time.Second)
+			}
+		}
+	}(wg1, ctx)
+
+	wg1.Wait()
+
+	signalReady <- true
+}
+
 func CreateServerAndWaitForCompletion(done chan bool, resultChan chan utils.Server) {
 	hez := serverhelpers.Hezner{}
 	sid, _ := uuid.NewV4()
@@ -27,35 +93,43 @@ func CreateServerAndWaitForCompletion(done chan bool, resultChan chan utils.Serv
 		fmt.Println("error creating server", err)
 	}
 
-	time.Sleep(10 * time.Second)
+	isSeverReady := make(chan bool)
+	responseChannel := make(chan string)
+
+	go IsServerReady(fmt.Sprintf("%v", serverDetails.Server.ID), isSeverReady, responseChannel)
+
+	serverIp := <-responseChannel
+
+	fmt.Println("new server ip is", serverIp)
+
+	<-isSeverReady
 
 	done <- true
 	resultChan <- utils.Server{
 		Provider: "hezner",
 		ID:       serverDetails.Server.ID,
 		Name:     serverDetails.Server.Name,
-		PublicIP: "",
+		PublicIP: serverIp,
 	}
 }
 
-type WorkerStatus struct {
-	TotalQueue     int `json:"totalQueue"`
-	TotalRecording int `json:"totalRecording"`
-	TotalDone      int `json:"totalDone"`
-	TotalDuration  int `json:"totalDuration"`
-}
+func submitJobToServer(publicIp string, job utils.SteamJob) error {
+	fmt.Println("submitting job to server", publicIp, job)
 
-func seeIfServerIsSuitable(publicIp string) bool {
+	datab, err := json.Marshal(job)
+
+	if err != nil {
+		return err
+	}
 
 	httpClient := &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	resp, err := httpClient.Get("http://" + publicIp + ":9005/workerStatus")
+	resp, err := httpClient.Post("http://"+publicIp+":9005/addJob", "application/json", bytes.NewBuffer(datab))
 
 	if err != nil {
-		fmt.Println("error getting worker status", err)
-		return false
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -63,32 +137,32 @@ func seeIfServerIsSuitable(publicIp string) bool {
 	bytes, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Println("error reading body", err)
-		return false
+		return err
 	}
 
-	var workerStatus WorkerStatus
+	fmt.Println("response from server", string(bytes))
 
-	err = json.Unmarshal(bytes, &workerStatus)
+	return nil
+}
+
+func seeIfServerIsSuitable(publicIp string, job utils.JobRequest) bool {
+	workerStatus, err := utils.GetServerWorkerStatus(publicIp)
 
 	if err != nil {
-		fmt.Println("error unmarshalling", err)
+		fmt.Println("error getting worker status", err)
 		return false
 	}
 
 	fmt.Println("worker status is", workerStatus)
 
-	if workerStatus.TotalDuration > serverhelpers.HEZNER_MAX_WORK_SECONDS_PER_SERVER {
+	if (workerStatus.TotalDuration + job.Timeout) > serverhelpers.HEZNER_MAX_WORK_SECONDS_PER_SERVER {
 		return false //too much work has been allocated to this server
 	}
 
-	fmt.Println("response is", string(bytes))
-
-	time.Sleep(3 * time.Second)
 	return true
 }
 
-func findAvailableServer() (utils.Server, error) {
+func findAvailableServer(job utils.JobRequest) (utils.Server, error) {
 	lockFind.Lock()
 	defer lockFind.Unlock()
 	hez := serverhelpers.Hezner{}
@@ -103,6 +177,14 @@ func findAvailableServer() (utils.Server, error) {
 		go CreateServerAndWaitForCompletion(createCn, resultCn)
 		<-createCn
 
+		serverToUse := <-resultCn
+
+		if seeIfServerIsSuitable(serverToUse.PublicIP, job) {
+			return serverToUse, nil
+		} else {
+			return utils.Server{}, errors.New("could not find a suitable server")
+		}
+
 		return <-resultCn, nil
 	}
 
@@ -110,7 +192,7 @@ func findAvailableServer() (utils.Server, error) {
 
 	//find random server
 	for _, server := range servers.Servers {
-		if seeIfServerIsSuitable(server.PublicNet.IPv4.IP) {
+		if seeIfServerIsSuitable(server.PublicNet.IPv4.IP, job) {
 			return utils.Server{
 				Provider: "hezner",
 				ID:       server.ID,
@@ -136,7 +218,7 @@ func findAvailableServer() (utils.Server, error) {
 }
 
 func AssignJobToServer(job utils.JobRequest) {
-	availableServer, err := findAvailableServer()
+	availableServer, err := findAvailableServer(job)
 
 	if err != nil {
 		fmt.Println("error finding available server", err)
@@ -146,5 +228,18 @@ func AssignJobToServer(job utils.JobRequest) {
 
 		fmt.Println("available server is", availableServer.ID)
 		fmt.Println("available server ip", availableServer.PublicIP)
+
+		err := submitJobToServer(availableServer.PublicIP, utils.SteamJob{
+			JobID:          job.ID,
+			YoutubeLink:    job.YoutubeURL,
+			TimeoutSeconds: job.Timeout,
+			IsStart:        job.IsStart,
+			UpdateHook:     job.UpdateHook,
+		})
+
+		if err != nil {
+			fmt.Println("error submitting job to server", err)
+		}
+
 	}
 }

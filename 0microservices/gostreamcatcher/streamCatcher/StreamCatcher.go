@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -24,6 +25,7 @@ type StreamCatcher struct {
 	WorkerStatus              utils.WorkerStatus
 	GroupLinks                map[string][]string
 	StreamCatcherSocketServer *StreamCatcherSocketServer
+	Callback                  func(utils.SteamJob)
 }
 
 func (s *StreamCatcher) ShouldAdd(job utils.SteamJob) bool {
@@ -47,9 +49,9 @@ func (s *StreamCatcher) GetAllStatusesByJobID(id string) []utils.JobStatus {
 	return s.JobStatusEvents[id]
 }
 
-func NewStreamCatcher(scsocket *StreamCatcherSocketServer) *StreamCatcher {
+func NewStreamCatcher(scsocket *StreamCatcherSocketServer, callback func(utils.SteamJob)) *StreamCatcher {
 	return &StreamCatcher{
-		JobQueue:                  make(chan utils.SteamJob, 1),
+		JobQueue:                  make(chan utils.SteamJob, 10),
 		WorkQueue:                 make(chan utils.SteamJob, 100),
 		ConcurrentLimit:           10,
 		JobStatuses:               make(map[string]utils.JobStatus),
@@ -57,6 +59,7 @@ func NewStreamCatcher(scsocket *StreamCatcherSocketServer) *StreamCatcher {
 		WorkerStatus:              utils.WorkerStatus{},
 		GroupLinks:                make(map[string][]string),
 		StreamCatcherSocketServer: scsocket,
+		Callback:                  callback,
 	}
 }
 
@@ -102,6 +105,15 @@ func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.J
 
 	fmt.Println("Response: ", resp.Status)
 
+	datab, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
+	fmt.Println("Response: ", string(datab))
+
 }
 
 func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, result []string) {
@@ -112,10 +124,13 @@ func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, resul
 		Time:   time.Now().Unix(),
 	}
 
-	s.StreamCatcherSocketServer.BroadcastEvents(utils.JobEvent{
-		Job:    *job,
-		Status: nstatus,
-	})
+	if s.StreamCatcherSocketServer != nil {
+
+		s.StreamCatcherSocketServer.BroadcastEvents(utils.JobEvent{
+			Job:    *job,
+			Status: nstatus,
+		})
+	}
 
 	if status == "queued" {
 		s.WorkerStatus.TotalQueue++
@@ -125,6 +140,15 @@ func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, resul
 	if status == "recording" {
 		s.WorkerStatus.TotalQueue--
 		s.WorkerStatus.TotalRecording++
+	}
+
+	if status == "error" {
+		s.WorkerStatus.TotalRecording--
+		s.JobStatusEvents[job.JobID] = append(s.JobStatusEvents[job.JobID], nstatus)
+		s.JobStatuses[job.JobID] = nstatus
+		s.sendStatusToCallback(job, nstatus)
+
+		return
 	}
 
 	if status == "done" {
@@ -146,10 +170,6 @@ func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, resul
 
 		s.GroupLinks[job.Groupid] = formatted
 
-	}
-
-	if status == "error" {
-		s.WorkerStatus.TotalRecording--
 	}
 
 	s.JobStatusEvents[job.JobID] = append(s.JobStatusEvents[job.JobID], nstatus)
@@ -221,6 +241,11 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 		}
 
 		s.AddStatusEvent(&Job, "done", allDownloadPaths)
+
+		if s.Callback != nil {
+
+			s.Callback(Job)
+		}
 
 		fmt.Println("Processed: ", Job.JobID, " done")
 	}

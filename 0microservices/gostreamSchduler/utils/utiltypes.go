@@ -14,3 +14,23 @@ type Server struct {
 	ID       int    `json:"id"`
 	PublicIP string `json:"public_ip"`
 }
+
+type SteamJob struct {
+	JobID          string `json:"jobId"`
+	YoutubeLink    string `json:"youtubeLink"`
+	TimeoutSeconds int    `json:"timeout"`
+	IsStart        bool   `json:"isStart"`
+	UpdateHook     string `json:"updateHook"`
+	Groupid        string `json:"groupid"`
+}
+
+type JobStatus struct {
+	State  string   `json:"state"`
+	Result []string `json:"result"`
+	Time   int64    `json:"time"`
+}
+
+type ToSendStatusHook struct {
+	Job    SteamJob
+	Status JobStatus
+}

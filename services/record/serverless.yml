@@ -247,6 +247,13 @@ resources:
 
 
 functions:
+  GoOnUpdateRecordCallback:
+    handler: GoUpdateCallback.handler
+    events:
+      - http:
+          path: /GoOnUpdateRecordCallback
+          method: post
+          cors: true
   OnUploadInputBucket:
     handler: onUploadInputBucket.handler
     events:

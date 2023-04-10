@@ -8,7 +8,7 @@ packer {
 }
 
 source "amazon-ebs" "griffinbuilder" {
-    ami_name = "gostreambuilder-v20"
+    ami_name = "gostreambuilder-v21"
     source_ami = "ami-0c6c29c5125214c77"
     region = "us-east-1"
     instance_type = "t4g.micro"

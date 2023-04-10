@@ -4,6 +4,7 @@ import "encore.dev/types/uuid"
 
 type SteamJob struct {
 	JobID          string `json:"jobId"`
+	ReqID          string `json:"reqId"`
 	YoutubeLink    string `json:"youtubeLink"`
 	TimeoutSeconds int    `json:"timeout"`
 	IsStart        bool   `json:"isStart"`

@@ -5,11 +5,8 @@ go 1.20
 require (
 	encore.dev v1.13.4
 	github.com/aws/aws-sdk-go v1.44.239
-	golang.org/x/net v0.1.0
+	github.com/gorilla/websocket v1.5.0
+	github.com/joho/godotenv v1.5.1
 )
 
-require (
-	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
-)
+require github.com/jmespath/go-jmespath v0.4.0 // indirect

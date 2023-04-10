@@ -24,6 +24,18 @@ type HezerServerResponse struct {
 	} `json:"servers"`
 }
 
+type HeznerServer struct {
+	Server struct {
+		Created   time.Time `json:"created"`
+		ID        int       `json:"id"`
+		PublicNet struct {
+			Ipv4 struct {
+				IP string `json:"ip"`
+			} `json:"ipv4"`
+		} `json:"public_net"`
+		Status string `json:"status"`
+	} `json:"server"`
+}
 type Hezner struct{}
 
 func (h *Hezner) CreateServerWithSnapshot(name string) error {
@@ -58,7 +70,29 @@ type CreateResponse struct {
 	} `json:"server"`
 }
 
-func (h *HezerServerResponse) GetServer(serverId string) {}
+func (h *Hezner) GetServer(serverId string) (utils.Server, error) {
+	bbyr, err := HeznerGetServerById(HEXNER_TOKEN, serverId)
+
+	if err != nil {
+		return utils.Server{}, err
+	}
+
+	var serverResponse HeznerServer
+
+	err = json.Unmarshal(bbyr, &serverResponse)
+
+	if err != nil {
+		return utils.Server{}, err
+	}
+
+	return utils.Server{
+		Provider: "hezner",
+		ID:       serverResponse.Server.ID,
+		Name:     "--",
+		PublicIP: serverResponse.Server.PublicNet.Ipv4.IP,
+	}, nil
+
+}
 
 func (h *Hezner) CreateServer(name string) (CreateResponse, error) {
 	fmt.Println("Creating server with name: " + name)
@@ -150,6 +184,25 @@ func (h *Hezner) ListServers() (HezerServerResponse, error) {
 	}
 
 	return data, nil
+}
+
+func HeznerGetServerById(apiToken string, id string) ([]byte, error) {
+	url := "https://api.hetzner.cloud/v1/servers/" + id
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiToken))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
 }
 
 func HetznerListAPIRequest(apiToken string) ([]byte, error) {

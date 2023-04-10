@@ -8,12 +8,21 @@ import (
 	"sync"
 	"syscall"
 
+	serverkiller "microsomes.com/streamscheduler/serverKiller"
 	streamscheduler "microsomes.com/streamscheduler/streamScheduler"
 )
 
 func main() {
 
-	server := streamscheduler.NewStreamSchedulerServer()
+	lockIdleCheckServer := &sync.Mutex{}
+
+	serverKiller := serverkiller.NewServerKiller(lockIdleCheckServer)
+
+	go serverKiller.Work()
+	doneServerKiller := make(chan bool)
+	go serverKiller.Tick(doneServerKiller)
+
+	server := streamscheduler.NewStreamSchedulerServer(lockIdleCheckServer)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -27,4 +36,5 @@ func main() {
 	fmt.Println("os signal received, shutting down")
 	cancel()
 	wg.Wait()
+	doneServerKiller <- true
 }

@@ -8,6 +8,16 @@ function RecordingsTable({ recordings, isLoading=false }) {
 
   const [filteredRecordings, setFilteredRecordings] = useState([]);
 
+
+ const isNewFormat = (key)=>{
+  //check if key is an array
+  if(Array.isArray(key)){
+    return key[0].includes("https")
+  }else{
+    return key.includes("https")
+  }
+ }
+
   useEffect(() => {
 
     const filter = recordings.sort((a, b) => {
@@ -96,7 +106,16 @@ function RecordingsTable({ recordings, isLoading=false }) {
               }} className="bg-green-700 text-black px-2 py-1 rounded-md hover:bg-green-600 dark:bg-green-900 dark:text-white dark:hover:bg-green-800">
                 Watch
               </button>
-              <a
+             
+             {isNewFormat(key) ? 
+             <a href={key[0]}
+             target="_blank"
+                rel="noreferrer"
+                className="text-green-500 hover:text-green-400"
+             ><button className="bg-red-700 text-white px-2 py-1 rounded-md hover:bg-red-600 dark:bg-red-900 dark:hover:bg-red-800">
+             Download
+           </button></a>: 
+             <a
                 href={`https://d213lwr54yo0m8.cloudfront.net/${key}`}
                 target="_blank"
                 rel="noreferrer"
@@ -105,7 +124,7 @@ function RecordingsTable({ recordings, isLoading=false }) {
                 <button className="bg-red-700 text-white px-2 py-1 rounded-md hover:bg-red-600 dark:bg-red-900 dark:hover:bg-red-800">
                   Download
                 </button>
-              </a>
+              </a>}
             </div>
           ))}
         </div>}

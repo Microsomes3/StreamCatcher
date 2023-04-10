@@ -11,14 +11,16 @@ RUN pip3 install yt-dlp
 
 WORKDIR /APP
 
-ADD ffmpeg-master-latest-linuxarm64-gpl /APP
-RUN cp bin/ffmpeg /bin/ffmpeg
-RUN cp bin/ffprobe /bin/ffprobe
+ADD ffmpegb /APP
+RUN cp ffmpeg /bin/ffmpeg
+RUN cp ffprobe /bin/ffprobe
 
 COPY . .
 
-RUN go mod download
-RUN go mod verify
+RUN rm main.go
+
+# RUN go mod download
+# RUN go mod verify
 RUN go build -o mathapp
 
 ENV DISPLAY=:99
