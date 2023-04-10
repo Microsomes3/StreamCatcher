@@ -6,6 +6,7 @@ type SteamJob struct {
 	JobID          string `json:"jobId"`
 	ReqID          string `json:"reqId"`
 	YoutubeLink    string `json:"youtubeLink"`
+	Provider       string `json:"provider"`
 	TimeoutSeconds int    `json:"timeout"`
 	IsStart        bool   `json:"isStart"`
 	UpdateHook     string `json:"updateHook"`

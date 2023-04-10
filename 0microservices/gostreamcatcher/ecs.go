@@ -20,6 +20,11 @@ func main() {
 	timeout := os.Getenv("timeout")
 	isstart := os.Getenv("isstart")
 	updatehook := os.Getenv("updatehook")
+	provider := os.Getenv("provider")
+
+	if provider == "" {
+		provider = "youtube" //
+	}
 
 	fmt.Println("jobid: ", jobid)
 	fmt.Println("url: ", url)
@@ -63,6 +68,7 @@ func main() {
 		YoutubeLink:    url,
 		IsStart:        isS,
 		UpdateHook:     updatehook,
+		Provider:       provider,
 	})
 
 	wg.Wait()
