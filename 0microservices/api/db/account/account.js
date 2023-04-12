@@ -93,7 +93,7 @@ async function signInWithUsernameAndPassword({ username, password }) {
                     const passwordMatch = await bcrypt.compare(password, account.password);
 
                     if (passwordMatch) {
-                        const token = jwt.sign({ id: account.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+                        const token = jwt.sign({ id: account.id, username: account.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
                         resolve(token);
                     } else {
                         reject(new Error('Incorrect password'));

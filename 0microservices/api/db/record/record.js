@@ -31,6 +31,95 @@ function createChannel({
     })
 }
 
+function createChannelWithAccount({
+    channelName,
+    platform,
+    accountId
+}) {
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, connection) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            connection.beginTransaction((err) => {
+                if (err) {
+                    connection.release(); // Release the connection in case of error
+                    reject(err);
+                    return;
+                }
+
+                const createChannel = `INSERT INTO channels (channel_name, platform) VALUES (?,?)`;
+                const addChannelToAccount = `INSERT INTO account_channels (account_id, channel_id) VALUES (?,?)`;
+
+                connection.query(createChannel, [channelName, platform], (err, results, fields) => {
+                    if (err) {
+                        console.log(err.message);
+                        connection.rollback(() => {
+                            connection.release(); // Release the connection in case of error
+                            reject(err);
+                        });
+                        return;
+                    }
+
+                    const channelId = results.insertId;
+
+                    connection.query(addChannelToAccount, [accountId, channelId], (err, results, fields) => {
+                        if (err) {
+                            console.log(err.message);
+                            connection.rollback(() => {
+                                connection.release(); // Release the connection in case of error
+                                reject(err);
+                            });
+                            return;
+                        }
+
+                        connection.commit((err) => {
+                            if (err) {
+                                console.log(err.message);
+                                connection.rollback(() => {
+                                    connection.release(); // Release the connection in case of error
+                                    reject(err);
+                                });
+                                return;
+                            }
+
+                            connection.release(); // Release the connection after successful commit
+                            resolve(channelId);
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
+function getChannel({
+    channelName,
+    platform
+}){
+    return new Promise((resolve,reject)=>{
+        const getChannelQuery = `SELECT * FROM channels WHERE channel_name = ? AND platform = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(getChannelQuery, [channelName, platform], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
+
 function getAllChannels({
     platform,
     page
@@ -82,6 +171,7 @@ function addChannelToAccount({
         });
     })
 }
+
 
 function getAllChannelsByAccountId({
     accountId,
@@ -425,5 +515,7 @@ module.exports = {
     getAllRecordingSchedules,
     getAllRecordingSchedulesAll,
     addAutoSchedule,
-    getAutoSchedule
+    getAutoSchedule,
+    createChannelWithAccount,
+    getChannel
 }

@@ -3,6 +3,8 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const cors = require('cors');
 
+console.log(process.env);
+
 const allowAuthenticated = require('./middleware/allowAuthenticated');
 
 const app = express();
@@ -21,7 +23,8 @@ app.get('/', (req, res) => {
 app.get("/me",allowAuthenticated, (req, res) => {
     res.json({
         message: "You are authenticated",
-        id: req.userId
+        id: req.userId,
+        username: req.username
     })
 });
 
@@ -33,6 +36,9 @@ app.use('/account', AccountAPI);
 const RecordAPI = require('./modules/record/record');
 
 app.use('/record', RecordAPI);
+
+const ChannelAPI = require('./modules/channel/channel');
+app.use('/channel', ChannelAPI);
 
 const PORT = process.env.PORT || 3000;
 
