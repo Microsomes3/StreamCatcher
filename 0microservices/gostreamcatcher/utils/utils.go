@@ -12,6 +12,7 @@ type SteamJob struct {
 	UpdateHook     string `json:"updateHook"`
 	Groupid        string `json:"groupid"`
 	ChannelName    string `json:"channelName"`
+	ShouldUpload   string `json:"shouldUpload"`
 }
 
 type JobStatus struct {

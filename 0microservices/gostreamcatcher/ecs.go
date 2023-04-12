@@ -23,6 +23,7 @@ func main() {
 	isstart := os.Getenv("isstart")
 	updatehook := os.Getenv("updatehook")
 	provider := os.Getenv("provider")
+	shouldUpload := os.Getenv("shouldUpload")
 
 	if provider == "" {
 		provider = "youtube" //
@@ -34,6 +35,10 @@ func main() {
 	fmt.Println("isstart: ", isstart)
 	fmt.Println("updatehook: ", updatehook)
 	fmt.Println("reqid: ", reqid)
+
+	if shouldUpload == "" {
+		shouldUpload = "yes"
+	}
 
 	queueCtx, cancelQueue := context.WithCancel(context.Background())
 
@@ -72,6 +77,7 @@ func main() {
 		IsStart:        isS,
 		UpdateHook:     updatehook,
 		Provider:       provider,
+		ShouldUpload:   shouldUpload,
 	}
 
 	var username string = ""
