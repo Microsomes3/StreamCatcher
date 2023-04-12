@@ -214,10 +214,125 @@ function createStreamTrackerTable(){
             console.log(results);
         })
 
+        connection.release();
+
 
     })
 
 }
 
+function createBillingTables(){
+    pool.getConnection((err, connection) => {
+
+        const BillingTable = `CREATE TABLE IF NOT EXISTS billing (
+            id INT NOT NULL AUTO_INCREMENT,
+            account_id INT NOT NULL,
+            points INT NOT NULL,
+            amount INT NOT NULL,
+            paymentmethod VARCHAR(255) NOT NULL,
+            stripe_id VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            FOREIGN KEY (account_id) REFERENCES accounts(id)
+        )`;
+
+        //drop billing table
+        // const dropBillingTable = `DROP TABLE IF EXISTS billing`;
+
+        // connection.query(dropBillingTable, (err, results, fields) => {
+        //     if (err) {
+        //         console.log(err.message);
+        //     }
+
+        //     console.log('Billing table dropped');
+        //     console.log(results);
+        // });
+
+        // // return;
+
+        const BillingEvents = `CREATE TABLE IF NOT EXISTS billing_events (
+            id INT NOT NULL AUTO_INCREMENT,
+            billing_id INT NOT NULL,
+            event VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            FOREIGN KEY (billing_id) REFERENCES billing(id)
+        )`;
+
+        const PointsUsed = `CREATE TABLE IF NOT EXISTS points_used (
+            id INT NOT NULL AUTO_INCREMENT,
+            account_id INT NOT NULL,
+            points INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            FOREIGN KEY (account_id) REFERENCES billing(id)
+        )`;
+
+        //drop points used
+        // const dropPointsUsed = `DROP TABLE IF EXISTS points_used`;
+
+        // connection.query(dropPointsUsed, (err, results, fields) => {
+        //     if (err) {
+        //         console.log(err.message);
+        //     }
+
+        //     console.log('Points Used table dropped');
+        //     console.log(results);
+        // });
+
+
+        const promoCodes = `CREATE TABLE IF NOT EXISTS promo_codes (
+            id INT NOT NULL AUTO_INCREMENT,
+            code VARCHAR(255) NOT NULL,
+            points INT NOT NULL,
+            used INT NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY (code)
+        )`;
+
+        connection.query(BillingTable, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Billing table created');
+            console.log(results);
+        })
+
+        connection.query(BillingEvents, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Billing Events table created');
+            console.log(results);
+        })
+
+        connection.query(PointsUsed, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Points Used table created');
+            console.log(results);
+        })
+
+        connection.query(promoCodes, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Promo Codes table created');
+            console.log(results);
+        })
+
+        //release
+        connection.release();
+
+    });
+}
+
 createAccountTable();
 createStreamTrackerTable();
+createBillingTables();
