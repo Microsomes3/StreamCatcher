@@ -42,27 +42,25 @@ function RecordStatusesTable({ statuses }) {
 
         var totalPending = 0;
         var totalCompleted = 0;
+        var totalFailed = 0;
 
 
-        sortedStatuses.forEach((status) => {
-            if (status.status == "PENDING") {
+        sortedStatuses.forEach(job=>{
+            if(job.status == "PENDING"){
                 totalPending++;
-            }
-
-            try {
-
-                if (status.status.status == "success") {
-                    totalCompleted++;
-                }
-            } catch (e) {
-
+            }else if(job.status == "done"){
+                totalCompleted++;
+            }else if(job.status == "error"){
+                totalFailed++;
             }
         })
 
-
-        setComplete(totalCompleted);
         setTotalPending(totalPending);
-        setTotalFailed(sortedStatuses.length - totalPending - totalCompleted);
+        setComplete(totalCompleted);
+        setTotalFailed(totalFailed);
+
+
+    
         setFilteredStatuses(sortedStatuses);
     }, [statuses]);
 
@@ -99,6 +97,7 @@ function RecordStatusesTable({ statuses }) {
                        <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">
                             <p class="text-base font-medium">Channel</p>
                             <p class="text-2xl font-bold">{status.username}</p>
+                            <p class="text-2xl font-bold px-2 py-1 mt-2 bg-green-700  hover:bg-green-800 cursor-pointer rounded-md">Status:{status.status}</p>
                             </div>
                             
                         <div class="col-span-8 sm:col-span-4 lg:col-span-2 text-center flex items-center justify-center flex-col">

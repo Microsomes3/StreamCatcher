@@ -2,7 +2,7 @@
 const { spawn } = require('child_process');
 
 function getLiveStatusv2(executablePath,username) {
-    const formattedUrl = `https://youtube.com/${username}/live`;
+    const formattedUrl = username.includes("@") ? `https://youtube.com/${username}/live` : `https://twitch.tv/${username}/live`;
     return new Promise((resolve, reject) => {
         var ls = spawn(executablePath, ['-f', 'bestvideo[height<=?1080][vcodec^=avc1]+bestaudio/best', '-g', formattedUrl]);
 

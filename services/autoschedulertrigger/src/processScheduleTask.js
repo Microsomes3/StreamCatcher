@@ -10,6 +10,7 @@ return new Promise(async (resolve,reject)=>{
     const c =await makeRecordRequest({
         requestId: request.id,
         auto: auto,
+        provider: request.provider || 'youtube',
     });
 
     resolve(c);

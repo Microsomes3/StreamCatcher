@@ -10,11 +10,19 @@ function RecordingsTable({ recordings, isLoading=false }) {
 
 
  const isNewFormat = (key)=>{
+
+  if (key == null) return false;
+
+  try{
   //check if key is an array
   if(Array.isArray(key)){
     return key[0].includes("https")
   }else{
     return key.includes("https")
+  }
+  }catch(e){
+    console.log(e)
+    console.log(key)
   }
  }
 
@@ -93,7 +101,8 @@ function RecordingsTable({ recordings, isLoading=false }) {
         <div className="text-gray-400 mr-4">
           {moment(recording.createdAt).format("MMM D, YYYY h:mm A")}
         </div>
-      {recording.keys &&  <div className="flex flex-col">
+   
+      {(recording.keys && recording.status !="error") &&  <div className="flex flex-col">
           {recording.keys?.length == 0 && (
             <div className="text-gray-400">
               {recording.status}
@@ -128,6 +137,7 @@ function RecordingsTable({ recordings, isLoading=false }) {
             </div>
           ))}
         </div>}
+             
       </div>
     </div>
   ))}

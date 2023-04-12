@@ -2,9 +2,30 @@ import React, { useState, useEffect } from "react";
 
 import { Link } from "react-router-dom";
 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; 
+
+
 import axios from "axios";
 
 function LandingPage() {
+
+
+
+  useEffect(() => {
+    toast('🦄 Welcome to Live Clipper', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+      });
+  }, []);
+
+
   const [username, setUsername] = useState("");
   const [streamInfo, setStreamInfo] = useState(null);
 
@@ -43,6 +64,10 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="container mx-auto py-12 px-4">
+
+      <ToastContainer  />
+  
+
         <h1 className="text-4xl font-bold text-center">Live Clipper</h1>
         <p className="text-xl text-center mt-4">
           Capture live streams from all the popular YouTubers automatically

@@ -13,7 +13,7 @@ module.exports.handler = async (event) => {
 
     const { Job, Status } = data
 
-    const { jobId, reqId, youtubeLink } = Job;
+    const { jobId, reqId, youtubeLink, channelName } = Job;
 
     const { state, result, time } = Status;
 
@@ -25,13 +25,7 @@ module.exports.handler = async (event) => {
         time
     })
 
-    var uchannel = "";
 
-    try {
-        uchannel = youtubeLink.split("/@")[1].split("/live")[0]
-    } catch (e) {
-        console.log(e);
-    }
 
     if (state == "done") {
 
@@ -50,7 +44,7 @@ module.exports.handler = async (event) => {
             date: moment().format("YYYY-MM-DD"),
             keys: [result],
             status: state,
-            username: uchannel,
+            username: channelName,
             createdAt: new Date().getTime(),
             friendlyName: "--"
         },
@@ -93,7 +87,9 @@ module.exports.handler = async (event) => {
             state,
             result,
             time,
-            reqId
+            reqId,
+            youtubeLink,
+            channelName
         }),
     };
 }

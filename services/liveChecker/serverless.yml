@@ -150,7 +150,15 @@ resources:
             AttributeType: S
           - AttributeName: priority
             AttributeType: N
+          - AttributeName: type
+            AttributeType: S
         GlobalSecondaryIndexes:
+          - IndexName: type-index
+            KeySchema:
+              - AttributeName: type
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
           - IndexName: priority-index
             KeySchema:
               - AttributeName: priority

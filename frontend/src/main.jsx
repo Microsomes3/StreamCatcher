@@ -2,6 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 
+
+
+
 import './App.css'
 import NavigationComp from './comps/Nav/defaultnav'
 import Home from './pages/home/home'
@@ -43,7 +46,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/dashboard/:comp' element={<DashboardHome></DashboardHome>} ></Route>
       <Route path='/dashboard/:comp/:section' element={<DashboardHome></DashboardHome>} ></Route>
       <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
-      <Route path='/addyoutuber' element={<AddYoutuber></AddYoutuber>} />
+      <Route path='/addchannel/:platform' element={<AddYoutuber></AddYoutuber>} />
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />
       <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
       <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />

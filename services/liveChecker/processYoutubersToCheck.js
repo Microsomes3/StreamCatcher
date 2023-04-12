@@ -28,9 +28,10 @@ function handleFunc(username){
 
 module.exports.processYoutubersToCheck = async (event) => {
 
-    const usernameToCheck = event.Records[0].body;
+    const {
+        youtubeusername , type="youtube"} = JSON.parse(event.Records[0].body);
 
-    const result = await handleFunc(usernameToCheck);
+    const result = await handleFunc(youtubeusername);
 
     var status = result == true ?  true:false
     
@@ -41,10 +42,11 @@ module.exports.processYoutubersToCheck = async (event) => {
             createdAt: moment().unix(),
             friendlyDate: moment().format('YYYY-MM-DD'),
             updatedAt: moment().unix(),
-            channel: usernameToCheck,
+            type: type,
+            channel: youtubeusername,
             status: JSON.stringify(result),
             isLive: status,
-            liveLink: "https://youtube.com/"+usernameToCheck+"/live",
+            liveLink: "https://youtube.com/"+youtubeusername+"/live",
         },
     };
 

@@ -11,6 +11,7 @@ type SteamJob struct {
 	IsStart        bool   `json:"isStart"`
 	UpdateHook     string `json:"updateHook"`
 	Groupid        string `json:"groupid"`
+	ChannelName    string `json:"channelName"`
 }
 
 type JobStatus struct {

@@ -16,6 +16,7 @@ function uuidv4() {
 
 module.exports.handler = async (event) => {
     const {
+        provider = "youtube",
         username,
         duration,
         trigger,
@@ -123,6 +124,7 @@ module.exports.handler = async (event) => {
         TableName: process.env.RECORD_REQUEST_TABLE,
         Item: {
             id: uuidv4(),
+            provider,
             username,
             duration,
             trigger,

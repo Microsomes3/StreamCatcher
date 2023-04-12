@@ -10,8 +10,11 @@ function uuidv4() {
     );
 }
 
-function makeRecordRequest({ requestId, auto }) {
+function makeRecordRequest({ requestId, auto, provider="youtube" }) {
     return new Promise(async (resolve, reject) => {
+
+        console.log(">>", provider);
+        
 
         try {
 
@@ -114,7 +117,11 @@ function makeRecordRequest({ requestId, auto }) {
                                 },
                                 {
                                     name: 'url',
-                                    value: `https://www.youtube.com/${username}/live`
+                                    value: provider== "youtube" ? `https://www.youtube.com/${username}/live` : `https://www.twitch.tv/${username}/live`
+                                },
+                                {
+                                    name: 'provider',
+                                    value: provider
                                 },
                                 {
                                     name: "RECORD_REQUEST_ID",
@@ -126,7 +133,7 @@ function makeRecordRequest({ requestId, auto }) {
                                 },
                                 {
                                     name: "isstart",
-                                    value: isRecordStart == true ? "true" : "false"
+                                    value: provider=="twitch" ? "false" : isRecordStart == true ? "true" : "false"
                                 },
                                 {
                                     name: "timeout",
@@ -213,7 +220,6 @@ function makeRecordRequest({ requestId, auto }) {
     })
 }
 
-// makeRecordRequest({requestId:"5f7156b7-78e7-47a1-b346-3b995ff86a13"})
 
 module.exports = {
     makeRecordRequest

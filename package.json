@@ -12,6 +12,7 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.2.0",
     "pupeteer": "^0.0.1",
+    "puppeteer": "^19.8.5",
     "puppeteer-stream": "^3.0.3",
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-fargate": "^0.0.11"

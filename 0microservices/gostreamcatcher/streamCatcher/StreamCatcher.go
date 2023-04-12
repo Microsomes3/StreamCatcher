@@ -78,6 +78,13 @@ func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.J
 		Status: status,
 	}
 
+	if status.State == "done" {
+		if status.Result == nil {
+			status.State = "error"
+			status.Result = []string{"No result"}
+		}
+	}
+
 	bytet, err := json.Marshal(statusToSend)
 
 	if err != nil {
@@ -118,6 +125,7 @@ func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.J
 
 func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, result []string) {
 
+	fmt.Println("AddStatusEvent: ", job.JobID, status)
 	nstatus := utils.JobStatus{
 		State:  status,
 		Result: result,

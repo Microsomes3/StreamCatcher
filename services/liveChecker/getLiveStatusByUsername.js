@@ -29,14 +29,17 @@ module.exports.getLiveStatusByUsername = async (event) => {
         }
     }
 
-    const isLive = data.Item.isLive;
+    const {isLive, lastUpdated, liveLink, type="youtube", recordRequests} = data.Item
 
     return {
         statusCode:200,
         body:JSON.stringify({
+            islive: isLive,
             username: username,
-            status:isLive,
-            link: data.Item.liveLink
+            lastUpdated: lastUpdated,
+            type: type,
+            recordRequests: recordRequests,
+            link: liveLink,
         }),
         headers:{
             "Access-Control-Allow-Origin": "*",

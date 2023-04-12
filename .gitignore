@@ -27,3 +27,4 @@ env.go
 godwn
 
 0microservices/gostreamcatcher/bin/godwn
+0microservices/api/db/CA.crt

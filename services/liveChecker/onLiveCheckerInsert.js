@@ -37,6 +37,13 @@ module.exports.onLiveCheckerInsert= async (event)=>{
         const newImage = record.dynamodb.NewImage;
         const channel = newImage.channel.S;
         const isLive = newImage.isLive.BOOL;
+
+        var type = "youtube"
+
+        try{
+            type = newImage.type.S;
+        }catch(e){}
+        
         if(isLive){
             console.log("islive")
         }else{
@@ -62,6 +69,7 @@ module.exports.onLiveCheckerInsert= async (event)=>{
             Item: {
                 youtubeusername: channel,
                 isLive: isLive,
+                type: type,
                 updatedAt: moment().format("YYYY-MM-DD HH:mm:ss"),
                 extra: newImage,
                 liveLink: newImage.liveLink.S,

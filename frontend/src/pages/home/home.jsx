@@ -4,7 +4,7 @@ import YTTable from './comps/youtuberslive/ytlivetable';
 function Home() {
   return (
     <Fragment>
-      <div className='bg-gray-900 px-12 rounded-md mx-6 my-6 text-white flex flex-col'>
+      <div className='bg-gray-900 px-12  text-white flex flex-col'>
  
 
         <div className=' border-white md:mx-6 md:my-6 rounded-md'>

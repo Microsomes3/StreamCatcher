@@ -2,45 +2,53 @@
 const aws = require("aws-sdk");
 
 const documentWriter = new aws.DynamoDB.DocumentClient({
-    region: process.env.AWS_REGION_T
+    region: process.env.AWS_REGION_T || "us-east-1"
 });
 
 const sqs = new aws.SQS({
-    region: process.env.AWS_REGION_T
+    region: process.env.AWS_REGION_T || "us-east-1"
 });
 
 
-module.exports.scheduleUsernamesTOCheck = async (event) => {
-    const params = {
-        TableName: process.env.YOUTUBERS_TO_CHECK_TABLE,
-    };
 
-    const data = await documentWriter.scan(params).promise();
+function handleFunc(){
 
-    const usernames = data.Items.map((item) => {
-        return item.youtubeusername;
-    });
-
-    const allMessageIds = [];
-
-    for(var i = 0; i < usernames.length; i++){
+    return new Promise(async(resolve,reject)=>{
         const params = {
-            MessageBody: usernames[i],
-            QueueUrl: process.env.YOUTUBERS_TO_CHECK_QUEUEUrl
+            TableName: process.env.YOUTUBERS_TO_CHECK_TABLE || "YoutubersToCheckTable",
         };
 
-        const data = await sqs.sendMessage(params).promise();
+        const data = await documentWriter.scan(params).promise();
 
-        allMessageIds.push(data.MessageId);
+      
 
-    }
+        for(var i = 0; i < data.Items.length; i++){
+           const cur = data.Items[i];
 
+            const params = {
+                MessageBody: JSON.stringify(cur),
+                QueueUrl: process.env.YOUTUBERS_TO_CHECK_QUEUEUrl || "https://sqs.us-east-1.amazonaws.com/574134043875/YoutubersToCheckQueue"
+            };
+    
+             const c =await sqs.sendMessage(params).promise();        
+        }
+
+        resolve(true)
+
+
+
+    })
+
+}
+
+
+module.exports.scheduleUsernamesTOCheck = async (event) => {
+    
+   await handleFunc();
     return {
         statusCode: 200,
         body: JSON.stringify({
             message: 'Go Serverless v1.0! Your function executed successfully!',
-            data: usernames,
-            messageIds: allMessageIds
         }),
     }
 }

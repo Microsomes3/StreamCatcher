@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"sync"
 	"time"
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+
 	fmt.Println("ecs adapater module")
 	jobid := os.Getenv("jobid")
 	reqid := os.Getenv("reqid")
@@ -61,7 +63,8 @@ func main() {
 
 	fmt.Println("timeoutInt: ", timeoutInt)
 	fmt.Println("isS: ", isS)
-	streamCatcher.AddJob(utils.SteamJob{
+
+	job := utils.SteamJob{
 		JobID:          jobid,
 		ReqID:          reqid,
 		TimeoutSeconds: int(timeoutInt),
@@ -69,7 +72,52 @@ func main() {
 		IsStart:        isS,
 		UpdateHook:     updatehook,
 		Provider:       provider,
-	})
+	}
+
+	var username string = ""
+
+	if provider == "youtube" {
+
+		re := regexp.MustCompile(`@(\w+)`)
+		match := re.FindStringSubmatch(url)
+		if len(match) > 1 {
+			username = "@" + match[1]
+			job.ChannelName = username
+		} else {
+			fmt.Println("No match found")
+		}
+	} else {
+		re := regexp.MustCompile(`https://www.twitch.tv/(\w+)/live`)
+		match := re.FindStringSubmatch(url)
+
+		// The first submatch contains the username
+		fmt.Println(match[1])
+		username = match[1]
+
+		job.ChannelName = username
+
+	}
+
+	if username == "" {
+		streamCatcher.AddStatusEvent(&job, "error", []string{"username not found"})
+
+		os.Exit(0)
+	}
+
+	isLive, err := streamcatcher.GetLiveStatusv2(username, provider)
+	if err != nil {
+		fmt.Println("error: ", err)
+	}
+
+	if !isLive {
+		fmt.Println("not live")
+
+		streamCatcher.AddStatusEvent(&job, "error", []string{"not live"})
+
+		os.Exit(0)
+	}
+
+	streamCatcher.AddJob(job)
 
 	wg.Wait()
 

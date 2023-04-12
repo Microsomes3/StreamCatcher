@@ -26,17 +26,14 @@ module.exports.handler = async(event)=>{
         return item.youtubeusername;
     });
 
-    const allMessageIds = [];
 
     for(var i = 0; i < usernames.length; i++){
         const params = {
-            MessageBody: usernames[i],
+            MessageBody: data.Items[i],
             QueueUrl: process.env.YOUTUBERS_TO_CHECK_QUEUEUrl
         };
 
-        const data = await sqs.sendMessage(params).promise();
-
-        allMessageIds.push(data.MessageId);
+        await sqs.sendMessage(params).promise();
 
     }
 
@@ -44,9 +41,7 @@ module.exports.handler = async(event)=>{
     return {
         statusCode: 200,
         body: JSON.stringify({
-            message: "OK",
-            data:data,
-            allMessageIds: allMessageIds
+            message: "OK"
         }),
     }
 }
