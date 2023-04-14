@@ -1,6 +1,7 @@
 const aws = require("aws-sdk");
 const moment = require("moment");
 const { getLiveStatusv2 } = require('./helpers/checkLivev2')
+const axios = require("axios");
 
 
 const documentWriter = new aws.DynamoDB.DocumentClient({
@@ -51,6 +52,13 @@ module.exports.processYoutubersToCheck = async (event) => {
     };
 
     await documentWriter.put(params).promise();
+
+
+    // try{
+    //     await axios.post("https://6f98-77-102-234-41.ngrok-free.app/tracker/callbackLiveChecker",{
+    //         params: params
+    //     })
+    // }catch(err){console.log(err)}
     
     return {
         statusCode: 200,

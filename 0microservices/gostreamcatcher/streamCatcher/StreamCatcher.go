@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"strconv"
+	"regexp"
 	"sync"
 	"time"
 
@@ -53,7 +52,7 @@ func NewStreamCatcher(scsocket *StreamCatcherSocketServer, callback func(utils.S
 	return &StreamCatcher{
 		JobQueue:                  make(chan utils.SteamJob, 10),
 		WorkQueue:                 make(chan utils.SteamJob, 100),
-		ConcurrentLimit:           10,
+		ConcurrentLimit:           1,
 		JobStatuses:               make(map[string]utils.JobStatus),
 		JobStatusEvents:           make(map[string]utils.JobStatusEvents),
 		WorkerStatus:              utils.WorkerStatus{},
@@ -194,61 +193,49 @@ func (s *StreamCatcher) AddJob(job utils.SteamJob) {
 	s.JobQueue <- job
 }
 
+func (s *StreamCatcher) SendProgressionData(output string, done chan bool) {
+	//every 5 minutes
+	ticker := time.NewTicker(5 * time.Minute)
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			re := regexp.MustCompile(`[0-9]+/[0-9]+`)
+			match := re.FindString(output)
+			fmt.Println(match)
+
+			if match != "" {
+				fmt.Println("match found")
+			} else {
+
+				fmt.Println("match not found")
+			}
+		}
+	}
+}
+
 func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
-	defer wg.Done()
 
 	for Job := range s.WorkQueue {
 
 		s.AddStatusEvent(&Job, "recording", []string{})
 
-		data, err := streamutil.ProcessDownload(Job.YoutubeLink, Job.TimeoutSeconds, Job.JobID, Job.IsStart)
+		_, uploadLinks, err := streamutil.ProcessDownload(Job, s.SendProgressionData)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			s.AddStatusEvent(&Job, "error", []string{err.Error()})
+			if s.Callback != nil {
+
+				s.Callback(Job)
+			}
+
+			return
 		}
 
-		s.AddStatusEvent(&Job, "attempting to upload", data.Paths)
+		fmt.Println("Upload done: ", uploadLinks)
 
-		uploader := streamutil.DLPUploader{}
-
-		var allDownloadPaths []string
-
-		for index, path := range data.Paths {
-
-			f, err := os.Open("./tmp/" + path)
-			defer f.Close()
-
-			if err != nil {
-				fmt.Println("Error: ", err)
-				s.AddStatusEvent(&Job, "error uploading:"+path, []string{err.Error()})
-				return
-			}
-
-			indexString := strconv.Itoa(index)
-
-			fileUrl, err := uploader.UploadFile(f, Job.JobID+".mp4", indexString)
-
-			if err != nil {
-				fmt.Println("Error: ", err)
-				s.AddStatusEvent(&Job, "error uploading:"+path, []string{err.Error()})
-				return
-			}
-
-			allDownloadPaths = append(allDownloadPaths, fileUrl)
-
-			// remove file
-			err = os.Remove("./tmp/" + path)
-			if err != nil {
-				fmt.Println("Error: ", err)
-				s.AddStatusEvent(&Job, "error removing:"+path, []string{err.Error()})
-				return
-			}
-
-			s.AddStatusEvent(&Job, "uploaded:"+path, []string{})
-
-		}
-
-		s.AddStatusEvent(&Job, "done", allDownloadPaths)
+		s.AddStatusEvent(&Job, "done", uploadLinks)
 
 		if s.Callback != nil {
 
@@ -259,6 +246,7 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 	}
 
 	fmt.Println("interrupted")
+	wg.Done()
 
 }
 
@@ -282,6 +270,5 @@ func (s *StreamCatcher) StartAllWorkers(diewg *sync.WaitGroup) {
 		go s.StartWork(wg1)
 	}
 	wg1.Wait()
-	diewg.Done()
 	fmt.Println("work done die")
 }

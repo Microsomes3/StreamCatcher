@@ -1,0 +1,134 @@
+service: griffin-muxing4-service
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  memorySize: 128
+  environment:
+    MuxTsskDef: !Ref MuxTask
+    GoMuxContainer: gomuxcontainer
+  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueAttributes
+      Resource:
+        Fn::GetAtt:
+          - MuxingQueue
+          - Arn
+    - Effect: Allow
+      Action:
+        - ecs:RunTask
+        - ecs:DescribeTasks
+        - ecs:StopTask
+        - ecs:ListTasks
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - iam:PassRole
+      Resource:
+        - arn:aws:iam::574134043875:role/griffin-muxing4-service-dev-TaskRole-1RY5Q32SDQIEV 
+          
+
+resources:
+  Resources:
+    MuxingQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: MuxingQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 345600
+        ReceiveMessageWaitTimeSeconds: 20
+    
+    LogsGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /ecs/gomuxscrubdogz
+        RetentionInDays: 14
+    TaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      # Add policies as needed for your specific use case
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+    ExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+
+    MuxTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: muxtaskdef
+        Cpu: 1024
+        Memory: 2048
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: gomuxcontainer
+            Image: public.ecr.aws/m8l7i2c5/gomuxservice:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: updatehook
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
+
+
+
+  Outputs:
+    MuxingQueueUrl:
+      Value: !GetAtt MuxingQueue.QueueUrl
+      Export:
+        Name: MuxingQueueUrl
+    MuxingQueueArn:
+      Value: !GetAtt MuxingQueue.Arn
+      Export:
+        Name: MuxingQueueArn
+    
+        
+functions:
+  ProcessMuxingQueue:
+    handler: src/processMuxTask.handler
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MuxingQueue
+              - Arn
+          batchSize: 1
+       

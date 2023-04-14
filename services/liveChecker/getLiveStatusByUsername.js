@@ -30,10 +30,12 @@ module.exports.getLiveStatusByUsername = async (event) => {
     }
 
     const {isLive, lastUpdated, liveLink, type="youtube", recordRequests} = data.Item
+    
 
     return {
         statusCode:200,
         body:JSON.stringify({
+            raw: data.Item,
             islive: isLive,
             username: username,
             lastUpdated: lastUpdated,

@@ -118,6 +118,28 @@ function getChannel({
         });
     })
 }
+function getChannelById({id}){
+    return new Promise((resolve,reject)=>{
+        const getChannelByIdQuery = `SELECT * FROM channels WHERE id = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(getChannelByIdQuery, [id], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
 
 
 function getAllChannels({
@@ -517,5 +539,6 @@ module.exports = {
     addAutoSchedule,
     getAutoSchedule,
     createChannelWithAccount,
-    getChannel
+    getChannel,
+    getChannelById
 }

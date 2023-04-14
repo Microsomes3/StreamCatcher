@@ -1,95 +1,101 @@
-const aws = require('aws-sdk');
-const moment = require("moment");
-const { sendShitpostLink, sendToUser } = require('./helpers/discordHelper')
+const {
+    AddMuxingRequestToQueue,
+    updateRecordStatus,
+    updateRecordStatuses,
+    addRecordEvent,
+    sendRecordingToShitpost
+} = require("./helpers/recordhelper");
 
-const documentClient = new aws.DynamoDB.DocumentClient(
-    {
-        region: process.env.AWS_REGION_T,
-    }
-);
+
+function handleIsStartLogic({
+    jobId,
+    reqId,
+    results,
+    state
+}){
+    return new Promise(async (resolve,reject)=>{
+        if(state == "done"){
+         if(results.length>=2){
+            console.log("send to mux service")
+            try{
+                const c =await AddMuxingRequestToQueue({
+                    jobId: jobId,
+                    reqId: reqId,
+                    videoLink: results[0],
+                    audioLink: results[1]
+                })
+                console.log(c)
+            }catch(e){console.log(e)}
+            resolve("muxing")
+         }else{
+            console.log("do not send to mux")
+            resolve("error - not enough results");
+         }
+        }else{
+            console.log("do not send to mux")
+            resolve("awaiting mux");
+        }
+    })
+}
+
+
+function handleFunc({data}){
+    return new Promise(async (resolve,reject)=>{
+        const { Job, Status } = data
+        const { jobId, reqId, youtubeLink, channelName, type = "normal", isStart = false } = Job;
+        const { result, state } = Status;
+
+        var stateToUse = state;
+
+        switch(isStart){
+            case true:
+                stateToUse =await handleIsStartLogic({
+                    jobId,
+                    reqId,
+                    results:Status.result,
+                    state:Status.state
+                })
+        }
+    
+        const c= await updateRecordStatus({
+            jobId: jobId,
+            reqId: reqId,
+            result: isStart == false ? [result]: [],
+            state:stateToUse,
+            channelName:channelName
+        })
+
+        const ur = await updateRecordStatuses({
+            jobId:jobId,
+            state:stateToUse
+        })
+
+        const ae = await addRecordEvent({
+            Job,
+            Status,
+            Recordid:jobId
+        })
+
+        if(state == "done" && isStart == false){
+            sendRecordingToShitpost({
+                url: result[0],
+            })
+        }
+
+        console.log(ae)
+    
+    })
+}
 
 module.exports.handler = async (event) => {
     const data = JSON.parse(event.body);
-
-    const { Job, Status } = data
-
-    const { jobId, reqId, youtubeLink, channelName } = Job;
-
-    const { state, result, time } = Status;
-
-    console.log({
-        message: 'GoUpdateCallback',
-        jobId,
-        state,
-        result,
-        time
-    })
-
-
-
-    if (state == "done") {
-
-        try {
-            await sendShitpostLink(`- ${result[0]}`);
-        } catch (e) { 
-            console.log(e);
-        }
-    }
-
-    const params = {
-        TableName: process.env.RECORD_TABLE,
-        Item: {
-            id: jobId,
-            recordrequestid: reqId,
-            date: moment().format("YYYY-MM-DD"),
-            keys: [result],
-            status: state,
-            username: channelName,
-            createdAt: new Date().getTime(),
-            friendlyName: "--"
-        },
-    };
-
-    try {
-        await documentClient.put(params).promise();
-    } catch (err) {
-        console.log(err);
-    }
-
-
-    const params2 = {
-        TableName: process.env.RecordStatusesTable,
-        Key: {
-            id: jobId
-        },
-        UpdateExpression: "set #status = :s, #date = :d",
-        ExpressionAttributeNames: {
-            "#status": "status",
-            "#date": "timeended" // add this line
-        },
-        ExpressionAttributeValues: {
-            ":s": state,
-            ":d": moment().unix() // add this line to set the date value to the current time in ISO format
-        }
-    };
-
-    try {
-        await documentClient.update(params2).promise();
-    } catch (err) {
-        console.log(err);
-    }
-
+    console.log(">>",data)
+    await handleFunc({data})
+    console.log("--------------")
     return {
         statusCode: 200,
         body: JSON.stringify({
             message: 'GoUpdateCallback',
-            jobId,
-            state,
-            result,
-            time,
-            reqId,
-            youtubeLink,
-            channelName
         }),
     };
 }

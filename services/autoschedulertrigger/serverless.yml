@@ -277,7 +277,6 @@ resources:
         Family: !Sub ${AWS::StackName}-GOEcsTask
         Cpu: 256
         Memory: 512
-
         EphemeralStorage:
           SizeInGiB: 50
         RequiresCompatibilities:

@@ -4,6 +4,10 @@ services:
   socket:
     path: services/socket
 
+  muxingservice:
+    path: services/muxing
+
+
   autoscheduler:
     path: services/autoschedulertrigger
     dependsOn:

@@ -40,6 +40,9 @@ app.use('/record', RecordAPI);
 const ChannelAPI = require('./modules/channel/channel');
 app.use('/channel', ChannelAPI);
 
+const TrackerAPI = require('./modules/tracker/tracker');
+app.use('/tracker', TrackerAPI);
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

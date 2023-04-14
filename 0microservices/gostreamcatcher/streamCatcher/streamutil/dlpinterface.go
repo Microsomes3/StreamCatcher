@@ -2,30 +2,86 @@ package streamutil
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"time"
 
 	"microsomes.com/stgo/utils"
 )
 
-func ProcessDownload(url string, timeout int, jobid string, isStart bool) (utils.JobResponse, error) {
-	fmt.Println("Processing download for job: ", jobid)
-	fmt.Println("URL: ", url)
-	fmt.Println("Timeout: ", timeout)
+func ManageUploadOfPath(resultChan chan []string, paths []string, job utils.SteamJob) {
+	fmt.Println("to upload:", len(paths))
+	uploader := DLPUploader{}
+
+	var toReturn []string = []string{}
+
+	for index, path := range paths {
+		f, err := os.Open("tmp/" + path)
+		defer f.Close()
+
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		indexString := strconv.Itoa(index)
+
+		fileUrl, _ := uploader.UploadFile(f, job.JobID+".mp4", indexString)
+
+		fmt.Println("File uploaded: ", fileUrl)
+
+		toReturn = append(toReturn, fileUrl)
+	}
+
+	resultChan <- toReturn
+
+}
+
+func ProcessDownload(Job utils.SteamJob, progressUpdateCallback func(output string, done chan bool)) (utils.JobResponse, []string, error) {
+	fmt.Println("Processing download for job: ", Job.JobID)
+	fmt.Println("URL: ", Job.YoutubeLink)
+	fmt.Println("Timeout: ", Job.TimeoutSeconds)
 
 	var mode string = "--"
 
-	if isStart {
+	if Job.IsStart {
 		mode = "start"
 	} else {
 		mode = "current"
 	}
 
-	data, err := TryDownload(jobid, url, timeout, mode, "")
+	doneDownloadCn := make(chan bool)
+	downloadResultCn := make(chan utils.JobResponse)
 
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return utils.JobResponse{}, err
-	}
+	go func() {
+		data, err := TryDownload(Job.JobID, Job.YoutubeLink, Job.TimeoutSeconds, mode, "")
 
-	return data, nil
+		if err != nil {
+			fmt.Println("Error: ", err)
+			doneDownloadCn <- true
+			downloadResultCn <- utils.JobResponse{}
+		}
+
+		doneDownloadCn <- true
+		downloadResultCn <- data
+
+	}()
+
+	<-doneDownloadCn
+
+	data := <-downloadResultCn
+
+	var allLinks []string
+
+	fmt.Println("attempting to upload")
+
+	time.Sleep(5 * time.Second)
+
+	resultC := make(chan []string)
+
+	go ManageUploadOfPath(resultC, data.Paths, utils.SteamJob{JobID: Job.JobID})
+
+	allLinks = <-resultC
+
+	return utils.JobResponse{}, allLinks, nil
 
 }

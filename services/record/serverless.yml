@@ -20,6 +20,8 @@ provider:
     DISCORD_BOT_TOKEN: ${env:DISCORD_BOT_TOKEN}
     DISCORD_CHANNEL_ID: ${env:DISCORD_CHANNEL_ID}
     AUTO_SCHEDULE_QUEUE: !ImportValue AutoScheduleQueueUrl
+    MUXING_QUEUE_URL: !ImportValue MuxingQueueUrl
+    RECORD_EVENT_TABLE: !Ref RecordEventTable
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -96,6 +98,14 @@ provider:
       Action:
         - s3:*
       Resource:  !GetAtt RecordInputBucket.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt RecordEventTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordEventTable/index/record-id-index"
 
 
 resources:
@@ -159,6 +169,26 @@ resources:
               AllowedOrigins:
                 - '*'
               MaxAge: 3000
+    RecordEventTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: RecordEventTable
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: recordid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: record-id-index
+            KeySchema:
+              - AttributeName: recordid
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
     RecordStatuses:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -247,6 +277,20 @@ resources:
 
 
 functions:
+  GetRecordEventsByRecordId:
+    handler: getRecordEventsByRecordid.handler
+    events:
+      - http:
+          path: /GetRecordEventsByRecordId/{id}
+          method: get
+          cors: true
+  GoMuxUpdateRecordCallback:
+    handler: goMuxUpdateCallback.handler
+    events:
+      - http:
+          path: /GoMuxUpdateRecordCallback
+          method: post
+          cors: true
   GoOnUpdateRecordCallback:
     handler: GoUpdateCallback.handler
     events:

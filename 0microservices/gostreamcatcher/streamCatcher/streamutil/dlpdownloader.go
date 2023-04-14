@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -11,7 +12,13 @@ import (
 	"microsomes.com/stgo/utils"
 )
 
+type FileAndSize struct {
+	FileName string
+	FileSize int64
+}
+
 func TryDownload(id string, url string, timeout int, mode string, wssocket string) (utils.JobResponse, error) {
+	fmt.Println("ll")
 	if id == "" {
 		return utils.JobResponse{}, fmt.Errorf("id is empty")
 	}
@@ -21,10 +28,14 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 
 	fmt.Println("trydownload", id)
 
-	ytDlpArgs := []string{"--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4", url, "-o", "./tmp/" + id + "_%(title)s.%(ext)s"}
+	ytDlpArgs := []string{url, "-o", "./tmp/" + "%(title)s.%(ext)s"}
+
 	if mode == "start" {
+		ytDlpArgs = append([]string{"-k"}, ytDlpArgs...)
 		ytDlpArgs = append([]string{"--live-from-start"}, ytDlpArgs...)
 	}
+
+	fmt.Println("====", ytDlpArgs)
 
 	var child *exec.Cmd
 	if mode == "start" {
@@ -34,32 +45,17 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 		child = exec.Command("yt-dlp", ytDlpArgs...)
 	}
 
-	stdout, err := child.StdoutPipe()
-	if err != nil {
-		return utils.JobResponse{}, err
-	}
 	stderr, err := child.StderrPipe()
+	strData, err := child.StdoutPipe()
 	if err != nil {
+		fmt.Println("error 1")
 		return utils.JobResponse{}, err
 	}
 
 	if err := child.Start(); err != nil {
+		fmt.Println("error 2")
 		return utils.JobResponse{}, err
 	}
-
-	go func() {
-		defer stdout.Close()
-		defer stderr.Close()
-
-		buf := make([]byte, 1024)
-		for {
-			n, err := stdout.Read(buf)
-			if err != nil {
-				return
-			}
-			fmt.Printf("yt-dlp stdout: %s", buf[:n])
-		}
-	}()
 
 	go func() {
 		defer stderr.Close()
@@ -72,6 +68,29 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 			}
 			fmt.Printf("yt-dlp stderr: %s", buf[:n])
 		}
+	}()
+
+	go func() {
+		defer strData.Close()
+
+		buf := make([]byte, 1024)
+
+		for {
+			n, err := strData.Read(buf)
+			if err != nil {
+				return
+			}
+
+			if strings.Contains(string(buf[:n]), "Merger") {
+				if mode == "start" {
+					fmt.Println("killing yt-dlp since we dont need auto merging")
+					child.Process.Signal(syscall.SIGKILL)
+				}
+			}
+
+			fmt.Printf("yt-dlp stdout: %s", buf[:n])
+		}
+
 	}()
 
 	backupTimer := time.AfterFunc(newT, func() {
@@ -89,7 +108,7 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 				}
 			}
 		}
-		return utils.JobResponse{}, err
+		fmt.Println("error 3")
 	}
 
 	backupTimer.Stop()
@@ -104,21 +123,42 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 		if file.IsDir() {
 			continue
 		}
-		if strings.Contains(file.Name(), ".mp4") {
-
-			//check if filename starts with id
-			if strings.HasPrefix(file.Name(), id) {
-				mp4Files = append(mp4Files, file.Name())
-			}
+		if strings.Contains(file.Name(), ".mp4") || strings.Contains(file.Name(), ".mkv") {
+			mp4Files = append(mp4Files, file.Name())
 		}
 	}
 
-	// uploadAllTOS3(mp4Files)
+	var filteredFiles []FileAndSize
+
+	for _, fileName := range mp4Files {
+		f, _ := os.Open("./tmp/" + fileName)
+		fileInfo, _ := f.Stat()
+		fileSize := fileInfo.Size()
+		f.Close()
+		filteredFiles = append(filteredFiles, FileAndSize{
+			FileName: fileName,
+			FileSize: fileSize,
+		})
+	}
+
+	fmt.Println("==>>>>", filteredFiles)
+	//sort largest to smallest
+	sort.SliceStable(filteredFiles, func(i, j int) bool {
+		return filteredFiles[i].FileSize > filteredFiles[j].FileSize
+	})
+
+	var pathString []string = []string{}
+
+	for _, file := range filteredFiles {
+		pathString = append(pathString, file.FileName)
+	}
+
+	fmt.Println("==>>>>", filteredFiles)
 
 	return utils.JobResponse{
 		Status:   "success",
 		Reason:   "",
-		Paths:    mp4Files,
+		Paths:    pathString,
 		Comments: []string{},
 	}, nil
 }

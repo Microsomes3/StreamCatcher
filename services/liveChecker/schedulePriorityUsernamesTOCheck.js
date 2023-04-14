@@ -28,8 +28,9 @@ module.exports.handler = async(event)=>{
 
 
     for(var i = 0; i < usernames.length; i++){
+        const cur = data.Items[i];
         const params = {
-            MessageBody: data.Items[i],
+            MessageBody: JSON.stringify(cur),
             QueueUrl: process.env.YOUTUBERS_TO_CHECK_QUEUEUrl
         };
 

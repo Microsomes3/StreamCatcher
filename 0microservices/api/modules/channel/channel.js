@@ -8,7 +8,8 @@ const {
     addChannelToAccount,
     getAllChannelsByAccountId,
     deleteChannelFromAccount,
-    getAllChannels
+    getAllChannels,
+    getChannelById
 } = require('../../db/record/record');
 
 router.get('/', (req, res) => {
@@ -72,6 +73,24 @@ router.post('/create', allowAuthenticated, async (req, res) => {
         console.log(">", error);
         res.status(500).json({
             error: 'Error creating channel'
+        })
+    })
+})
+
+router.get("/:id",allowAuthenticated,(req,res)=>{
+    const id = req.params.id;
+    getChannelById(
+        {
+            id:id
+        }
+    ).then((channels)=>{
+        res.json({
+            channels
+        })
+    }).catch((err)=>{
+        console.log(">",err);
+        res.status(500).json({
+            error: 'Error getting channels'
         })
     })
 })

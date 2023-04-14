@@ -46,7 +46,6 @@ function createAccountTable(){
     });
 }
 
-
 function createStreamTrackerTable(){
     pool.getConnection((err, connection) => {
 
@@ -180,10 +179,34 @@ function createStreamTrackerTable(){
             channel_name VARCHAR(255) NOT NULL,
             platform VARCHAR(255) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            isLive BOOLEAN NOT NULL DEFAULT FALSE,
             PRIMARY KEY (id),
             UNIQUE KEY (channel_name, platform)
         )`;
+
+        //drop table
+
+        const addIsLiveColumn = `ALTER TABLE channels ADD isLive BOOLEAN NOT NULL DEFAULT FALSE`;
+
+        connection.query(addIsLiveColumn, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Is Live column added');
+            console.log(results);
+        });
+
+        const addLiveUpdatedAtColumn = `ALTER TABLE channels ADD liveUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
+
+        connection.query(addLiveUpdatedAtColumn, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Live Updated At column added');
+            console.log(results);
+        });
+
 
         const createAccountChannelsTable = `CREATE TABLE IF NOT EXISTS account_channels (
             id INT NOT NULL AUTO_INCREMENT,
@@ -333,6 +356,31 @@ function createBillingTables(){
     });
 }
 
-createAccountTable();
-createStreamTrackerTable();
-createBillingTables();
+function liveCheckerTable(){
+    const createLiveCheckerTable = `CREATE TABLE IF NOT EXISTS live_checker (
+        id INT NOT NULL AUTO_INCREMENT,
+        username VARCHAR(255) NOT NULL,
+        isLive BOOLEAN NOT NULL DEFAULT FALSE,
+        liveUpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    )`;
+
+    pool.getConnection((err, connection) => {
+        connection.query(createLiveCheckerTable, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Live Checker table created');
+            console.log(results);
+        })
+    })
+
+
+}
+
+// createAccountTable();
+// createStreamTrackerTable();
+// createBillingTables();
+liveCheckerTable();

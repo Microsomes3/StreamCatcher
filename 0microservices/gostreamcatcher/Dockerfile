@@ -17,8 +17,6 @@ RUN cp ffprobe /bin/ffprobe
 
 COPY . .
 
-RUN rm main.go
-
 # RUN go mod download
 # RUN go mod verify
 RUN go build -o mathapp
