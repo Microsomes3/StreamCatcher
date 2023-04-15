@@ -90,12 +90,12 @@ function scrubComments(page){
 
 function scrapeComments({videoId, timeoutSecond}){
     return new Promise(async (resolve,reject)=>{
+        const executablePathMacChromeGoogle = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-        const browser = await pupeteer.launch({
-          executablePath: '/usr/bin/chromium-browser',
-            headless:false,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        })
+       const browser = await puppeteer.launch({
+          headless: false,
+          args: ["--no-sandbox", "--disable-setuid-sandbox", "--display=:99"]
+        });
 
         const page = await browser.newPage();
 
@@ -106,10 +106,10 @@ function scrapeComments({videoId, timeoutSecond}){
 
         console.log(timeoutMillisecondsToSeconds)
 
-        setTimeout(()=>{
-          console.log("timeout");
-            isCapturing = false;
-        },timeoutMillisecondsToSeconds)
+        // setTimeout(()=>{
+        //   console.log("timeout");
+        //     isCapturing = false;
+        // },timeoutMillisecondsToSeconds)
 
 
             

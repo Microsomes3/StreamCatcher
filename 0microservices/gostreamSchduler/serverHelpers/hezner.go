@@ -42,10 +42,10 @@ func (h *Hezner) CreateServerWithSnapshot(name string) error {
 	apiToken := HEXNER_TOKEN
 	bodyData := map[string]interface{}{
 		"automount":  false,
-		"datacenter": "nbg1-dc3",
+		"datacenter": "hel1-dc2",
 		"image":      HEZNER_SNAPSHOT,
 		"labels":     map[string]string{},
-		// "location":           "nbg1",
+		// "location":           "u",
 		"name": "go" + name,
 		// "placement_group":    1,
 		"public_net":         map[string]interface{}{"enable_ipv4": true, "enable_ipv6": false},
