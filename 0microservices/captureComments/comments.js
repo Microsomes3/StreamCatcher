@@ -2,6 +2,26 @@ const pupeteer = require('puppeteer');
 const fs = require('fs');
 const moment = require('moment');
 
+//spawn xvfb
+
+const { spawn } = require('child_process');
+
+const xvfb = spawn('Xvfb', [':99', '-screen', '0', '1280x1024x24', '-ac', '+extension', 'GLX', '+render', '-noreset']);
+
+xvfb.stdout.on('data', (data) => {
+
+    console.log(`stdout: ${data}`);
+
+});
+
+xvfb.stderr.on('data', (data) => {
+
+    console.log(`stderr: ${data}`);
+
+});
+
+
+
 const {
   getLiveStatusv2
 } = require("./helpers/checkLive")
@@ -29,8 +49,6 @@ var lastFreshUpdate = moment().unix();
 
 function scrubComments(page){
     return new Promise(async (resolve,reject)=>{
-  
-
       const comments = await page.evaluate((moment) => {
         const comments = [];
         const commentNodes = document.querySelectorAll("yt-live-chat-text-message-renderer");
@@ -56,8 +74,6 @@ function scrubComments(page){
       }
 
       lastAmountOfComments = comments.length;
-
-
 
       comments.forEach(comment => {
         const isDuplicate = allCommments.some(c => c.id === comment.id);
@@ -92,7 +108,6 @@ function scrapeComments({videoId, timeoutSecond}){
     return new Promise(async (resolve,reject)=>{
 
         const browser = await pupeteer.launch({
-          executablePath: '/usr/bin/chromium-browser',
             headless:false,
             args: ['--no-sandbox', '--disable-setuid-sandbox']
         })
@@ -112,11 +127,24 @@ function scrapeComments({videoId, timeoutSecond}){
         },timeoutMillisecondsToSeconds)
 
 
+        const c = setInterval(async ()=>{
+          const isLive = await getLiveStatusv2("yt-dlp", process.env.username)
+          if(!isLive){
+            console.log("not live");
+            isCapturing = false;
+            clearInterval(c);
+          }
+        }, 5000);
+
             
 
         while(isCapturing){
             scrubComments(page);
             await sleep(5000);
+        }
+
+        if (c!==null) {
+           clearInterval(c);
         }
 
         await browser.close();

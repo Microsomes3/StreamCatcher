@@ -37,6 +37,7 @@ function start({
         const isLive = await getLiveStatusv2("yt-dlp", username)
 
         if(isLive){
+            try{
 
             const getChannelId = await axios.get(`https://www.youtube.com/${username}/live`)
 
@@ -66,27 +67,47 @@ function start({
                     console.log(err)
                 }
                 console.log("success")
+                resolve()
+
             })
 
+        }catch(err){
+            console.log(err);
             resolve()
+        }
 
 
 
         }else{
             console.log("is not live")
-           setTimeout(()=>{
-            console.log("try again")
-            start({
-                username
-            })
-           },60000)
+            resolve()
         }
         
     })
 }
 
 
+const username = process.env.username;
+const timeout = process.env.timeout;
+
+if (!username) {
+    console.log("no username")
+    process.exit(0)
+    return;
+}
+
+if (!timeout) {
+    console.log("no timeout")
+    process.exit(0)
+    return;
+}
+
+var tout = parseInt(timeout)
+
 start({
-    username:"@ChillYourMind",
-    timeout:20
+    username:username,
+    timeout:tout
+}).then(()=>{
+    console.log("done")
+    process.exit(0)
 })
