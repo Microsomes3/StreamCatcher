@@ -6,11 +6,40 @@ require("dotenv").config(
 
 const pool = require('../db.js');
 
+const {
+    createChannel,
+    updateChannelLiveStatus
+} = require('../record/record')
+
 function addLiveEvent({
     username,
     isLive,
+    platform
 }) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
+        console.log("addLiveEvent", username, isLive, platform);
+
+        try{
+            await createChannel({
+                channelName:username,
+                platform
+            })
+           
+        }catch(err){
+            console.log("Error creating channel",err);
+        }
+
+        try{
+            await updateChannelLiveStatus({
+                username:username,
+                isLive:isLive,
+            })
+        }catch(err){
+            console.log("Error updating channel live status",err);
+        }
+
+
+        
         pool.query(
             `INSERT INTO live_checker (username, isLive,liveUpdatedAt) VALUES (?, ?, NOW())`,
             [username, isLive],
@@ -41,6 +70,24 @@ function getLiveEventByDate({
         )
     })
 }
+
+function totalLiveEvents(){
+    return new Promise((resolve, reject) => {
+        pool.query(
+            `SELECT count(*) as total FROM live_checker`,
+            (err, results) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(results);
+            }
+        )
+    })
+}
+
+totalLiveEvents().then((c) => {
+    console.log(c);
+})
 
 function getChannelLiveEvent({
     username
@@ -84,6 +131,21 @@ function getAllChannelsLiveAggregateCurrent(){
     })
 }
 
+function getAllLiveEventDates(){
+    return new Promise((resolve, reject) => {
+        pool.query(
+            `SELECT DISTINCT DATE(created_at) AS date FROM live_checker`,
+            (err, results) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(results);
+            }
+        )
+    })
+}
+
+
 // getAllChannelsLiveAggregateCurrent().then((c) => {
 //     console.log(c);
 // })
@@ -114,5 +176,6 @@ module.exports = {
     addLiveEvent,
     getLiveEventByDate,
     getChannelLiveEvent,
-    getAllChannelsLiveAggregateCurrent
+    getAllChannelsLiveAggregateCurrent,
+    getAllLiveEventDates
 }

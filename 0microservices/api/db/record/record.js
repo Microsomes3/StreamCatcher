@@ -118,12 +118,38 @@ function getChannel({
         });
     })
 }
+
 function getChannelById({id}){
     return new Promise((resolve,reject)=>{
         const getChannelByIdQuery = `SELECT * FROM channels WHERE id = ?`;
 
         pool.getConnection((err, connection) => {
             connection.query(getChannelByIdQuery, [id], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
+function updateChannelLiveStatus({
+    username,
+    isLive,
+}){
+    return new Promise((resolve,reject)=>{
+        const updateChannelLiveStatusQuery = `UPDATE channels SET isLive = ? WHERE channel_name = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(updateChannelLiveStatusQuery, [isLive, username], (err, results, fields) => {
                 if (err) {
                     console.log(err.message);
                     reject(err);
@@ -194,7 +220,6 @@ function addChannelToAccount({
     })
 }
 
-
 function getAllChannelsByAccountId({
     accountId,
     page
@@ -248,12 +273,15 @@ function deleteChannelFromAccount({
 }
 
 function addRecording({
+    recordingId,
     accountId,
     channelId,
-    status
+    status,
+    scheduleId,
+    resultText
 }) {
     return new Promise((resolve, reject) => {
-        const addRecordingQuery = `INSERT INTO recordings (account_id, channel_id, status) VALUES (?,?,?)`;
+        const addRecordingQuery = `INSERT INTO recordings (recording_id,account_id, channel_id, status,result_text,record_schedule_id) VALUES (?,?,?,?,?,?)`;
 
         pool.getConnection((err, connection) => {
             connection.beginTransaction(async (err) => {
@@ -263,7 +291,7 @@ function addRecording({
                     return;
                 }
 
-                connection.query(addRecordingQuery, [accountId, channelId, status], async (err, results, fields) => {
+                connection.query(addRecordingQuery, [recordingId,accountId, channelId, status, resultText, scheduleId], async (err, results, fields) => {
                     if (err) {
                         console.log(err.message);
                         connection.rollback(() => {
@@ -305,6 +333,80 @@ function addRecording({
         });
     });
 }
+
+function getRecording({
+    id
+}){
+    return new Promise((resolve,reject)=>{
+        const getRecordingQuery = `SELECT * FROM recordings WHERE id = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(getRecordingQuery, [id], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
+function getRecordingByRecordingId({
+    recordingId
+}){
+    return new Promise((resolve,reject)=>{
+        const getRecordingByRecordingIdQuery = `SELECT * FROM recordings WHERE recording_id = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(getRecordingByRecordingIdQuery, [recordingId], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
+
+
+// addRecording({
+//     recordingId:1,
+//     accountId: 1,
+//     channelId: 1,
+//     status: "pending",
+//     scheduleId: 1,
+//     resultText: "test"
+
+// }).then((result) => {
+//     console.log(result);
+// })
+
+
+
+
+
+// getRecording({
+//     recordingId:6
+// }).then((res)=>{
+//     console.log(res);
+// })
+
+
 
 function getAllRecordings({
     accountId,
@@ -522,6 +624,54 @@ function getAutoSchedule({
 
 }
 
+function getRecordScheduleById({
+    recordScheduleId, accountId
+}){
+    return new Promise((resolve,reject)=>{
+        const getRecordScheduleByIdQuery = `SELECT * FROM record_schedule WHERE id = ? AND account_id = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(getRecordScheduleByIdQuery, [recordScheduleId, accountId], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
+function deleteRecordingScheduleById({
+    recordScheduleId, accountId
+}){
+    return new Promise((resolve,reject)=>{
+        const deleteRecordingScheduleByIdQuery = `DELETE FROM record_schedule WHERE id = ? AND account_id = ?`;
+
+        pool.getConnection((err, connection) => {
+            connection.query(deleteRecordingScheduleByIdQuery, [recordScheduleId, accountId], (err, results, fields) => {
+                if (err) {
+                    console.log(err.message);
+                    reject(err);
+                    return;
+                }
+
+                resolve(results);
+            });
+
+            //release connection
+            connection.release();
+
+        });
+    })
+}
+
 
 module.exports = {
     createChannel,
@@ -540,5 +690,9 @@ module.exports = {
     getAutoSchedule,
     createChannelWithAccount,
     getChannel,
-    getChannelById
+    getChannelById,
+    getRecordScheduleById,
+    deleteRecordingScheduleById,
+    updateChannelLiveStatus,
+    getRecordingByRecordingId,
 }

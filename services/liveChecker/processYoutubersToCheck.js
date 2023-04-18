@@ -15,12 +15,12 @@ function uuidv4() {
     });
 }
 
-function handleFunc(username){
-    return new Promise((resolve,reject)=>{
+function handleFunc(username) {
+    return new Promise((resolve, reject) => {
         const ex = "/opt/yt-dlp_linux";
-        getLiveStatusv2(ex, username).then((res)=>{
-           resolve(res)
-        }).catch((e)=>{
+        getLiveStatusv2(ex, username).then((res) => {
+            resolve(res)
+        }).catch((e) => {
             resolve(false)
         })
     })
@@ -30,12 +30,12 @@ function handleFunc(username){
 module.exports.processYoutubersToCheck = async (event) => {
 
     const {
-        youtubeusername , type="youtube"} = JSON.parse(event.Records[0].body);
+        youtubeusername, type = "youtube" } = JSON.parse(event.Records[0].body);
 
     const result = await handleFunc(youtubeusername);
 
-    var status = result == true ?  true:false
-    
+    var status = result == true ? true : false
+
     const params = {
         TableName: process.env.LIVE_CHECKER_TABLE,
         Item: {
@@ -47,19 +47,24 @@ module.exports.processYoutubersToCheck = async (event) => {
             channel: youtubeusername,
             status: JSON.stringify(result),
             isLive: status,
-            liveLink: "https://youtube.com/"+youtubeusername+"/live",
+            liveLink: "https://youtube.com/" + youtubeusername + "/live",
         },
     };
 
     await documentWriter.put(params).promise();
 
 
-    // try{
-    //     await axios.post("https://6f98-77-102-234-41.ngrok-free.app/tracker/callbackLiveChecker",{
-    //         params: params
-    //     })
-    // }catch(err){console.log(err)}
-    
+
+    try {
+        await axios.post("https://streamcatcher.herokuapp.com/tracker/callbackLiveChecker", {
+            params: params,
+        }, {
+            timeout: 10000 // 10 seconds
+        });
+    } catch (err) {
+        console.log(err);
+    }
+
     return {
         statusCode: 200,
         body: JSON.stringify({

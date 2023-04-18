@@ -31,8 +31,6 @@ provider:
     GOECS_CONTAINER_NAME: !Sub ${AWS::StackName}-GOEcsContainer
     GOECS_TASK_DEFINITION: !Sub ${AWS::StackName}-GoECSTask
 
-
-    MONGO_CONNECITON: ${env:MONGO_CONNECITON}
   
   iamRoleStatements:
     - Effect: Allow
@@ -299,7 +297,34 @@ resources:
                 Value: !Ref AWS::Region
               - Name: updatehook
                 Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
-    
+    GoCommentCaptureTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: GoCommentCaptureTask
+        Cpu: 512
+        Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: GoCommentCaptureContainer
+            Image: public.ecr.aws/m8l7i2c5/gocapturecomments:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: timeout
+                Value: "45000"
     AutoScheduleQueue:
       Type: AWS::SQS::Queue
       Properties:

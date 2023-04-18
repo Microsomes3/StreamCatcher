@@ -3,7 +3,8 @@ const {
     updateRecordStatus,
     updateRecordStatuses,
     addRecordEvent,
-    sendRecordingToShitpost
+    sendRecordingToShitpost,
+    sendRecordDataTOApi
 } = require("./helpers/recordhelper");
 
 
@@ -89,6 +90,14 @@ function handleFunc({data}){
 
 module.exports.handler = async (event) => {
     const data = JSON.parse(event.body);
+
+    try{
+        await sendRecordDataTOApi({
+            data:data
+        })
+    }catch(err){
+    }
+
     console.log(">>",data)
     await handleFunc({data})
     console.log("--------------")

@@ -1,5 +1,6 @@
 const aws = require('aws-sdk');
 const moment = require("moment");
+const axios = require("axios");
 
 const { sendShitpostLink } = require('./discordHelper')
 
@@ -135,36 +136,50 @@ function updateRecordStatuses({
 
 function sendRecordingToShitpost({
     url
-}){
-    return new Promise(async (resolve,reject)=>{
-        try{
+}) {
+    return new Promise(async (resolve, reject) => {
+        try {
             await sendShitpostLink(`- ${url}`);
             resolve()
-        }catch(err){
+        } catch (err) {
             reject(err);
         }
     })
 }
 
-function getRecordRequestById({id}){
-    return new Promise(async (resolve,reject)=>{
+function getRecordRequestById({ id }) {
+    return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_REQUEST_TABLE || "RecordRequestTable",
             Key: {
                 id: id
             }
         }
-        try{
+        try {
             const c = await documentClient.get(params).promise();
             resolve(c);
-        }catch(err){
+        } catch (err) {
             reject(err);
         }
     })
 }
 
-function getRecordEventByRecordId({id}){
-    return new Promise(async (resolve,reject)=>{
+function sendRecordDataTOApi({ data }) {
+    return new Promise(async (resolve, reject) => {
+        //use axios and timeout is 10 seconds
+        try {
+            const c = await axios.post("https://42a7-77-102-234-41.ngrok-free.app/tracker/callbackRecordStatus", data, {
+                timeout: 10000
+            });
+            resolve(c);
+        } catch (err) {
+            reject(err);
+        }
+    })
+}
+
+function getRecordEventByRecordId({ id }) {
+    return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_EVENT_TABLE || "RecordEventTable",
             IndexName: "record-id-index",
@@ -173,10 +188,10 @@ function getRecordEventByRecordId({id}){
                 ":id": id
             },
         }
-        try{
+        try {
             const c = await documentClient.query(params).promise();
             resolve(c);
-        }catch(err){
+        } catch (err) {
             reject(err);
         }
     })
@@ -189,5 +204,6 @@ module.exports = {
     AddMuxingRequestToQueue,
     sendRecordingToShitpost,
     getRecordRequestById,
-    getRecordEventByRecordId
+    getRecordEventByRecordId,
+    sendRecordDataTOApi
 }

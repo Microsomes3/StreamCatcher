@@ -73,6 +73,31 @@ function createStreamTrackerTable(){
             FOREIGN KEY (recording_id) REFERENCES recordings(id)
         )`;
 
+        //add record schedule id to recordings table and result text to record table
+
+        const alterRecordingsTable = `ALTER TABLE recordings ADD COLUMN record_schedule_id INT NOT NULL AFTER channel_id, ADD COLUMN result_text TEXT NOT NULL AFTER record_schedule_id`;
+
+        connection.query(alterRecordingsTable, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Recordings table altered');
+            console.log(results);
+        });
+
+        //add recordid to recording events table
+        const alterRecordingsTable2= `ALTER TABLE recordings ADD COLUMN recording_id INT NOT NULL AFTER id`;
+
+        connection.query(alterRecordingsTable2, (err, results, fields) => {
+            if (err) {
+                console.log(err.message);
+            }
+
+            console.log('Recordings table altered');
+            console.log(results);
+        });
+
         const recordSchedule = `CREATE TABLE IF NOT EXISTS record_schedule (
             id INT NOT NULL AUTO_INCREMENT,
             account_id INT NOT NULL,
@@ -381,6 +406,6 @@ function liveCheckerTable(){
 }
 
 // createAccountTable();
-// createStreamTrackerTable();
+createStreamTrackerTable();
 // createBillingTables();
 liveCheckerTable();
