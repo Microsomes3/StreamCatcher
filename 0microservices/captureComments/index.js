@@ -5,11 +5,16 @@ const {
 
 } = require("./comments.js")
 
+const { manageUploadST } = require("./upload")
+
+
 const axios = require("axios");
 
 const aws = require("aws-sdk")
 
 const momnet = require("moment")
+
+const fs = require("fs")
 
 const s3 = new aws.S3({
     region: "us-east-1"
@@ -26,6 +31,26 @@ function processTimeout({timeout}){
         setTimeout(()=>{
             resolve()
         },timeout)
+    })
+}
+
+function saveFileTOs3({key,file}){
+    return new Promise((resolve,reject)=>{
+        const params = {
+            Bucket: "catchercomments",
+            Key: key,
+            Body: file
+        }
+
+        s3.putObject(params, (err, data) => {
+            if (err) {
+                console.log(err)
+                reject()
+            }
+            console.log("success")
+            resolve()
+
+        })
     })
 }
 
@@ -54,23 +79,31 @@ function start({
 
             const curDate = momnet().format("YYYY-MM-DD HH:mm:ss")
 
-            const key = `comments/${username}/${curDate}.json`
-
-            const params = {
-                Bucket: "catchercomments",
-                Key: key,
-                Body: JSON.stringify(comments)
-            }
-
-            s3.putObject(params, (err, data) => {
-                if (err) {
-                    console.log(err)
+            const toUploads = [
+                {
+                    Bucket: "catchercomments",
+                    Key: `comments/${username}/${curDate}.json`,
+                    Body: JSON.stringify(comments)
+                },
+                {
+                    Bucket: "catchercomments",
+                    Key: `comments/${username}/${curDate}.mp4`,
+                    Body: fs.createReadStream("comment.mp4"),
+                    ContentType: "video/mp4"
                 }
-                console.log("success")
-                resolve()
+            ]
 
-            })
+            setTimeout(async ()=>{
 
+            await Promise.all(toUploads.map(async (item) => {
+                await manageUploadST(item, "us-east-1")
+            }))
+            resolve();
+
+            }, 5000)
+
+
+    
         }catch(err){
             console.log(err);
             resolve()

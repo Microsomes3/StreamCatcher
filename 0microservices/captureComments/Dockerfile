@@ -44,5 +44,6 @@ ENV DISPLAY=:99
 
 RUN npm install
 
+COPY upload.js .
 
 CMD ["node", "index.js"]

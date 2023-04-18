@@ -1,6 +1,7 @@
 const pupeteer = require('puppeteer');
 const fs = require('fs');
 const moment = require('moment');
+const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 
 //spawn xvfb
 
@@ -109,7 +110,11 @@ function scrapeComments({videoId, timeoutSecond}){
 
         const browser = await pupeteer.launch({
             headless:false,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            defaultViewport:{
+                width: 580,
+                height: 800
+            }
         })
 
         const page = await browser.newPage();
@@ -136,12 +141,17 @@ function scrapeComments({videoId, timeoutSecond}){
           }
         }, 5000);
 
-            
+
+        const recorder = new PuppeteerScreenRecorder(page);
+        await recorder.start("comment.mp4");
+
 
         while(isCapturing){
             scrubComments(page);
             await sleep(5000);
         }
+
+        await page.close();
 
         if (c!==null) {
            clearInterval(c);
@@ -153,6 +163,8 @@ function scrapeComments({videoId, timeoutSecond}){
         console.log("done capturing comments");
 
         console.log("allCommments", allCommments.length);
+
+        await recorder.stop();
 
         resolve(allCommments)
     })
