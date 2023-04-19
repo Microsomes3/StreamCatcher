@@ -35,10 +35,10 @@ module.exports.handler = async (event) => {
     }
     
 
-   await sendShitpostLink(`- ${newlink}`);
+//    await sendShitpostLink(`- ${newlink}`);
 
    try{
-    await sendToUser(`- ${newlink}`,"657753055118491649");
+    // await sendToUser(`- ${newlink}`,"657753055118491649");
    }catch(e){}
 
 //    console.log(newlink);

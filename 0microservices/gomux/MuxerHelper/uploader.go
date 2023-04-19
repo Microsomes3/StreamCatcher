@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
@@ -16,16 +15,15 @@ const (
 	accountid = "6d8f181feef622b528f2fc75fbce8754"
 )
 
-var bucket = aws.String("maeplet")
-var ACCESSKEY = ACCESS
-var SECRETKEY = SECRET
+var bucket = aws.String("griffin-record-input")
 
 func (d *DLPUploader) UploadFile(file *os.File, key string, index string) (string, error) {
 
+	var retryCount = 0
+	var maxRetry = 3
+
 	s3Config := aws.Config{
-		Region:      aws.String("eeur"),
-		Endpoint:    aws.String(fmt.Sprintf("https://%s.r2.cloudflarestorage.com", accountid)),
-		Credentials: credentials.NewStaticCredentials(ACCESSKEY, SECRETKEY, ""),
+		Region: aws.String("us-east-1"),
 	}
 
 	s3Session := session.New(&s3Config)
@@ -46,15 +44,18 @@ func (d *DLPUploader) UploadFile(file *os.File, key string, index string) (strin
 
 	_, err := uploader.UploadWithContext(aws.BackgroundContext(), input)
 
-	//get events
-
 	if err != nil {
-
 		fmt.Println(err.Error())
+
+		if retryCount < maxRetry {
+			retryCount++
+			fmt.Println("retrying upload")
+			return d.UploadFile(file, key, index)
+		}
 
 		return "", err
 	}
 
-	return "https://pub-cf9c58b47aaa413eadbc9d4fba77649a.r2.dev/" + fkey, nil
+	return "https://d213lwr54yo0m8.cloudfront.net/" + fkey, nil
 
 }

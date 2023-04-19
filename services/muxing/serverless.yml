@@ -61,6 +61,7 @@ resources:
       # Add policies as needed for your specific use case
         ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
     ExecutionRole:
       Type: AWS::IAM::Role
       Properties:
@@ -74,6 +75,7 @@ resources:
         ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
 
     MuxTask:
       Type: AWS::ECS::TaskDefinition
