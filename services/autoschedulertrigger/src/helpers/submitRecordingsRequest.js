@@ -2,6 +2,11 @@ const aws = require('aws-sdk');
 const sha256 = require('crypto-js/sha256');
 const moment = require('moment');
 
+const {
+    scheduleMuxJob,
+    scheduleStreamDownload
+} = require("./scheduleKubeTasks")
+
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -58,22 +63,6 @@ function makeRecordRequest({ requestId, auto, provider="youtube" }) {
 
 
 
-            var storageToUse = 30;
-
-
-            if (username == "@griffingaming") {
-                storageToUse = 50;
-            }
-
-            if (duration < 1500) {
-                storageToUse = 20;
-            }
-
-            if (duration > 17000) {
-                storageToUse = 50;
-            }
-
-
             if (!data.Item) {
                 reject({
                     statusCode: 404,
@@ -88,95 +77,30 @@ function makeRecordRequest({ requestId, auto, provider="youtube" }) {
             }
 
 
-            //ecs run task with ecsname task definition
-            const ecs = new aws.ECS({
-                region: process.env.AWS_REGION_T || 'us-east-1',
-            });
+            const uniqueRecordId = uuidv4();            
 
-            const uniqueRecordId = uuidv4();
-
-
-
-            const ecsparams = {
-                cluster: "griffin-record-cluster",
-                taskDefinition: "griffin-autoscheduler-service-dev-GOEcsTask",
-                launchType: "FARGATE",
-                //extra env vars
-                overrides: {
-                    containerOverrides: [
-                        {
-                            name: 'griffin-autoscheduler-service-dev-GOEcsContainer',
-                            environment: [
-                                {
-                                    name:'reqid',
-                                    value:requestId
-                                },
-                                {
-                                    name:'updatehook',
-                                    value:'https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback'
-                                },
-                                {
-                                    name: 'url',
-                                    value: provider== "youtube" ? `https://www.youtube.com/${username}/live` : `https://www.twitch.tv/${username}/live`
-                                },
-                                {
-                                    name: 'provider',
-                                    value: provider
-                                },
-                                {
-                                    name: "RECORD_REQUEST_ID",
-                                    value: requestId
-                                },
-                                {
-                                    name: "jobid",
-                                    value: uniqueRecordId
-                                },
-                                {
-                                    name: "isstart",
-                                    value: provider=="twitch" ? "false" : isRecordStart == true ? "true" : "false"
-                                },
-                                {
-                                    name: "timeout",
-                                    value: duration.toString()
-                                }
-                            ],
-                        },
-                    ],
-                },
-                networkConfiguration: {
-                    awsvpcConfiguration: {
-                        subnets: [
-                            "subnet-035b7122",
-                        ],
-                        assignPublicIp: "ENABLED",
-                    }
-                },
-                tags: [
-                    {
-                        key: "recordid",
-                        value: uniqueRecordId
-                    }
-                ]
-            };
-
-
-            const ecsdata = await ecs.runTask(ecsparams).promise();
-
-            const taskArn = ecsdata.tasks[0].taskArn;
-
+           const sid= await scheduleStreamDownload({
+                jobId:uniqueRecordId,
+                reqId: requestId,
+                duration: duration.toString(),
+                isStart: isRecordStart == true ? "true" : "false",
+                provider: provider,
+                timeout: duration.toString(),
+                url: provider === "youtube" ? `https://youtube.com/${username}/live`: `https://twitch.tv/${username}/live`,
+            })
 
             const paramsStatuses = {
                 TableName: process.env.RECORD_STATUS_TABLE || 'RecordStatuses',
                 Item: {
                     id: uniqueRecordId,
                     recordrequestid: requestId,
-                    taskArn: taskArn,
                     status: "PENDING",
                     username: username,
                     friendlyDate: moment().format("YYYY-MM-DD"),
                     timestarted: moment().unix(),
                     timeended: null,
                     createdAt: new Date().getTime(),
+                    kubejobid: sid,
                     progressState: {
                         currentRecordedRunTime: 0,
                         totalParts: 0,
@@ -198,6 +122,7 @@ function makeRecordRequest({ requestId, auto, provider="youtube" }) {
                         keys: [],
                         username: username,
                         status: "pending",
+                        kubejobid: sid,
                         createdAt: new Date().getTime(),
                     },
                 };
@@ -210,7 +135,6 @@ function makeRecordRequest({ requestId, auto, provider="youtube" }) {
             resolve({
                 statusCode: 200,
                 recordId: uniqueRecordId,
-                taskArn: taskArn,
             });
         } catch (e) {
             console.log(e);

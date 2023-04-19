@@ -77,26 +77,29 @@ return new Promise(async (resolve,reject)=>{
         provider: request.provider || 'youtube',
     });
 
-    try{
-        if(request.isComments){
-            const td=request.duration;
+    // try{
+    //     if(request.isComments){
+    //         const td=request.duration;
 
-            console.log(">>>duration",td);
+    //         console.log(">>>duration",td);
 
-            await captureCommentRunTask({
-                username: request.username,
-                duration: request.duration.toString()
-            })
-        }
-    }catch(err){
-        console.log(err);
-    }
+    //         await captureCommentRunTask({
+    //             username: request.username,
+    //             duration: request.duration.toString()
+    //         })
+    //     }
+    // }catch(err){
+    //     console.log(err);
+    // }
 
     resolve(c);
 
 })
 }
 
+// handleFunc({
+//     id:"40df4b8e-54b0-4e38-a94b-5c5f869ff7ea"
+// },"")
 
 module.exports.handler = async (event) => {
 

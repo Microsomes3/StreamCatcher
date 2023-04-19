@@ -28,3 +28,7 @@ godwn
 
 0microservices/gostreamcatcher/bin/godwn
 0microservices/api/db/CA.crt
+services/autoschedulertrigger/src/helpers/kubeconfig-k8s-zealous-moore.yaml
+services/autoschedulertrigger/src/kubeconfig-k8s-zealous-moore.yaml
+services/autoschedulertrigger/kubeconfig-k8s-zealous-moore.yaml
+.gitignore

@@ -7,6 +7,10 @@ const {
     sendRecordDataTOApi
 } = require("./helpers/recordhelper");
 
+const {
+    scheduleMuxJob
+} = require("./helpers/scheduleKubeTasks")
+
 
 function handleIsStartLogic({
     jobId,
@@ -19,7 +23,8 @@ function handleIsStartLogic({
          if(results.length>=2){
             console.log("send to mux service")
             try{
-                const c =await AddMuxingRequestToQueue({
+        
+                const c = await scheduleMuxJob({
                     jobId: jobId,
                     reqId: reqId,
                     videoLink: results[0],
