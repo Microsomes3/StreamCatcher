@@ -1,4 +1,6 @@
-const aws = require("aws-sdk");
+import aws from 'aws-sdk';
+import { APIGatewayProxyEvent } from 'aws-lambda'
+import { QueryAggregateYoutubeWithYoutuberUsername } from './types/dynamodbQuery'
 
 
 const documentReader = new aws.DynamoDB.DocumentClient({
@@ -6,14 +8,14 @@ const documentReader = new aws.DynamoDB.DocumentClient({
 });
 
 
-module.exports.getLiveStatusByUsername = async (event) => {
+module.exports.handler = async (event:APIGatewayProxyEvent) => {
 
-    const username =  event.pathParameters.username;
+    const username =  event.pathParameters?.username;
 
-    const params = {
-        TableName: process.env.AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE,
+    const params:QueryAggregateYoutubeWithYoutuberUsername = {
+        TableName: process.env.AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE || "",
         Key:{
-            "youtubeusername": username
+           youtubeusername:username || "",
         }
     };
 
@@ -31,7 +33,6 @@ module.exports.getLiveStatusByUsername = async (event) => {
 
     const {isLive, lastUpdated, liveLink, type="youtube", recordRequests} = data.Item
     
-
     return {
         statusCode:200,
         body:JSON.stringify({
@@ -47,9 +48,5 @@ module.exports.getLiveStatusByUsername = async (event) => {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Credentials": true,
         }
-   
     }
-
-
-
 };

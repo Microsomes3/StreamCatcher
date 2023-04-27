@@ -201,32 +201,14 @@ resources:
           deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
           maxReceiveCount: 3
 functions:
-  TestArm:
-    handler: testArm.handler
-    architecture: arm64
-    layers:
-      - ${param:ytdlpArn}
-    events:
-      - http:
-          path: /testArm
-          method: get
-          cors: true
-  GetCallbackByYoutubeUsername:
-    handler: getCallbacksByUsername.getCallbacksByUsername
-    events:
-      - http:
-          path: /getCallbackByYoutubeUsername
-          method: get
   AllAggregateCurrentYoutuberLive:
     handler: allAggregateCurrentYoutuberLive.allAggregateCurrentYoutuberLive
     events:
       - http:
           path: /allAggregateCurrentYoutuberLive
           method: get
-  # ErrorChecker:
-  #   handler: errorChecker.errorChecker
   OnLiveCheckerInsert:
-    handler: onLiveCheckerInsert.onLiveCheckerInsert
+    handler: .build/onLiveCheckerInsert.handler
     events:
       - stream:
           type: dynamodb
@@ -236,14 +218,8 @@ functions:
               - StreamArn
           batchSize: 10
           startingPosition: TRIM_HORIZON
-  AddCallBackUrl:
-    handler: addCallbackWhenYoutuberLive.addCallbackWhenYoutuberLive
-    events:
-      - http:
-          path: /addCallBackUrl
-          method: post
   ProcessYoutubersToCheckQueue:
-    handler: processYoutubersToCheck.processYoutubersToCheck
+    handler: .build/processYoutubersToCheck.handler
     timeout: 90
     memorySize: 200
     layers:
@@ -256,66 +232,28 @@ functions:
               - Arn
           batchSize: 1          
   ScheduleYoutubersToCheck:
-    handler: scheduleUsernamesTOCheck.scheduleUsernamesTOCheck
+    handler: .build/scheduleUsernamesTOCheck.handler
     events:
       - schedule: rate(30 minutes)
   SchdulePriorityYoutubersToCheck:
-    handler: schedulePriorityUsernamesTOCheck.handler
+    handler: .build/schedulePriorityUsernamesTOCheck.handler
     events:
       - schedule: rate(1 minute)
-  AddYoutuberUsername:
-    handler: addYoutuberUsername.addYoutuberUsername
-    events:
-      - http:
-          path: /addYoutuberUsername
-          method: post
-          cors: true
-
   GetLiveStatuses:
-    handler: getLiveStatuses.getLiveStatusesFromDB
+    handler: .build/getLiveStatuses.handler
     events:
       - http:
           path: /getLiveStatuses
           method: get
           cors: true
   GetLiveStatusByUsername:
-    handler: getLiveStatusByUsername.getLiveStatusByUsername
+    handler: .build/getLiveStatusByUsername.handler
     events:
       - http:
           path: /getLiveStatus/{username}
           method: get
           cors: true
-  CheckLiveStatusFromYoutube:
-    handler: liveChecker.getLiveStatus
-    timeout: 30
-    events:
-      - http:
-          path: /checkLiveFromYoutube
-          method: get
-  TestMulti:
-    handler: testMulti.checkMultiLive
-    events:
-      - http:
-          path: /testMulti
-          method: get
-  GetStatusFromYoutube:
-    handler: getLiveStatusFromYoutube.handler
-    memorySize: 1024
-    timeout: 30
-    events:
-      - http:
-          path: /getLiveStatusFromYoutube/{username}
-          method: get
-          cors: true
-          
-  # ManualLiveEvent:
-  #   handler: getManualLiveEvent.handler
-  #   events:
-  #     - http:
-  #         path: /manualLiveEvent/{username}
-  #         method: post
-  #         cors: true
-  
+        
 plugins:
   - serverless-prune-plugin
 

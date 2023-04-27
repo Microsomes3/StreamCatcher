@@ -1,9 +1,9 @@
-const aws = require("aws-sdk");
-const moment = require("moment");
-const { getLiveStatusv2 } = require('./helpers/checkLivev2')
-const axios = require("axios");
-
-
+import aws from 'aws-sdk'
+import moment from 'moment';
+import { getLiveStatus } from './helpers/checkLive'
+import axios from 'axios';
+import { APIGatewayProxyEvent, APIGatewayProxyResult, DynamoDBStreamEvent } from 'aws-lambda'
+import { InsertLiveCheckerItem } from './types/livecheckerInsert'
 const documentWriter = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T
 });
@@ -15,10 +15,10 @@ function uuidv4() {
     });
 }
 
-function handleFunc(username) {
+function handleFunc(username:string) {
     return new Promise((resolve, reject) => {
         const ex = "/opt/yt-dlp_linux";
-        getLiveStatusv2(ex, username).then((res) => {
+        getLiveStatus(ex, username).then((res) => {
             resolve(res)
         }).catch((e) => {
             resolve(false)
@@ -26,8 +26,7 @@ function handleFunc(username) {
     })
 }
 
-
-module.exports.processYoutubersToCheck = async (event) => {
+module.exports.handler = async (event:any) => {
 
     const {
         youtubeusername, type = "youtube" } = JSON.parse(event.Records[0].body);
@@ -36,8 +35,8 @@ module.exports.processYoutubersToCheck = async (event) => {
 
     var status = result == true ? true : false
 
-    const params = {
-        TableName: process.env.LIVE_CHECKER_TABLE,
+    const params:InsertLiveCheckerItem = {
+        TableName: process.env.LIVE_CHECKER_TABLE || "",
         Item: {
             id: uuidv4(),
             createdAt: moment().unix(),
@@ -52,8 +51,6 @@ module.exports.processYoutubersToCheck = async (event) => {
     };
 
     await documentWriter.put(params).promise();
-
-
 
     try {
         await axios.post("https://streamcatcher.herokuapp.com/tracker/callbackLiveChecker", {
@@ -73,8 +70,3 @@ module.exports.processYoutubersToCheck = async (event) => {
 
     }
 }
-
-
-
-
-
