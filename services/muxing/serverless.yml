@@ -124,7 +124,7 @@ resources:
         
 functions:
   ProcessMuxingQueue:
-    handler: src/processMuxTask.handler
+    handler: .build/processMuxTask.handler
     timeout: 60
     events:
       - sqs:

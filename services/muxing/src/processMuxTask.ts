@@ -1,4 +1,5 @@
-const aws = require("aws-sdk")
+import * as aws from "aws-sdk"
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 const ecs = new aws.ECS({
     region: process.env.AWS_REGION_T || "us-east-1",
@@ -8,13 +9,13 @@ const TASKDEF = "muxtaskdef"
 const CONTAINER = "gomuxcontainer"
 
 
-function runMuxTask({
-    jobId,
-    reqId,
-    videoLink,
-    audioLink,
-    updatehook
-}) {
+function runMuxTask(
+    jobId: string,
+    reqId: string,
+    videoLink: string,
+    audioLink: string,
+    updatehook: string
+) {
     return new Promise((resolve, reject) => {
         const params = {
             taskDefinition: TASKDEF,
@@ -68,26 +69,26 @@ function runMuxTask({
     })
 }
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event: any): Promise<APIGatewayProxyResult> => {
     //queue message
-    const data = JSON.parse(event.Records[0].body);
+    const data:any = JSON.parse(event.Records[0].body);
 
     console.log(data)
 
     try {
 
-        const {jobId, reqId, videoLink, audioLink } = data;
+        const { jobId, reqId, videoLink, audioLink } = data;
 
-        const runtask=await runMuxTask({
-            jobId: jobId,
-            reqId: reqId,
-            videoLink: videoLink,
-            audioLink: audioLink,
-            updatehook: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoMuxUpdateRecordCallback"
+        const runtask = await runMuxTask(
+            jobId,
+            reqId,
+            videoLink,
+            audioLink,
+            "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoMuxUpdateRecordCallback"
 
-        })   
-        console.log(runtask)  
-    } catch (err) { 
+        )
+        console.log(runtask)
+    } catch (err) {
         console.log(err)
     }
 

@@ -38,3 +38,4 @@ services/record/kubeconfig-k8s-zealous-moore.yaml
 .build/*
 .gitignore
 services/liveChecker/.build/*
+services/muxing/.build/processMuxTask.js
