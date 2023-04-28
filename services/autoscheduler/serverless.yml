@@ -1,0 +1,421 @@
+service: griffin-autoscheduler-service
+
+plugins:
+  - serverless-dotenv-plugin
+useDotenv: true
+
+
+provider:
+  name: aws
+  memorySize: 128
+  environment:
+    AWS_REGION_T: !Ref AWS::Region
+    AUTO_RECORD_TABLE: !ImportValue RecordAutoRecordTable
+    AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLE: !ImportValue AggregateLiveTable
+
+    AUTO_RECORD_TABLEArn: !ImportValue RecordAutoRecordTableArn
+    AGGREGATE_CURRENT_YOUTUBER_LIVE_TABLEArn: !ImportValue AggregateLiveTableArn
+    RECORD_REQUEST_TABLE: !ImportValue RecordRequestTable
+    RECORD_RECORD_USERNAME_INDEX: !ImportValue RecordRequestUsernameIndexName
+    RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
+    RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
+    EC2_TASK_DEFINITION: !Ref EC2Task
+    EC2_CONTAINER_NAME: !Sub ${AWS::StackName}-EC2Task
+    AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
+    CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
+    AUTO_SCHEDULE_TABLEV2: !Ref AutoScheduleV2Table
+    SLIM_TASK_DEFINITION: !Sub ${AWS::StackName}-SlipTaskARM
+    SLIP_TASk_CONTAINER_NAME: !Sub ${AWS::StackName}-SlipTask
+    AUTO_SCHEDULE_TABLEV3: !Ref AutoScheduleV3Table
+    CHECK_SCHEDULE_QUEUE_URL: !GetAtt CheckScheduleQueue.QueueUrl
+    GOECS_CONTAINER_NAME: !Sub ${AWS::StackName}-GOEcsContainer
+    GOECS_TASK_DEFINITION: !Sub ${AWS::StackName}-GoECSTask
+
+  
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !ImportValue RecordAutoRecordTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !ImportValue AggregateLiveTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordRequestTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordRequestUsernameIndex
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordStatusesTableArn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordStatusesFriendlyDateIndex
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !ImportValue RecordAutoRecordDateIndexArn
+    - Effect: Allow
+      Action:
+        - cloudformation:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - ecs:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - iam:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt AutoScheduleQueue.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt AutoScheduleV2Table.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: ${param:record_table_arn}
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:ReceiveMessage
+        - sqs:DeleteMessage
+        - sqs:GetQueueUrl
+      Resource: !GetAtt CheckScheduleQueue.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt AutoScheduleV3Table.Arn
+  
+
+resources:
+  Resources:
+    AutoScheduleV3Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: recordrequestid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: recordrequestid
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    AutoScheduleV2Table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: recordrequestid
+            AttributeType: S
+          - AttributeName: date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: recordrequestid
+            KeyType: HASH
+          - AttributeName: date
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+    
+    LogsGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /ecs/scrubdogz
+        RetentionInDays: 14
+
+    TaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      # Add policies as needed for your specific use case
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+    ExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::574134043875:policy/CFFULL
+    SlipTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: !Sub ${AWS::StackName}-SlipTaskARM
+        Cpu: 256
+        Memory: 512
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-SlipTask
+            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
+ 
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: completionCallbackUrl
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
+    EC2Task:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: !Sub ${AWS::StackName}-EC2Task2
+        Cpu: 512
+        Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-EC2Task
+            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: completionCallbackUrl
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
+    GOEcsTaskNotFromStart:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: !Sub ${AWS::StackName}-GOEcsTaskNotFromStart
+        Cpu: 1024
+        Memory: 2048
+
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-GOEcsContainerNotFromStart
+            Image: public.ecr.aws/m8l7i2c5/gostreamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: updatehook
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
+    GOEcsTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        RuntimePlatform:
+          OperatingSystemFamily: LINUX
+          CpuArchitecture: ARM64
+        Family: !Sub ${AWS::StackName}-GOEcsTask
+        Cpu: 256
+        Memory: 512
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-GOEcsContainer
+            Image: public.ecr.aws/m8l7i2c5/gostreamcatcher:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: updatehook
+                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
+    GoCommentCaptureTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: GoCommentCaptureTask
+        Cpu: 512
+        Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: GoCommentCaptureContainer
+            Image: public.ecr.aws/m8l7i2c5/gocapturecomments:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: timeout
+                Value: "45000"
+    GoCommentCaptureVideoTask:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: GoCommentCaptureVideoTask
+        Cpu: 512
+        Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: GoCommentCaptureVideoContainer
+            Image: public.ecr.aws/m8l7i2c5/gocommentvideocapture:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: timeout
+                Value: "45000"
+    
+    
+    AutoScheduleQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub ${AWS::StackName}-AutoScheduleQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+        ReceiveMessageWaitTimeSeconds: 20
+    CheckScheduleQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub ${AWS::StackName}-CheckScheduleQueue
+        VisibilityTimeout: 300
+        MessageRetentionPeriod: 1209600
+        ReceiveMessageWaitTimeSeconds: 20
+  Outputs:
+    AutoScheduleQueueUrl:
+      Value: !GetAtt AutoScheduleQueue.QueueUrl
+      Export:
+        Name: AutoScheduleQueueUrl
+    
+
+functions:
+  checkSchedule:
+    handler: .build/checkSchedule.handler
+    timeout: 45
+    events:
+      - schedule: rate(1 minute)
+  processSchduleTask:
+    handler: .build/processScheduleTask.handler
+    timeout: 45
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - AutoScheduleQueue
+              - Arn
+          batchSize: 1
+  TriggerAdhocRecord:
+    handler: .build/RecordByRequestIDAdhoc.handler
+    timeout: 30
+    events:
+      - http:
+          path: RecordByRequestIDAdhoc/{recordrequestid}
+          method: post
+          cors: true
+  CheckYoutubeQueuerq:
+    handler: .build/processRequestsQueue.handler
+    timeout: 45
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - CheckScheduleQueue
+              - Arn
+          batchSize: 1
+  DeleteScheduleDaily:
+    handler: .build/deleteAllScheduleDaily.handler
+    timeout: 45
+    events:
+      - schedule: cron(0 0 * * ? *)
+custom:
+  prune:
+    automatic: true
+    number: 3

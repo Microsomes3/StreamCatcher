@@ -1,28 +1,17 @@
 
 services:
-
-  socket:
-    path: services/socket
-
   muxingservice:
     path: services/muxing
-
-
+  
   autoscheduler:
-    path: services/autoschedulertrigger
+    path: services/autoscheduler
     dependsOn:
       - record
       - liveChecker
       - recordRequests
     params:
       record_table_arn: ${record.RecordTableArn}
-
-
-  utilitiesapi:
-    path: services/utilitiesapi
-    params:
-      ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
-
+  
   liveChecker:
     path: services/liveChecker
     dependsOn:
@@ -32,27 +21,15 @@ services:
       recordRequestTable: ${recordRequests.RecordRequestTable}
       recordRequestTableArn: ${recordRequests.RecordRequestTableArn}
       ytdlpArn: ${ytdlp_layer.YtdlpLambdaLayerQualifiedArn}
-
-
   
-  poobic:
-    path: services/poobic
-
   recordRequests:
     path: services/recordRequests
-  
-  ecsEventsResource:
-    path: services/ecsevents
-    params:
-      HandleEventsFromECSArn: ${recordRequests.HandleEventsFromECSLambdaFunctionQualifiedArn}
-
   
   record:
     path: services/record
     params:
       recordRequestUrl: ${recordRequests.ServiceEndpoint}/recordRequest/
       recordRequestTable: ${recordRequests.RecordRequestTable}
-
-
+  
   ytdlp_layer:
     path: services/ytdlp_layer

@@ -8,8 +8,12 @@ const {
 } = require("./helpers/recordhelper");
 
 const {
-    scheduleMuxJob
+    scheduleMuxJob,
+    scheduleMuxJobECS
 } = require("./helpers/scheduleKubeTasks")
+
+
+        
 
 
 function handleIsStartLogic({
@@ -24,7 +28,7 @@ function handleIsStartLogic({
             console.log("send to mux service")
             try{
         
-                const c = await scheduleMuxJob({
+                const c = await scheduleMuxJobECS({
                     jobId: jobId,
                     reqId: reqId,
                     videoLink: results[0],

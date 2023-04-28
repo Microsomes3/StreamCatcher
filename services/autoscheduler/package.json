@@ -1,0 +1,27 @@
+{
+  "name": "autoschedulertrigger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@kubernetes/client-node": "^0.18.1",
+    "aws-sdk": "^2.1339.0",
+    "crypto-js": "^4.1.1",
+    "moment": "^2.29.4",
+    "mongoose": "^7.0.3",
+    "mysql2": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.114",
+    "aws-lambda": "^1.0.7",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-prune-plugin": "^2.0.2"
+  }
+}

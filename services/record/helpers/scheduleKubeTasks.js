@@ -2,6 +2,11 @@ const k8s = require('@kubernetes/client-node');
 const fs = require('fs');
 const moment = require('moment');
 
+const aws = require("aws-sdk")
+const sqs = new aws.SQS({
+   region: process.env.AWS_REGION_T || "us-east-1",
+})
+
 const {
     getStreamCatcherJobDescription,
     getMuxJobDescription
@@ -108,7 +113,36 @@ function scheduleMuxJob({
     })
 }
 
+function scheduleMuxJobECS({
+    jobId,
+    reqId,
+    videoLink,
+    audioLink}){
+        return new Promise((resolve,reject)=>{
+
+            const params = {
+                MessageBody: JSON.stringify({
+                    jobId: jobId,
+                    reqId: reqId,
+                    videoLink: videoLink,
+                    audioLink: audioLink,
+                }),
+                QueueUrl: process.env.MUXING_QUEUE_URL
+            }
+
+            sqs.sendMessage(params, (err, data) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(data)
+                }
+            })
+
+        })
+    }
+
 module.exports = {
     scheduleStreamDownload,
-    scheduleMuxJob
+    scheduleMuxJob,
+    scheduleMuxJobECS
 }
