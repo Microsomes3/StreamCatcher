@@ -1,8 +1,8 @@
-const aws = require('aws-sdk');
-const moment = require("moment");
-const axios = require("axios");
+import * as aws from 'aws-sdk';
+import moment from 'moment';
+import axios from 'axios';
 
-const { sendShitpostLink } = require('./discordHelper')
+import { sendShitpostLink } from './discordHelper'
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || "us-east-1",
@@ -19,12 +19,12 @@ function uuidv4() {
     });
 }
 
-function AddMuxingRequestToQueue({
+export function AddMuxingRequestToQueue({
     jobId,
     reqId,
     videoLink,
     audioLink
-}) {
+}:{jobId:string,reqId:string,videoLink:string,audioLink:string}) {
     return new Promise(async (resolve, reject) => {
         const params = {
             QueueUrl: process.env.MUXING_QUEUE_URL || "https://sqs.us-east-1.amazonaws.com/574134043875/MuxingQueue",
@@ -46,12 +46,12 @@ function AddMuxingRequestToQueue({
     })
 }
 
-function addRecordEvent({
+export function addRecordEvent({
     Job,
     Status,
-    Recordid
-}) {
-    return new Promise((resolve, reject) => {
+    Recordid,
+}:{Job:any,Status:string,Recordid:string}):Promise<any> {
+    return new Promise((resolve,reject)=>{
         const params = {
             TableName: process.env.RECORD_EVENT_TABLE || "RecordEventTable",
             Item: {
@@ -66,20 +66,21 @@ function addRecordEvent({
 
         try {
             documentClient.put(params).promise();
-            resolve();
+            resolve(true);
         } catch (err) {
-            reject(err);
+            resolve(false);
         }
     })
+
 }
 
-function updateRecordStatus({
+export function updateRecordStatus({
     jobId,
     reqId,
     result,
     state,
     channelName
-}) {
+}:{jobId:string, reqId:string,result:any, state:any,channelName:string}) {
     return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_TABLE || "RecordTable",
@@ -104,10 +105,10 @@ function updateRecordStatus({
     })
 }
 
-function updateRecordStatuses({
+export function updateRecordStatuses({
     jobId,
     state,
-}) {
+}:{ jobId:string, state:string}) {
     return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RecordStatusesTable || "RecordStatuses",
@@ -134,20 +135,20 @@ function updateRecordStatuses({
     })
 }
 
-function sendRecordingToShitpost({
+export function sendRecordingToShitpost({
     url
-}) {
+}:{url:Array<string>}):Promise<any> {
     return new Promise(async (resolve, reject) => {
         try {
             await sendShitpostLink(`- ${url}`);
-            resolve()
+            resolve(true)
         } catch (err) {
-            reject(err);
+           resolve(false);
         }
     })
 }
 
-function getRecordRequestById({ id }) {
+export function getRecordRequestById({ id }:{id:string}) {
     return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_REQUEST_TABLE || "RecordRequestTable",
@@ -164,7 +165,7 @@ function getRecordRequestById({ id }) {
     })
 }
 
-function sendRecordDataTOApi({ data }) {
+export function sendRecordDataTOApi({ data }:{data:any}) {
     return new Promise(async (resolve, reject) => {
         //use axios and timeout is 10 seconds
         try {
@@ -178,7 +179,7 @@ function sendRecordDataTOApi({ data }) {
     })
 }
 
-function getRecordEventByRecordId({ id }) {
+export function getRecordEventByRecordId({ id }:{id:string}) {
     return new Promise(async (resolve, reject) => {
         const params = {
             TableName: process.env.RECORD_EVENT_TABLE || "RecordEventTable",
@@ -197,13 +198,30 @@ function getRecordEventByRecordId({ id }) {
     })
 }
 
-module.exports = {
-    addRecordEvent,
-    updateRecordStatus,
-    updateRecordStatuses,
-    AddMuxingRequestToQueue,
-    sendRecordingToShitpost,
-    getRecordRequestById,
-    getRecordEventByRecordId,
-    sendRecordDataTOApi
-}
+export function scheduleMuxJobECS({
+    jobId,
+    reqId,
+    videoLink,
+    audioLink}:{jobId:string, reqId:string, videoLink:string, audioLink:string}){
+        return new Promise((resolve,reject)=>{
+
+            const params:any = {
+                MessageBody: JSON.stringify({
+                    jobId: jobId,
+                    reqId: reqId,
+                    videoLink: videoLink,
+                    audioLink: audioLink,
+                }),
+                QueueUrl: process.env.MUXING_QUEUE_URL
+            }
+
+            sqs.sendMessage(params, (err, data) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(data)
+                }
+            })
+
+        })
+    }

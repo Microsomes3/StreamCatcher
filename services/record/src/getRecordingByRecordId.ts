@@ -1,4 +1,5 @@
-const aws = require('aws-sdk');
+import { APIGatewayProxyResult } from "aws-lambda";
+import * as aws from "aws-sdk";
 
 
 const documentClient = new aws.DynamoDB.DocumentClient(
@@ -7,18 +8,18 @@ const documentClient = new aws.DynamoDB.DocumentClient(
     }
 );
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
 
     const recordId = event.pathParameters.id;
 
-    const params = {
+    const params:any = {
         TableName: process.env.RECORD_TABLE,
         Key: {
             id: recordId
         }
     };
 
-    const data = await documentClient.get(params).promise();
+    const data:any = await documentClient.get(params).promise();
 
     if (!data.Item) {
         return {

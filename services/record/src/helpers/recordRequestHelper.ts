@@ -1,12 +1,10 @@
-const aws = require('aws-sdk');
-
+import * as aws from 'aws-sdk';
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || 'us-east-1',
 });
 
-
-const getAllRecordRequests = async () => {
+export const getAllRecordRequests = async () => {
     const params = {
         TableName: process.env.RECORD_REQUEST_TABLE || 'RecordRequestTable',
     };
@@ -16,7 +14,7 @@ const getAllRecordRequests = async () => {
     return data;
 }
 
-const getAllRequestsFromUser = async (username) => {
+export const getAllRequestsFromUser = async (username:string) => {
     //using index username-index
 
     const params = {
@@ -32,11 +30,3 @@ const getAllRequestsFromUser = async (username) => {
 
     return result
 }
-
-
-
-
-module.exports = {
-    getAllRecordRequests,
-    getAllRequestsFromUser
-};

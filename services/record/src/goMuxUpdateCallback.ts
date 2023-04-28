@@ -1,19 +1,18 @@
-const {
-    AddMuxingRequestToQueue,
+import { APIGatewayProxyResult } from 'aws-lambda';
+import {
     updateRecordStatus,
     updateRecordStatuses,
     addRecordEvent,
     sendRecordingToShitpost,
     getRecordRequestById
-} = require("./helpers/recordhelper");
+} from './helpers/recordHelper'
 
-
-function handleFunc({ data }) {
+function handleFunc({ data }:{data:any}) {
     return new Promise(async (resolve, reject) => {
         const { Job, Status } = data
         const { jobId, reqId, type } = Job;
         const { state, result } = Status;
-        const request = await getRecordRequestById({ id: reqId });
+        const request:any = await getRecordRequestById({ id: reqId });
         const { username } = request.Item;
 
 
@@ -80,7 +79,7 @@ function handleFunc({ data }) {
 }
 
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     const data = JSON.parse(event.body);
     await handleFunc({ data })
     return {

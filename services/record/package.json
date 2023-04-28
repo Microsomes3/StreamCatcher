@@ -4,7 +4,8 @@
   "description": "",
   "main": "callbackReceivedLive.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"tsc"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +19,10 @@
   },
   "devDependencies": {
     "serverless-dotenv-plugin": "^6.0.0",
-    "serverless-prune-plugin": "^2.0.2"
+    "serverless-prune-plugin": "^2.0.2",
+    "@types/aws-lambda": "^8.10.114",
+    "aws-lambda": "^1.0.7",
+    "serverless-plugin-typescript": "^2.1.4",
+    "typescript": "^5.0.4"
   }
 }

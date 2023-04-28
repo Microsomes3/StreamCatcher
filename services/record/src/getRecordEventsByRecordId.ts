@@ -1,9 +1,11 @@
 
-const {
+import { APIGatewayProxyResult } from 'aws-lambda';
+import {
     getRecordEventByRecordId
-} = require('./helpers/recordhelper')
+} from './helpers/recordHelper'
 
-module.exports.handler = async (event) => {
+
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
 
     const id = event.pathParameters.id;
 

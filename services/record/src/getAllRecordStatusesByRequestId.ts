@@ -1,19 +1,15 @@
-const aws = require('aws-sdk');
+import * as aws from "aws-sdk";
+import { APIGatewayProxyResult } from 'aws-lambda'
+const documentClient = new aws.DynamoDB.DocumentClient({
+    region: process.env.AWS_REGION_T
+});
 
 
-const documentClient = new aws.DynamoDB.DocumentClient(
-    {
-        region: process.env.AWS_REGION_T,
-    }
-);
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
+    const requestId= event.pathParameters.requestId;
 
-
-module.exports.handler = async (event) => {
-
-    const requestId = event.pathParameters.requestId;
-
-    const params = {
-        TableName: process.env.RECORD_TABLE,
+    const params:any = {
+        TableName: process.env.RecordStatusesTable,
         IndexName: "record-request-id-index",
         KeyConditionExpression: "recordrequestid = :requestId",
         ExpressionAttributeValues: {
@@ -26,14 +22,12 @@ module.exports.handler = async (event) => {
     return {
         statusCode: 200,
         headers:{
-
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Credentials": true,
-
         },
         body: JSON.stringify({
             results: data.Items || [],
         }),
     };
-
-}
+};
+    

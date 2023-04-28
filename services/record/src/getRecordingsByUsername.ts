@@ -1,14 +1,14 @@
-const aws = require('aws-sdk');
-
+import * as aws from "aws-sdk";
+import { APIGatewayProxyResult } from 'aws-lambda'
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T,
 });
 
-function getRQ(username){
+function getRQ(username:string){
     return new Promise((resolve, reject) => {
 
-        const params = {
+        const params:any = {
             TableName: process.env.RECORD_REQUEST_TABLE,
             IndexName: "username-index",
             KeyConditionExpression: "username = :username",
@@ -24,9 +24,9 @@ function getRQ(username){
     });
 }
 
-function getAllRecodingsByRequestId(requestId){
+function getAllRecodingsByRequestId(requestId:string){
     return new Promise((resolve, reject) => {
-        const params = {
+        const params:any = {
             TableName: process.env.RECORD_TABLE,
             IndexName: "record-request-id-index",
             KeyConditionExpression: "recordrequestid = :recordRequestId",
@@ -43,11 +43,11 @@ function getAllRecodingsByRequestId(requestId){
 
 
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
 
     const username = event.pathParameters.username;
 
-    const data = await getRQ(username);
+    const data:any = await getRQ(username);
 
     if (!data.Items) {
         return {
@@ -67,7 +67,7 @@ module.exports.handler = async (event) => {
 
     for(var i = 0; i < data.Items.length; i++){
         const recordRequestId = data.Items[i].id;
-        const recordData = await getAllRecodingsByRequestId(recordRequestId);
+        const recordData:any = await getAllRecodingsByRequestId(recordRequestId);
         allData.push({
             recordRequestId: recordRequestId,
             recordData: recordData.Items,

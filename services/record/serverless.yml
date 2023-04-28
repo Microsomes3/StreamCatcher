@@ -278,103 +278,67 @@ resources:
 
 functions:
   GetRecordEventsByRecordId:
-    handler: getRecordEventsByRecordid.handler
+    handler: .build/getRecordEventsByRecordId.handler
     events:
       - http:
           path: /GetRecordEventsByRecordId/{id}
           method: get
           cors: true
   GoMuxUpdateRecordCallback:
-    handler: goMuxUpdateCallback.handler
+    handler: .build/goMuxUpdateCallback.handler
     events:
       - http:
           path: /GoMuxUpdateRecordCallback
           method: post
           cors: true
   GoOnUpdateRecordCallback:
-    handler: GoUpdateCallback.handler
+    handler: .build/GoUpdateCallback.handler
     events:
       - http:
           path: /GoOnUpdateRecordCallback
           method: post
           cors: true
-  OnUploadInputBucket:
-    handler: onUploadInputBucket.handler
-    events:
-      - s3:
-          bucket: !Ref RecordInputBucket
-          event: s3:ObjectCreated:*
-          existing: true
   GetRecordingByRecordId:
-    handler: getRecordingByRecordId.handler
+    handler: .build/getRecordingByRecordId.handler
     events:
       - http:
           path: /GetRecordingByRecordId/{id}
           method: get
           cors: true
   GetAllStatusesByDate:
-    handler: getAllStatusesByDate.handler
+    handler: .build/getAllStatusesByDate.handler
     events:
       - http:
           path: /GetAllStatusesByDate/{date}
           method: get
           cors: true
   GetAllRecordStatusesByRequestID:
-    handler: getAllRecordStatusesByRequestId.handler
+    handler: .build/getAllRecordStatusesByRequestId.handler
     events:
       - http:
           path: /GetAllRecordStatusesByRequestID/{requestId}
           method: get
           cors: true
   GetRecordStatusById:
-    handler: getRecordStatusById.handler
+    handler: .build/getRecordStatusById.handler
     events:
       - http:
           path: /GetRecordStatusById/{id}
           method: get
           cors: true
   GetAllRecordingsByRequestID:
-    handler: getAllRecordingsByRequestID.handler
+    handler: .build/getAllRecordingsByRequestID.handler
     events:
       - http:
           path: /GetAllRecordingsByRequestID/{requestId}
           method: get
           cors: true
   GetRecordingsByUsername:
-    handler: recordingsByUsername.handler
+    handler: .build/recordingsByUsername.handler
     events:
       - http:
           path: /GetRecordingsByUsername/{username}
           method: get
-          cors: true
-  KillRecording:
-    handler: killRecording.handler
-    events:
-      - http:
-          path: /KillRecording/{id}
-          method: put
-          cors: true
-  UpdateProgress:
-    handler: updateProgressOfRecording.handler
-    events:
-      - http:
-          path: /UpdateProgress/{id}
-          method: put
-          cors: true
-  RecordCompleteCallback:
-    handler: completeCallback.handler
-    events:
-      - http:
-          path: /RecordCompleteCallback
-          method: post
-          cors: true
-      
-  CallBackReceivedLiveEvents:
-    handler: CallBackReceivedLiveEvents.handler
-    events:
-      - http:
-          path: /CallBackReceivedLiveEvents
-          method: post
           cors: true
 
 custom:

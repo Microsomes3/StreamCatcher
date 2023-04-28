@@ -1,27 +1,20 @@
-const {
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import {
     AddMuxingRequestToQueue,
     updateRecordStatus,
     updateRecordStatuses,
     addRecordEvent,
     sendRecordingToShitpost,
-    sendRecordDataTOApi
-} = require("./helpers/recordhelper");
-
-const {
-    scheduleMuxJob,
+    sendRecordDataTOApi,
     scheduleMuxJobECS
-} = require("./helpers/scheduleKubeTasks")
-
-
-        
-
+} from './helpers/recordHelper'
 
 function handleIsStartLogic({
     jobId,
     reqId,
     results,
     state
-}){
+}:{jobId:string, reqId:string, results:any, state:any}){
     return new Promise(async (resolve,reject)=>{
         if(state == "done"){
          if(results.length>=2){
@@ -49,7 +42,7 @@ function handleIsStartLogic({
 }
 
 
-function handleFunc({data}){
+function handleFunc({data}:{data:any}){
     return new Promise(async (resolve,reject)=>{
         const { Job, Status } = data
         const { jobId, reqId, youtubeLink, channelName, type = "normal", isStart = false } = Job;
@@ -87,9 +80,9 @@ function handleFunc({data}){
         })
 
         if(state == "done" && isStart == false){
-            sendRecordingToShitpost({
-                url: result[0],
-            })
+            // sendRecordingToShitpost({
+            //     url: result[0],
+            // })
         }
 
         console.log(ae)
@@ -97,7 +90,7 @@ function handleFunc({data}){
     })
 }
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     const data = JSON.parse(event.body);
 
     try{
