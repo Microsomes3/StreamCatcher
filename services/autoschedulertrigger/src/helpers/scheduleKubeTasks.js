@@ -4,7 +4,8 @@ const moment = require('moment');
 
 const {
     getStreamCatcherJobDescription,
-    getMuxJobDescription
+    getMuxJobDescription,
+    getCommentVideCaptureJobDescription
 } = require("./jobs")
 
 // Load the configuration file
@@ -109,16 +110,43 @@ function scheduleMuxJob({
     })
 }
 
-// scheduleMuxJob({
-//     jobId: "1a493b1d-49f0-4767-bfc9-5c5dc8cc3a28",
-//     reqId:"40df4b8e-54b0-4e38-a94b-5c5f869ff7ea",
-//     videoLink:"https://d213lwr54yo0m8.cloudfront.net/0_1a493b1d-49f0-4767-bfc9-5c5dc8cc3a28.mp4",
-//     audioLink:"https://d213lwr54yo0m8.cloudfront.net/1_1a493b1d-49f0-4767-bfc9-5c5dc8cc3a28.mp4"
-// }).then((l)=>{
-//     console.log(l);
+function scheduleCommentVideoCapture({
+    username,
+    duration
+}){
+    return new Promise(async (resolve,reject)=>{
+        const id = "commentvideo-" + moment().format("YYYYMMDDHHmmssSSS");
+        const job = await getCommentVideCaptureJobDescription({
+            id: id,
+            username: username,
+            duration: duration
+        })
+
+
+      
+        try {
+            const response = await batchApi.createNamespacedJob('default', job);
+            resolve(id);
+        }
+
+        catch (err) {
+            reject(err);
+        }
+
+    })
+}
+
+// scheduleCommentVideoCapture({
+//     username:"@griffingaming",
+//     duration: 300000
+// }).then((d)=>{
+//     console.log(d);
 // })
+
+
 
 module.exports = {
     scheduleStreamDownload,
-    scheduleMuxJob
+    scheduleMuxJob,
+    scheduleCommentVideoCapture,
 }

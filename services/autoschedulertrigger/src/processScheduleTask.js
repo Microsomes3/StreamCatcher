@@ -1,11 +1,74 @@
 const aws = require('aws-sdk');
 const { makeRecordRequest } = require('./helpers/submitRecordingsRequest');
 
+const {
+    scheduleCommentVideoCapture
+} = require("./helpers/scheduleKubeTasks")
+
 const ecs = new aws.ECS({
     region: process.env.AWS_REGION_T || 'us-east-1',
 });
 
 
+
+function captureCommentVideoRunTask({
+    username,
+    duration
+}){
+    return new Promise((resolve,reject)=>{
+        const taskDef = "GoCommentCaptureVideoTask"
+        const containerName = "GoCommentCaptureVideoContainer"
+
+        const ecsparams = {
+            cluster: "griffin-record-cluster",
+            taskDefinition: taskDef,
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: containerName,
+                        environment: [
+                            {
+                                name:'username',
+                                value:username
+                            },
+                            {
+                                name:'timeout',
+                                value:duration
+                            }
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                {
+                    key: "username",
+                    value: username
+                }
+            ]
+        };
+
+        ecs.runTask(ecsparams, function(err, data) {
+            if (err) {
+                console.log("Error", err);
+                reject(err);
+            } else {
+                console.log("Success", data);
+                resolve(data);
+            }
+        })
+
+    })
+}
 
 function captureCommentRunTask({
     username,
@@ -76,21 +139,42 @@ return new Promise(async (resolve,reject)=>{
         auto: auto,
         provider: request.provider || 'youtube',
     });
+    
 
-    // try{
-    //     if(request.isComments){
-    //         const td=request.duration;
+    try{
+        if(request.isComments){
+            const td=request.duration;
 
-    //         console.log(">>>duration",td);
+            console.log(">>>duration",td);
 
-    //         await captureCommentRunTask({
-    //             username: request.username,
-    //             duration: request.duration.toString()
-    //         })
-    //     }
-    // }catch(err){
-    //     console.log(err);
-    // }
+            await captureCommentRunTask({
+                username: request.username,
+                duration: request.duration.toString()
+            })
+        }
+    }catch(err){
+        console.log(err);
+    }
+
+    try{
+        if(request.isComments){
+            const td=request.duration;
+
+            console.log(">>>duration",td);
+
+            // await captureCommentVideoRunTask({
+            //     username: request.username,
+            //     duration: request.duration.toString()
+            // })
+
+            await scheduleCommentVideoCapture({
+                username:request.username,
+                duration: request.duration
+            })
+        }
+    }catch(err){
+        console.log(err);
+    }
 
     resolve(c);
 

@@ -83,6 +83,12 @@ function Navigation() {
           Dashboard
         </button>
       )}
+        <button
+          onClick={handleLoginClick}
+          className="bg-green-500 ml-6 md:ml-2 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full"
+        >
+          See Pricing First
+        </button>
       {!isLogin ? (
         <button
           onClick={handleLogoutClick}

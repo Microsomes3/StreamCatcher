@@ -70,14 +70,14 @@ function LandingPage() {
 
         <h1 className="text-4xl font-bold text-center">Live Clipper</h1>
         <p className="text-xl text-center mt-4">
-          Capture live streams from all the popular YouTubers automatically
+          Capture live streams from all your popular YouTubers/Twitch Streamers automatically
         </p>
         <div className="flex flex-row space-x-4 mt-8 justify-center">
           <a
             href="/auth"
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           >
-            Login
+            I'm Ready to Sign up
           </a>
           <a
             href="/demo"

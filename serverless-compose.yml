@@ -53,8 +53,6 @@ services:
       recordRequestUrl: ${recordRequests.ServiceEndpoint}/recordRequest/
       recordRequestTable: ${recordRequests.RecordRequestTable}
 
-  youtubedownloader:
-    path: services/youtubedownloader
 
   ytdlp_layer:
     path: services/ytdlp_layer

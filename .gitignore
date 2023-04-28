@@ -32,3 +32,9 @@ services/autoschedulertrigger/src/helpers/kubeconfig-k8s-zealous-moore.yaml
 services/autoschedulertrigger/src/kubeconfig-k8s-zealous-moore.yaml
 services/autoschedulertrigger/kubeconfig-k8s-zealous-moore.yaml
 .gitignore
+services/record/kubeconfig-k8s-zealous-moore.yaml
+
+
+.build/*
+.gitignore
+services/liveChecker/.build/*

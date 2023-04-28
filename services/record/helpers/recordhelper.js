@@ -168,7 +168,7 @@ function sendRecordDataTOApi({ data }) {
     return new Promise(async (resolve, reject) => {
         //use axios and timeout is 10 seconds
         try {
-            const c = await axios.post("https://42a7-77-102-234-41.ngrok-free.app/tracker/callbackRecordStatus", data, {
+            const c = await axios.post("https://streamcatcher.herokuapp.com/tracker/callbackRecordStatus", data, {
                 timeout: 10000
             });
             resolve(c);
