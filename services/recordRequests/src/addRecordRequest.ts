@@ -1,5 +1,6 @@
-const aws = require('aws-sdk');
-const moment = require('moment');
+import * as aws from 'aws-sdk';
+import moment from 'moment';
+import { APIGatewayProxyResult, APIGatewayProxyEvent } from 'aws-lambda';
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T,
@@ -14,7 +15,7 @@ function uuidv4() {
 }
 
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     const {
         provider = "youtube",
         username,
@@ -22,7 +23,17 @@ module.exports.handler = async (event) => {
         trigger,
         isComments,
         shouldRecordStart,
-        label, triggerTime, triggerInterval } = JSON.parse(event.body);
+        label, triggerTime, triggerInterval }:{
+            provider:string,
+            username:string,
+            duration:number,
+            trigger:any,
+            isComments:boolean,
+            shouldRecordStart:boolean,
+            label:string,
+            triggerTime:string,
+            triggerInterval:string
+        } = JSON.parse(event.body);
 
     if (!username || !duration || !trigger || !label || !triggerTime || !triggerInterval) {
         return {
@@ -32,7 +43,7 @@ module.exports.handler = async (event) => {
                 expected: [
 
                 ],
-                gotten: Object.keys(event.body)
+                gotten: Object.keys(event.body || {})
             }),
         };
     }
@@ -46,8 +57,6 @@ module.exports.handler = async (event) => {
             }),
         };
     }
-
-    //check if duration is a positive number
 
     if (duration <= 0) {
         return {
@@ -120,7 +129,7 @@ module.exports.handler = async (event) => {
         };
     }
 
-    const params = {
+    const params:any = {
         TableName: process.env.RECORD_REQUEST_TABLE,
         Item: {
             id: uuidv4(),

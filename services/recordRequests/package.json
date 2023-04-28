@@ -4,7 +4,8 @@
   "description": "",
   "main": "addRecordRequest.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"tsc"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,10 @@
     "moment": "^2.29.4"
   },
   "devDependencies": {
-    "serverless-prune-plugin": "^2.0.2"
+    "serverless-prune-plugin": "^2.0.2",
+    "@types/aws-lambda": "^8.10.114",
+    "aws-lambda": "^1.0.7",
+    "serverless-plugin-typescript": "^2.1.4",
+    "typescript": "^5.0.4"
   }
 }

@@ -95,59 +95,36 @@ resources:
           StreamViewType: NEW_IMAGE
     
 functions:
-  HandleEventsFromECS:
-    handler: HandleEventFromEcs.handler
-
-  # ProcessCreateTask:
-  #   handler: processCreateTaskFromRDQueue.handler
-  #   events:
-  #     - sqs:
-  #         arn:
-  #           Fn::GetAtt:
-  #             - ProcessTaskCreationQueue
-  #             - Arn
-  #         batchSize: 1
-  OnRecordRequestCreate:
-    handler: OnRecordRequestCreate.handler
-    events:
-      - stream:
-          type: dynamodb
-          arn:
-            Fn::GetAtt:
-              - RecordRequestTable
-              - StreamArn
-          batchSize: 1
-          startingPosition: TRIM_HORIZON
   getRecordRequestByUser:
-    handler: getRecordRequestByUser.handler
+    handler: .build/getRecordRequestByUser.handler
     events:
       - http:
           path: /recordRequest/{username}
           method: get
           cors: true
   getAllRecordRequests:
-    handler: getAllRecordRequests.handler
+    handler: .build/getAllRecordRequests.handler
     events:
       - http:
           path: /recordRequests
           method: get
           cors: true
   deleteRecordRequest:
-    handler: deleteRecordRequestById.handler
+    handler: .build/deleteRecordRequestById.handler
     events:
       - http:
           path: /recordRequestd/{id}
           method: delete
           cors: true
   getRecordRequestById:
-    handler: getRecordRequestById.handler
+    handler: .build/getRecordRequestById.handler
     events:
       - http:
           path: /recordRequestById/{id}
           method: get
           cors: true
   recordRequest:
-    handler: addRecordRequest.handler
+    handler: .build/addRecordRequest.handler
     memorySize: 128
     events:
       - http:
@@ -157,7 +134,6 @@ functions:
       
 plugins:
   - serverless-prune-plugin
-
 
 custom:
   prune:
