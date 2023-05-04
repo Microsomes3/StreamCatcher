@@ -3,16 +3,17 @@ package utils
 import "encore.dev/types/uuid"
 
 type SteamJob struct {
-	JobID          string `json:"jobId"`
-	ReqID          string `json:"reqId"`
-	YoutubeLink    string `json:"youtubeLink"`
-	Provider       string `json:"provider"`
-	TimeoutSeconds int    `json:"timeout"`
-	IsStart        bool   `json:"isStart"`
-	UpdateHook     string `json:"updateHook"`
-	Groupid        string `json:"groupid"`
-	ChannelName    string `json:"channelName"`
-	ShouldUpload   string `json:"shouldUpload"`
+	JobID           string `json:"jobId"`
+	ReqID           string `json:"reqId"`
+	YoutubeLink     string `json:"youtubeLink"`
+	Provider        string `json:"provider"`
+	TimeoutSeconds  int    `json:"timeout"`
+	IsStart         bool   `json:"isStart"`
+	UpdateHook      string `json:"updateHook"`
+	Groupid         string `json:"groupid"`
+	ChannelName     string `json:"channelName"`
+	ShouldUpload    string `json:"shouldUpload"`
+	TryToCaptureAll string `json:"tryToCaptureAll"`
 }
 
 type JobStatus struct {

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -17,18 +19,117 @@ type FileAndSize struct {
 	FileSize int64
 }
 
-func TryDownload(id string, url string, timeout int, mode string, wssocket string) (utils.JobResponse, error) {
+var totalProgressToReach int64 = 0
+var currentProgress int64 = 0
+var progressPercentage int64 = 0
+
+var isAwaitingCompletion bool = false
+
+func TrackProgress(output string, done chan bool, child *exec.Cmd, Job utils.SteamJob) {
+	re := regexp.MustCompile(`[0-9]+/[0-9]+`)
+	match := re.FindString(string(output))
+	if match != "" {
+
+		progress := strings.Split(match, "/")
+
+		fmt.Println("[>>", progress[0], "--", progress[1], "]")
+
+		totalProgressToReach, _ = strconv.ParseInt(progress[1], 10, 64)
+		currentProgress, _ = strconv.ParseInt(progress[0], 10, 64)
+
+		if currentProgress == 0 {
+			// progressPercentage = 0
+		} else if totalProgressToReach == 0 {
+			// progressPercentage = 0
+		} else {
+			progressPercentage = (currentProgress / totalProgressToReach) * 100
+			fmt.Println("-------")
+			fmt.Println(">", currentProgress)
+			fmt.Println(">", totalProgressToReach)
+
+			if isAwaitingCompletion {
+				if progressPercentage == 100 {
+					KillDownload(child, Job)
+				}
+			}
+
+			fmt.Println("progress:", progressPercentage)
+		}
+
+		// progressPercentage := (currentProgress / totalProgressToReach) * 100
+
+		// if isAwaitingCompletion {
+		// 	if progressPercentage == 100 {
+		// 		KillDownload(nil, utils.SteamJob{})
+		// 	}
+		// }
+
+	}
+}
+
+func WaitTrigger(timeout time.Duration, done chan bool) {
+	time.Sleep(timeout)
+	fmt.Println("wait trigger")
+	done <- true
+}
+
+func KillDownload(child *exec.Cmd, Job utils.SteamJob) {
+	fmt.Println("Killing download")
+	fmt.Println("current progress:", currentProgress)
+	fmt.Println("total progress:", totalProgressToReach)
+
+	if Job.IsStart {
+		if Job.TryToCaptureAll == "yes" {
+			if progressPercentage != 100 {
+				//do not kill the process
+				fmt.Println("do not kill the process")
+				isAwaitingCompletion = true
+
+				doneCn := make(chan bool, 1)
+
+				go func(doneCn chan bool) {
+					go WaitTrigger(time.Minute*30, doneCn)
+				}(doneCn)
+				<-doneCn
+
+				fmt.Println("doneCn")
+
+				child.Process.Signal(syscall.SIGINT)
+
+			} else {
+				child.Process.Signal(syscall.SIGINT)
+			}
+		} else {
+			child.Process.Signal(syscall.SIGINT)
+		}
+	} else {
+		child.Process.Signal(syscall.SIGINT)
+
+	}
+
+}
+
+func TryDownload(Job utils.SteamJob, wssocket string) (utils.JobResponse, error) {
+
+	var mode string = ""
+
+	if Job.IsStart {
+		mode = "start"
+	} else {
+		mode = "current"
+	}
+
 	fmt.Println("ll")
-	if id == "" {
+	if Job.JobID == "" {
 		return utils.JobResponse{}, fmt.Errorf("id is empty")
 	}
 
-	newT := time.Duration(timeout) * time.Second
+	newT := time.Duration(Job.TimeoutSeconds) * time.Second
 	fmt.Println("will timeout in:", newT)
 
-	fmt.Println("trydownload", id)
+	fmt.Println("trydownload", Job.JobID)
 
-	ytDlpArgs := []string{url, "-o", "./tmp/" + "%(title)s.%(ext)s"}
+	ytDlpArgs := []string{Job.YoutubeLink, "-o", "./tmp/" + "%(title)s.%(ext)s"}
 
 	if mode == "start" {
 		ytDlpArgs = append([]string{"-k"}, ytDlpArgs...)
@@ -45,7 +146,7 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 		child = exec.Command("yt-dlp", ytDlpArgs...)
 	}
 
-	stderr, err := child.StderrPipe()
+	// stderr, err := child.StderrPipe()
 	strData, err := child.StdoutPipe()
 	if err != nil {
 		fmt.Println("error 1")
@@ -58,19 +159,6 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 	}
 
 	go func() {
-		defer stderr.Close()
-
-		buf := make([]byte, 1024)
-		for {
-			n, err := stderr.Read(buf)
-			if err != nil {
-				return
-			}
-			fmt.Printf("yt-dlp stderr: %s", buf[:n])
-		}
-	}()
-
-	go func() {
 		defer strData.Close()
 
 		buf := make([]byte, 1024)
@@ -81,21 +169,23 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 				return
 			}
 
+			if mode == "start" {
+				TrackProgress(string(buf[:n]), nil, child, Job)
+			}
+
 			if strings.Contains(string(buf[:n]), "Merger") {
 				if mode == "start" {
 					fmt.Println("killing yt-dlp since we dont need auto merging")
-					child.Process.Signal(syscall.SIGKILL)
+					KillDownload(child, Job)
 				}
 			}
-
-			fmt.Printf("yt-dlp stdout: %s", buf[:n])
 		}
 
 	}()
 
 	backupTimer := time.AfterFunc(newT, func() {
 		fmt.Println("Sending SIGINT signal")
-		child.Process.Signal(syscall.SIGINT)
+		KillDownload(child, Job)
 	})
 
 	if err := child.Wait(); err != nil {
@@ -104,7 +194,6 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 				if status.ExitStatus() == int(syscall.SIGINT) {
 					// SIGINT signal sent by backupTimer
 					fmt.Println("yt-dlp process was terminated by the timeout")
-
 				}
 			}
 		}
@@ -162,3 +251,5 @@ func TryDownload(id string, url string, timeout int, mode string, wssocket strin
 		Comments: []string{},
 	}, nil
 }
+
+func HandleCleanUpAndFinishUp() {}

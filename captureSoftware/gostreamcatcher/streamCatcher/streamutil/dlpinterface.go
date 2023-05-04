@@ -41,19 +41,11 @@ func ProcessDownload(Job utils.SteamJob, progressUpdateCallback func(output stri
 	fmt.Println("URL: ", Job.YoutubeLink)
 	fmt.Println("Timeout: ", Job.TimeoutSeconds)
 
-	var mode string = "--"
-
-	if Job.IsStart {
-		mode = "start"
-	} else {
-		mode = "current"
-	}
-
 	doneDownloadCn := make(chan bool)
 	downloadResultCn := make(chan utils.JobResponse)
 
 	go func() {
-		data, err := TryDownload(Job.JobID, Job.YoutubeLink, Job.TimeoutSeconds, mode, "")
+		data, err := TryDownload(Job, "")
 
 		if err != nil {
 			fmt.Println("Error: ", err)

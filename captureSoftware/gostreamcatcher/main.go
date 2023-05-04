@@ -40,7 +40,7 @@ func getChannelNameFromUrl(job *utils.SteamJob, url string, provider string) str
 }
 
 func getJob() *utils.SteamJob {
-	fmt.Println("ecs adapater module")
+	fmt.Println("ecs adapater module...")
 	jobid := os.Getenv("jobid")
 	reqid := os.Getenv("reqid")
 	url := os.Getenv("url")
@@ -49,6 +49,12 @@ func getJob() *utils.SteamJob {
 	updatehook := os.Getenv("updatehook")
 	provider := os.Getenv("provider")
 	shouldUpload := os.Getenv("shouldUpload")
+
+	tryCaptureAll := os.Getenv("tryToCaptureAll")
+
+	if tryCaptureAll == "" {
+		tryCaptureAll = "no"
+	}
 
 	if provider == "" {
 		provider = "youtube" //
@@ -60,6 +66,7 @@ func getJob() *utils.SteamJob {
 	fmt.Println("isstart: ", isstart)
 	fmt.Println("updatehook: ", updatehook)
 	fmt.Println("reqid: ", reqid)
+	fmt.Println("capture all:", tryCaptureAll)
 
 	if shouldUpload == "" {
 		shouldUpload = "yes"
@@ -76,14 +83,15 @@ func getJob() *utils.SteamJob {
 	timeoutInt, _ := strconv.ParseInt(timeout, 10, 64)
 
 	job := utils.SteamJob{
-		JobID:          jobid,
-		ReqID:          reqid,
-		TimeoutSeconds: int(timeoutInt),
-		YoutubeLink:    url,
-		IsStart:        isS,
-		UpdateHook:     updatehook,
-		Provider:       provider,
-		ShouldUpload:   shouldUpload,
+		JobID:           jobid,
+		ReqID:           reqid,
+		TimeoutSeconds:  int(timeoutInt),
+		YoutubeLink:     url,
+		IsStart:         isS,
+		UpdateHook:      updatehook,
+		Provider:        provider,
+		ShouldUpload:    shouldUpload,
+		TryToCaptureAll: tryCaptureAll,
 	}
 
 	return &job
@@ -132,9 +140,14 @@ func main() {
 	if !isLive {
 		fmt.Println("not live")
 
-		streamCatcher.AddStatusEvent(jobToUse, "error", []string{"not live"})
+		streamCatcher.AddStatusEvent(jobToUse, "was_not_live", []string{"user is not live"})
 
 		os.Exit(0)
+	}
+
+	//griffin start beta v2 request
+	if jobToUse.ReqID == "e3d035ac-fbe2-49e3-812e-327c6fb5f342" {
+		jobToUse.TryToCaptureAll = "yes"
 	}
 
 	streamCatcher.AddJob(*jobToUse)
