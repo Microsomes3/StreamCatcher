@@ -102,6 +102,3 @@ const triggerRecordAdhoc = async (reqid) => {
     });
 };
 exports.triggerRecordAdhoc = triggerRecordAdhoc;
-(0, exports.triggerRecordAdhoc)("bb837be7-d66d-40fb-ab39-71567a619e4a").then((r) => {
-    console.log(r);
-});

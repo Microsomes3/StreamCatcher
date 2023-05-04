@@ -4,7 +4,7 @@ import axios from 'axios';
 
 module.exports.handler = async (event:APIGatewayProxyEvent):Promise<APIGatewayProxyResult> => {
   
-
+    try{
     const user = await axios.get("https://21tk2wt1ye.execute-api.us-east-1.amazonaws.com/dev/me",{
         headers:{
             'Authorization': event.headers.Authorization,
@@ -27,4 +27,16 @@ module.exports.handler = async (event:APIGatewayProxyEvent):Promise<APIGatewayPr
             data,
         }),
     };
+}catch(e){
+    return {
+        statusCode: 500,
+        headers:{
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true,
+        },
+        body: JSON.stringify({
+            error: e,
+        }),
+    };
+}
 }

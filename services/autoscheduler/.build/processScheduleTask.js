@@ -35,9 +35,6 @@ function handleFunc(request, auto) {
         resolve(c);
     });
 }
-// handleFunc({
-//     id:"40df4b8e-54b0-4e38-a94b-5c5f869ff7ea"
-// },"")
 module.exports.handler = async (event) => {
     //queue message
     const { request, auto } = JSON.parse(event.Records[0].body);

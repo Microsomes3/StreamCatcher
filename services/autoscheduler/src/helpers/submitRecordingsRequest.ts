@@ -20,6 +20,7 @@ function submitJobToEcs(
     duration: string,
     isRecordStart: boolean,
     provider: string,
+    tryToCaptureAll:string,
 ): Promise<string> {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
@@ -63,6 +64,10 @@ function submitJobToEcs(
                             {
                                 name: "timeout",
                                 value: duration.toString()
+                            },
+                            {
+                                name:"tryToCaptureAll",
+                                value:tryToCaptureAll
                             }
                         ],
                     },
@@ -138,12 +143,13 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
                 });
             }
 
-            const { captureSystem = "ecs", duration, isRecordStart = false, isComments = false, username }: {
+            const {tryToCaptureAll="no", captureSystem = "ecs", duration, isRecordStart = false, isComments = false, username }: {
                 captureSystem?: string,
                 duration: string,
                 isRecordStart: boolean,
                 isComments?: boolean,
-                username: string
+                username: string,
+                tryToCaptureAll?: string
             } = data.Item;
 
 
@@ -153,6 +159,7 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
                 isRecordStart,
                 isComments,
                 username,
+                tryToCaptureAll
             })
 
 
@@ -183,6 +190,7 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
                 duration,
                 isRecordStart,
                 provider,
+                tryToCaptureAll
             )
 
             const paramsStatuses = {

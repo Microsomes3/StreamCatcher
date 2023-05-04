@@ -38,7 +38,7 @@ function uuidv4() {
         return v.toString(16);
     });
 }
-function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordStart, provider) {
+function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll) {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
             cluster: "griffin-record-cluster",
@@ -81,6 +81,10 @@ function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordS
                             {
                                 name: "timeout",
                                 value: duration.toString()
+                            },
+                            {
+                                name: "tryToCaptureAll",
+                                value: tryToCaptureAll
                             }
                         ],
                     },
@@ -136,13 +140,14 @@ function makeRecordRequest(requestId, auto, provider = "youtube") {
                     }),
                 });
             }
-            const { captureSystem = "ecs", duration, isRecordStart = false, isComments = false, username } = data.Item;
+            const { tryToCaptureAll = "no", captureSystem = "ecs", duration, isRecordStart = false, isComments = false, username } = data.Item;
             console.log({
                 captureSystem,
                 duration,
                 isRecordStart,
                 isComments,
                 username,
+                tryToCaptureAll
             });
             if (!data.Item) {
                 reject({
@@ -158,7 +163,7 @@ function makeRecordRequest(requestId, auto, provider = "youtube") {
             }
             const uniqueRecordId = uuidv4();
             var sid = "";
-            sid = await submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordStart, provider);
+            sid = await submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll);
             const paramsStatuses = {
                 TableName: process.env.RECORD_STATUS_TABLE || 'RecordStatuses',
                 Item: {

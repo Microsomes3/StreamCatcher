@@ -24,10 +24,6 @@ function handleFunc(request:any, auto:any) {
     })
 }
 
-// handleFunc({
-//     id:"40df4b8e-54b0-4e38-a94b-5c5f869ff7ea"
-// },"")
-
 module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
 
     //queue message
