@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 
+import { AuthContext } from "../auth/authwatch";
+import { useContext } from "react";
+
 import { Link } from "react-router-dom";
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -9,6 +12,22 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from "axios";
 
 function LandingPage() {
+
+  const user = useContext(AuthContext);
+
+
+  const [isLogged,setLogged] = useState(false);
+
+
+  useEffect(()=>{
+    console.log(">:>",user);
+    console.log(">:>",typeof user);
+    if (user) {
+      setLogged(true);
+    }else{
+      setLogged(false);
+    }
+  },[user])
 
 
 
@@ -72,20 +91,16 @@ function LandingPage() {
         <p className="text-xl text-center mt-4">
           Capture live streams from all your popular YouTubers/Twitch Streamers automatically
         </p>
-        <div className="flex flex-row space-x-4 mt-8 justify-center">
+       
+       {isLogged==false && <div className="flex flex-row space-x-4 mt-8 justify-center">
           <a
             href="/auth"
             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           >
             I'm Ready to Sign up
           </a>
-          <a
-            href="/demo"
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-          >
-            Visit Demo
-          </a>
-        </div>
+         
+        </div>}
 
         <div className="mt-16 w-full max-w-lg mx-auto flex flex-col items-center">
           <p className="text-sm">
@@ -150,7 +165,7 @@ function LandingPage() {
           ) : null}
         </div>
 
-        <section className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+        {/* <section className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
           {Array.from({ length: 30 }, (_, i) => (
             <div
               key={i}
@@ -170,7 +185,7 @@ function LandingPage() {
               </div>
             </div>
           ))}
-        </section>
+        </section> */}
       </div>
     </div>
   );

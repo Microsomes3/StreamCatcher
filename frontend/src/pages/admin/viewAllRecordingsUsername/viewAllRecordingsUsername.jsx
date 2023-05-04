@@ -45,7 +45,7 @@ function ViewAllRecordingsByUsername() {
  <Link to={'/requests/'+username}><button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md mr-2">
     Go Back to Requests
   </button></Link>
-  <Link to={'/demo'}><button class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
+  <Link to={'/dashboard'}><button class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
     Back to YouTube Statuses
   </button></Link>
 </div>

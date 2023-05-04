@@ -10,13 +10,10 @@ import { getAuth, signOut } from 'firebase/auth'
 const auth = getAuth(app);
 
 function handleLogout() {
-  signOut(auth).then(() => {
-    // Sign-out successful.
-    console.log("signed out");
-  }).catch((error) => {
-    // An error happened.
-    console.log(error);
-  });
+  localStorage.removeItem("token");
+  localStorage.removeItem("email");
+  localStorage.clear();
+  location.reload();
 }
 
 function Navigation() {
@@ -83,12 +80,12 @@ function Navigation() {
           Dashboard
         </button>
       )}
-        <button
+        {/* <button
           onClick={handleLoginClick}
           className="bg-green-500 ml-6 md:ml-2 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full"
         >
           See Pricing First
-        </button>
+        </button> */}
       {!isLogin ? (
         <button
           onClick={handleLogoutClick}

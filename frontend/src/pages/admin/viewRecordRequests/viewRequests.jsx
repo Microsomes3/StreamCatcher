@@ -25,9 +25,13 @@ function handleDeleteRequest(id, setAllRequests, username) {
 function fetchRequests(username, setAllRequests, setIsLoading) {
     setAllRequests([])
     setIsLoading(true)
-    axios.get(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest/` + username)
+    axios.get(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequest/` + username,{
+        headers: {
+          'Authorization' : 'Bearer ' + localStorage.getItem('token')
+        }
+    })
         .then((data) => {
-            const recordRequests = data.data.data.Items;
+            const recordRequests = data.data.data;
             setAllRequests(recordRequests)
             setIsLoading(false)
 
@@ -90,11 +94,14 @@ function recordRequests() {
     <Link to={'/recordings/' + username + '/all'} className='mb-2 sm:mb-0'>
       <div className='py-2 pl-4 sm:pl-8'>
       
-        <Link to={'/demo'}>
+        <Link to={'/dashboard'}>
           <button className='bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md w-full sm:w-auto'>
             Back to YouTubers Status
           </button>
+          
         </Link>
+
+        
       </div>
     </Link>
 

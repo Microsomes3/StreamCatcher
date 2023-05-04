@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { useParams } from 'react-router-dom'
+import { useParams, redirect } from 'react-router-dom'
 
 import RecordingsTable from './components/recordingsTable/recordings'
 import StatusesTable from './components/statusesTable/statusTable'
@@ -27,6 +27,21 @@ function ViewAllRecordings() {
     const { filter = "old" } = useParams();
 
     const [isLoading, setIsLoading] = useState(true);
+
+
+    const handleDeleteRequest = ()=>{
+      const r = window.confirm("Are you sure you want to delete this request?");
+      if(r){
+        axios.delete(`https://o7joskth5a.execute-api.us-east-1.amazonaws.com/dev/recordRequestd/` + rqid)
+        .then((data) => {
+            alert("Request deleted successfully");
+            window.location.href = "/dashboard"
+        })
+        .catch((err) => {
+            console.log(err)
+        });
+      }
+    }
 
   
 
@@ -127,12 +142,23 @@ function ViewAllRecordings() {
     
       <div className='px-2 mt-12 mx-2 py-3 rounded-md bg-gray-800'>
         {filter === "old" && (
+          
           <div className="flex flex-col md:flex-row items-center justify-between md:px-12">
-             <Link to={'/requests/'+username}>
-                <button className="bg-red-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md">
-                  Back to Record Requests
-                </button>
-              </Link>
+          <div class="flex justify-center mt-8 space-x-4">
+  <a href={'/requests/'+username}>
+    <button class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md">
+      Back to Record Requests
+    </button>
+  </a>
+  
+    <button  onClick={(e)=>handleDeleteRequest()} class="bg-red-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-md">
+      Delete Schedule Request
+    </button>
+  
+</div>
+
+
+          
            
             <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
               <button

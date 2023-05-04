@@ -35,8 +35,13 @@ function AddTracker() {
     } else {
 
       axios.post("https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/addYoutuberUsername", {
-        username: username,
+          username: username,
         type: platform
+        
+      },{
+        headers: {
+          'Authorization' : 'Bearer ' + localStorage.getItem('token')
+        }
       }).then((data) => {
         console.log(data);
         toast('Added to Tracker. it may take a few minutes to show up', {
@@ -136,7 +141,7 @@ function AddTracker() {
         </form>
       </div>
       <div className="flex justify-center mt-8">
-        <Link to="/demo" className="text-white underline">
+        <Link to="/dashboard" className="text-white underline">
           Back to home
         </Link>
       </div>

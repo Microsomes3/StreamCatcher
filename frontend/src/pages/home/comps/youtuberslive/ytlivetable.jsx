@@ -95,10 +95,17 @@ function TYTable() {
 
   useEffect(() => {
     axios
-      .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses')
+      .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses',{
+        headers:{
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        }
+      })
       .then((data) => {
+        console.log(data.data.youtubers);
         const sortedData = data.data['youtubers'].sort((a, b) => b.islive - a.islive);
-        setYoutubers(sortedData);
+
+        console.log(">>",sortedData);
+        setYoutubers(data.data.youtubers);
         setIsLoading(false);
       });
   }, []);
@@ -109,7 +116,11 @@ function TYTable() {
     setIsLoading(true);
 
     axios
-      .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses')
+      .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses',{
+        headers:{
+          'Authorization' : 'Bearer ' + localStorage.getItem('token'),
+        }
+      })
       .then((data) => {
         const sortedData = data.data['youtubers'].sort((a, b) => b.islive - a.islive);
         setYoutubers(sortedData);
@@ -119,13 +130,6 @@ function TYTable() {
 
   return (
     <div className=' mt-6 pb-24'>
-
-
-
-
-
-
-
       <div className="mt-6 pb-24 rounded-md">
 
         {/* <VideoCarosel></VideoCarosel> */}
@@ -259,6 +263,12 @@ function TYTable() {
                 </div>
               </Link>
             ))}
+
+
+                {newFilteredStreams.length===0 && <div className='bg-gray-800 w-full cursor-pointer px-12 py-12 rounded-md'>
+                  no results for {platformSelected}, why not add a twitch or youtube channel?
+                  </div>}
+            
           </div>
 
         </div>

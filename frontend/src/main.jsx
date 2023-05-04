@@ -40,12 +40,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
       <Route  path='/' element={<LandingPage />} />
-      <Route path='/demo' element={<Home />} />
-      <Route path='/auth' element={<SignUp />} />
-      <Route path='/dashboard' element={<DashboardHome></DashboardHome>} ></Route>
-      <Route path='/dashboard/:comp' element={<DashboardHome></DashboardHome>} ></Route>
-      <Route path='/dashboard/:comp/:section' element={<DashboardHome></DashboardHome>} ></Route>
-      <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
+      
+      <Route element={<PrivateRoute/>}>
+        <Route path='/dashboard' element={<Home />} />
+        <Route path='/requests/:username' element={<ViewRecordRequests></ViewRecordRequests>} />
       <Route path='/addchannel/:platform' element={<AddYoutuber></AddYoutuber>} />
       <Route path='/addrecordrequest/:username' element={<AddRecordRequest></AddRecordRequest>} />
       <Route path='/viewrecordings/:rqid/:username' element={<ViewAllRecordings></ViewAllRecordings>} />
@@ -53,6 +51,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/recordings/:username/:filter' element={<ViewAllRecordingsByUsername></ViewAllRecordingsByUsername>} />
       <Route path='/billing/addon' element={<BillingAddForm></BillingAddForm>} />
+      </Route>
+
+      <Route path='/auth' element={<SignUp />} />
+      {/* <Route path='/dashboard' element={<DashboardHome></DashboardHome>} ></Route> */}
+      {/* <Route path='/dashboard/:comp' element={<DashboardHome></DashboardHome>} ></Route> */}
+      {/* <Route path='/dashboard/:comp/:section' element={<DashboardHome></DashboardHome>} ></Route> */}
+    
       </Routes>
     </BrowserRouter>
     </AuthProvider>

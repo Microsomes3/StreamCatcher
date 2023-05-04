@@ -24,7 +24,11 @@ function AddYoutuber() {
 
     useEffect(() => {
         axios
-            .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses')
+            .get('https://54ttpoac10.execute-api.us-east-1.amazonaws.com/dev/getLiveStatuses',{
+                headers: {
+                    'Authorization' : 'Bearer ' + localStorage.getItem('token')
+                }
+            })
             .then((data) => {
                 const usernames = data.data.youtubers.map((youtuber) => youtuber.username);
 
@@ -65,6 +69,10 @@ function AddYoutuber() {
             "triggerInterval": triggerInterval,
             "shouldRecordStart": shouldRecordStart,
             "provider": channelType
+        },{
+            headers: {
+                'Authorization' : 'Bearer ' + localStorage.getItem('token')
+            }
         }).then((data) => {
             console.log(data);
 
