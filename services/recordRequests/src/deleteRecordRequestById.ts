@@ -1,48 +1,43 @@
-import * as aws from 'aws-sdk';
-import { APIGatewayProxyEvent } from 'aws-lambda'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import axios from 'axios';
+import { deleteRecordRequestById } from './helpers/rdrequestsHelper'
 
-const documentClient = new aws.DynamoDB.DocumentClient({
-    region: process.env.AWS_REGION_T,
-});
+module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
+    try {
+        const user = await axios.get("https://21tk2wt1ye.execute-api.us-east-1.amazonaws.com/dev/me", {
+            headers: {
+                'Authorization': event.headers.Authorization,
+            }
+        })
 
-module.exports.handler = async (event:APIGatewayProxyEvent) => {
+        const { id: userid }: { id: string, email: string } = user.data.user;
 
-    const requestId = event.pathParameters?.id;
+        const requestId: string = event.pathParameters?.id || "";
 
-    if(requestId == "9a16c253-d8d1-4f8f-9a62-5add6cdce7dd"){
+        const deleteResult: boolean = await deleteRecordRequestById(requestId, userid)
+
         return {
-            statusCode: 404,
+            statusCode: 200,
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Credentials": true,
             },
             body: JSON.stringify({
-                error: "cannot delete griffin"
+                result: deleteResult,
+            })
+        };
+    } catch (err) {
+        console.log(err);
+        return {
+            statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+            },
+            body: JSON.stringify({
+                error: err,
             }),
-        }
+        };
     }
-
-    //delete record request
-
-    const params:any = {
-        TableName: process.env.RECORD_REQUEST_TABLE,
-        Key: {
-            id: requestId,
-        },
-    };
-
-    const data:any = await documentClient.delete(params).promise();
-    
-    return {
-        statusCode: 200,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": true,
-        },
-        body: JSON.stringify({
-            results: data.Items || [],
-        }),
-    };
-
 }

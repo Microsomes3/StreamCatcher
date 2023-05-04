@@ -1,6 +1,7 @@
 import * as aws from 'aws-sdk';
 import moment from 'moment';
 import { APIGatewayProxyResult, APIGatewayProxyEvent } from 'aws-lambda';
+import axios from 'axios';
 
 const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T,
@@ -15,7 +16,18 @@ function uuidv4() {
 }
 
 
-module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
+module.exports.handler = async (event:APIGatewayProxyEvent):Promise<APIGatewayProxyResult> => {
+
+    try{
+    const user = await axios.get("https://21tk2wt1ye.execute-api.us-east-1.amazonaws.com/dev/me",{
+        headers:{
+            'Authorization': event.headers.Authorization,
+        }
+    })
+
+    const {id,email}:{id:string,email:string} = user.data.user;
+
+
     const {
         provider = "youtube",
         username,
@@ -33,11 +45,16 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
             label:string,
             triggerTime:string,
             triggerInterval:string
-        } = JSON.parse(event.body);
+        } = JSON.parse(event.body || "");
 
     if (!username || !duration || !trigger || !label || !triggerTime || !triggerInterval) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'Missing required parameters',
                 expected: [
@@ -52,6 +69,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (isNaN(duration)) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'duration, maxparts and minruntime must be numbers',
             }),
@@ -61,6 +83,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (duration <= 0) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'duration, maxparts and minruntime must be positive numbers',
             }),
@@ -72,6 +99,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (duration % 1 !== 0) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'duration, maxparts and minruntime must be whole numbers',
             }),
@@ -83,6 +115,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (duration > 86400) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'duration must be less than 24 hours',
             }),
@@ -95,6 +132,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (typeof isComments !== 'boolean') {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'isComments must be a boolean',
             }),
@@ -105,6 +147,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (typeof shouldRecordStart !== 'boolean') {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'shouldRecordStart must be a boolean',
             }),
@@ -123,6 +170,11 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
     if (!acceptedIntervals.includes(triggerInterval)) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+                "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+            },
             body: JSON.stringify({
                 error: 'triggerInterval must be one of the following: 5m, 20m, 30m, 1hr, 2hr, 3hr',
             }),
@@ -133,6 +185,8 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
         TableName: process.env.RECORD_REQUEST_TABLE,
         Item: {
             id: uuidv4(),
+            email:email,
+            accountId: id,
             provider,
             username,
             duration,
@@ -156,11 +210,26 @@ module.exports.handler = async (event:any):Promise<APIGatewayProxyResult> => {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Credentials": true,
+            "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
         },
         body: JSON.stringify({
             input: params,
             data,
         }),
     };
+}catch(err){
+    return {
+        statusCode: 500,
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": true, // Required for cookies, authorization headers with HTTPS
+            "Access-Control-Allow-Methods": "GET,HEAD,OPTIONS,POST,PUT",
+        },
+        body: JSON.stringify({
+            error: err,
+        }),
+        
+    }
+}
 
 }

@@ -32,9 +32,9 @@ function handleFunc({ data }) {
                 Status,
                 Recordid: jobId
             });
-            (0, recordHelper_1.sendRecordingToShitpost)({
-                url: [r2Link],
-            });
+            // sendRecordingToShitpost({
+            //     url: [r2Link],
+            // })
         }
         else {
             console.log(">>", jobId);

@@ -24,6 +24,10 @@ provider:
       Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/username-index"
     - Effect: Allow
       Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/RecordRequestTable/index/accountId-index"
+    - Effect: Allow
+      Action:
         - sqs:SendMessage
         - sqs:ReceiveMessage
         - sqs:DeleteMessage
@@ -102,6 +106,7 @@ functions:
           path: /recordRequest/{username}
           method: get
           cors: true
+          authorizer: arn:aws:lambda:us-east-1:574134043875:function:authenticate-dev-verify-token
   getAllRecordRequests:
     handler: .build/getAllRecordRequests.handler
     events:

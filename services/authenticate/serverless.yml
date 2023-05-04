@@ -1,0 +1,68 @@
+service: authenticate
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+  environment:
+    JWT_SECRET: "eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY4MjcxMDE3NywiaWF0IjoxNjgyNzEwMTc3fQ.Ma_AytXHo_gb8AJpqQ6wb37YxpTGyc9MkmSgMJ1c8tg"
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: !GetAtt usersTable.Arn
+
+
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: userstable
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+
+functions:
+  verify-token:
+    handler: src/authorize.handler
+  me:
+    handler: src/me.handler
+    events:
+      - http:
+          path: me
+          method: get
+          cors: true
+          authorizer: 
+            name: verify-token
+            identitySource: method.request.header.Authorization
+            resultTtlInSeconds: 0
+  login:
+    handler: src/login.handler
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+  register:
+    handler: src/register.handler
+    events:
+      - http:
+          path: register
+          method: post
+          cors: true

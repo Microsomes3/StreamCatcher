@@ -14,7 +14,7 @@ const documentClient = new aws.DynamoDB.DocumentClient({
     region: process.env.AWS_REGION_T || 'us-east-1',
 });
 
-export function getRecordRequestById(id:number) {
+export function getRecordRequestById(id:any) {
     return new Promise(async (resolve, reject) => {
         try {
 

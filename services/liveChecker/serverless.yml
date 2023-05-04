@@ -15,6 +15,7 @@ provider:
     CALLBACK_FOR_RECORD_SERVICE: ${param:recordCallBackUrl}
     RECORD_REQUEST_TABLE: ${param:recordRequestTable}
     RECORD_REQUEST_TABLE_ARN: ${param:recordRequestTableArn}
+    YOUTUBE_TO_ACCOUNT: !Ref YoutubersToAccount
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -25,6 +26,10 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: !GetAtt LiveCheckerTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: !GetAtt YoutubersToAccount.Arn
     - Effect: Allow
       Action:
         - dynamodb:Query
@@ -76,6 +81,10 @@ provider:
       Action:
         - dynamodb:*
       Resource: !GetAtt YoutubeLiveScheduleTable.Arn
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: "arn:aws:dynamodb:us-east-1:574134043875:table/griffin-livechecker-service-dev-YoutubersToAccount-1P90FHFY1WGL9/index/accountId-index"
   
 resources:
   Outputs:
@@ -141,6 +150,27 @@ resources:
         BillingMode: PAY_PER_REQUEST
         StreamSpecification:
           StreamViewType: NEW_IMAGE
+    YoutubersToAccount:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: ytusernameaccountid
+            KeyType: HASH
+          - AttributeName: accountId
+            KeyType: RANGE
+        AttributeDefinitions:
+          - AttributeName: ytusernameaccountid
+            AttributeType: S
+          - AttributeName: accountId
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: accountId-index
+            KeySchema:
+              - AttributeName: accountId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
     YoutubersToCheckTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -201,6 +231,14 @@ resources:
           deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
           maxReceiveCount: 3
 functions:
+  AddYoutuberUsername:
+    handler: .build/addYoutuberUsername.handler
+    events:
+      - http:
+          path: /addYoutuberUsername
+          method: post
+          cors: true
+
   AllAggregateCurrentYoutuberLive:
     handler: allAggregateCurrentYoutuberLive.allAggregateCurrentYoutuberLive
     events:
@@ -246,6 +284,7 @@ functions:
           path: /getLiveStatuses
           method: get
           cors: true
+          
   GetLiveStatusByUsername:
     handler: .build/getLiveStatusByUsername.handler
     events:

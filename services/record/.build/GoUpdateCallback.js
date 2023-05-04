@@ -63,9 +63,9 @@ function handleFunc({ data }) {
             Recordid: jobId
         });
         if (state == "done" && isStart == false) {
-            (0, recordHelper_1.sendRecordingToShitpost)({
-                url: result[0],
-            });
+            // sendRecordingToShitpost({
+            //     url: result[0],
+            // })
         }
         console.log(ae);
     });

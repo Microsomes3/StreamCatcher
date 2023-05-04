@@ -392,6 +392,14 @@ functions:
               - AutoScheduleQueue
               - Arn
           batchSize: 1
+  TriggerAdhocWithoutRequest:
+    handler: .build/RecordAdhocWithoutRequest.handler
+    timeout: 30
+    events:
+      - http:
+          path: RecordAdhocWithoutRequest
+          method: post
+          cors: true
   TriggerAdhocRecord:
     handler: .build/RecordByRequestIDAdhoc.handler
     timeout: 30

@@ -1,62 +1,42 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const aws = __importStar(require("aws-sdk"));
-const documentClient = new aws.DynamoDB.DocumentClient({
-    region: process.env.AWS_REGION_T,
-});
+const axios_1 = __importDefault(require("axios"));
+const rdrequestsHelper_1 = require("./helpers/rdrequestsHelper");
 module.exports.handler = async (event) => {
-    const requestId = event.pathParameters?.id;
-    if (requestId == "9a16c253-d8d1-4f8f-9a62-5add6cdce7dd") {
+    try {
+        const user = await axios_1.default.get("https://21tk2wt1ye.execute-api.us-east-1.amazonaws.com/dev/me", {
+            headers: {
+                'Authorization': event.headers.Authorization,
+            }
+        });
+        const { id: userid } = user.data.user;
+        const requestId = event.pathParameters?.id || "";
+        const deleteResult = await (0, rdrequestsHelper_1.deleteRecordRequestById)(requestId, userid);
         return {
-            statusCode: 404,
+            statusCode: 200,
             headers: {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Credentials": true,
             },
             body: JSON.stringify({
-                error: "cannot delete griffin"
+                result: deleteResult,
+            })
+        };
+    }
+    catch (err) {
+        console.log(err);
+        return {
+            statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": true,
+            },
+            body: JSON.stringify({
+                error: err,
             }),
         };
     }
-    //delete record request
-    const params = {
-        TableName: process.env.RECORD_REQUEST_TABLE,
-        Key: {
-            id: requestId,
-        },
-    };
-    const data = await documentClient.delete(params).promise();
-    return {
-        statusCode: 200,
-        headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": true,
-        },
-        body: JSON.stringify({
-            results: data.Items || [],
-        }),
-    };
 };

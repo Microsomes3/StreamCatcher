@@ -48,9 +48,9 @@ function handleFunc({ data }:{data:any}) {
                 Recordid: jobId
             })
 
-            sendRecordingToShitpost({
-                url: [r2Link],
-            })
+            // sendRecordingToShitpost({
+            //     url: [r2Link],
+            // })
 
 
         } else {
