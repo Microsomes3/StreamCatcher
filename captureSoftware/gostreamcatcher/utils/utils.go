@@ -24,6 +24,7 @@ type SteamJob struct {
 	ChannelName     string `json:"channelName"`
 	ShouldUpload    string `json:"shouldUpload"`
 	TryToCaptureAll string `json:"tryToCaptureAll"`
+	Engine          string `json:"engine"` //yt-dlp or ytarchive
 }
 
 type FileStatus struct {

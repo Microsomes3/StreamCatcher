@@ -15,6 +15,10 @@ ADD ffmpegb /APP
 RUN cp ffmpeg /bin/ffmpeg
 RUN cp ffprobe /bin/ffprobe
 
+COPY ytarchive /APP/
+
+COPY ytarchive /bin/ytarchive
+
 COPY . .
 
 # RUN go mod download

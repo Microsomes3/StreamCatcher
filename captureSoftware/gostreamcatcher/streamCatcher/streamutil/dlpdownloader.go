@@ -109,6 +109,35 @@ func KillDownload(child *exec.Cmd, Job utils.SteamJob) {
 
 }
 
+func getDownloadArgsYt(Job utils.SteamJob, mode string) []string {
+	var toReturn = []string{Job.YoutubeLink, "-o", "./tmp/" + "%(title)s.%(ext)s"}
+
+	if mode == "start" {
+		toReturn = append([]string{"-k"}, toReturn...)
+		toReturn = append([]string{"--live-from-start"}, toReturn...)
+	}
+
+	return toReturn
+}
+
+func startCommand(Job utils.SteamJob, mode string, args []string) *exec.Cmd {
+
+	var toReturn *exec.Cmd = nil
+
+	if Job.Engine == "yt-dlp" {
+		if mode == "start" {
+			toReturn = exec.Command(Job.Engine, args...)
+			fmt.Println("from start")
+		} else {
+			toReturn = exec.Command(Job.Engine, args...)
+		}
+	} else {
+		toReturn = exec.Command(Job.Engine, args...)
+	}
+
+	return toReturn
+}
+
 func TryDownload(Job utils.SteamJob, wssocket string) (utils.JobResponse, error) {
 
 	var mode string = ""
@@ -129,22 +158,15 @@ func TryDownload(Job utils.SteamJob, wssocket string) (utils.JobResponse, error)
 
 	fmt.Println("trydownload", Job.JobID)
 
-	ytDlpArgs := []string{Job.YoutubeLink, "-o", "./tmp/" + "%(title)s.%(ext)s"}
+	var downloadArgs []string = []string{}
 
-	if mode == "start" {
-		ytDlpArgs = append([]string{"-k"}, ytDlpArgs...)
-		ytDlpArgs = append([]string{"--live-from-start"}, ytDlpArgs...)
-	}
-
-	fmt.Println("====", ytDlpArgs)
-
-	var child *exec.Cmd
-	if mode == "start" {
-		child = exec.Command("yt-dlp", ytDlpArgs...)
-		fmt.Println("from start")
+	if Job.Engine == "yt-dlp" {
+		downloadArgs = getDownloadArgsYt(Job, mode)
 	} else {
-		child = exec.Command("yt-dlp", ytDlpArgs...)
+		downloadArgs = []string{Job.Engine, "https://www.youtube.com/@CreepsMcPasta/live", "1080p/best"}
 	}
+
+	var child *exec.Cmd = startCommand(Job, mode, downloadArgs)
 
 	// stderr, err := child.StderrPipe()
 	strData, err := child.StdoutPipe()

@@ -60,14 +60,6 @@ func getJob() *utils.SteamJob {
 		provider = "youtube" //
 	}
 
-	fmt.Println("jobid: ", jobid)
-	fmt.Println("url: ", url)
-	fmt.Println("timeout: ", timeout)
-	fmt.Println("isstart: ", isstart)
-	fmt.Println("updatehook: ", updatehook)
-	fmt.Println("reqid: ", reqid)
-	fmt.Println("capture all:", tryCaptureAll)
-
 	if shouldUpload == "" {
 		shouldUpload = "yes"
 	}
@@ -82,6 +74,14 @@ func getJob() *utils.SteamJob {
 
 	timeoutInt, _ := strconv.ParseInt(timeout, 10, 64)
 
+	var engine string = ""
+
+	if os.Getenv("engine") != "" {
+		engine = os.Getenv("engine")
+	} else {
+		engine = "yt-dlp"
+	}
+
 	job := utils.SteamJob{
 		JobID:           jobid,
 		ReqID:           reqid,
@@ -92,9 +92,12 @@ func getJob() *utils.SteamJob {
 		Provider:        provider,
 		ShouldUpload:    shouldUpload,
 		TryToCaptureAll: tryCaptureAll,
+		Engine:          engine,
 	}
 
 	job.ChannelName = getChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)
+
+	fmt.Println("job:", job)
 
 	return &job
 
