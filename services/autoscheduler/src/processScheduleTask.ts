@@ -1,12 +1,6 @@
 import * as aws from 'aws-sdk'
-import { makeRecordRequest } from './helpers/submitRecordingsRequest'
+import { makeRecordRequest, captureCommentRunTask } from './helpers/submitRecordingsRequest'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-
-const ecs = new aws.ECS({
-    region: process.env.AWS_REGION_T || 'us-east-1',
-});
-
-
 
 
 function handleFunc(request:any, auto:any) {

@@ -94,65 +94,75 @@ func getJob() *utils.SteamJob {
 		TryToCaptureAll: tryCaptureAll,
 	}
 
+	job.ChannelName = getChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)
+
 	return &job
 
 }
 
-func main() {
-
-	jobToUse := getJob()
-
-	fmt.Println("jobToUse: ", jobToUse)
-
+func StartSystem(streamCatcher *streamcatcher.StreamCatcher, workerWaitGroup *sync.WaitGroup) context.CancelFunc {
 	queueCtx, cancelQueue := context.WithCancel(context.Background())
 
-	wgl := sync.WaitGroup{}
+	go streamCatcher.StartAllWorkers(workerWaitGroup)
+	go streamCatcher.StartQueues(queueCtx)
 
-	wgl.Add(1)
+	return cancelQueue
+}
 
-	callback := func(job utils.SteamJob) {
+func SystemCallback(systemWaitGroup *sync.WaitGroup, cancelQueue context.CancelFunc) func(job utils.SteamJob) {
+	return func(job utils.SteamJob) {
 		fmt.Println("callback:", job.JobID)
 		os.Exit(0)
 		cancelQueue()
-		wgl.Done()
+		systemWaitGroup.Done()
 	}
+}
 
-	streamCatcher := streamcatcher.NewStreamCatcher(nil, callback)
+func main() {
 
-	fmt.Println("streamCatcher: ", streamCatcher)
+	systemWaitGroup := sync.WaitGroup{}
+	workerWaitGroup := sync.WaitGroup{}
+	systemWaitGroup.Add(1)
+	_, cancelQueue := context.WithCancel(context.Background())
 
-	wg := sync.WaitGroup{}
-	go streamCatcher.StartAllWorkers(&wg)
-	go streamCatcher.StartQueues(queueCtx)
+	jobInfo := getJob()
+	streamCatcher := streamcatcher.NewStreamCatcher(*jobInfo, nil, SystemCallback(&systemWaitGroup, cancelQueue))
 
-	username := getChannelNameFromUrl(jobToUse, jobToUse.YoutubeLink, jobToUse.Provider)
-
-	if username == "" {
-		streamCatcher.AddStatusEvent(jobToUse, "error", []string{"username not found"})
+	if jobInfo.ChannelName == "" {
+		fmt.Println("Channel name could not be determined")
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR"),
+			utils.WithStatusReason("Channel name could not be determined"),
+		)
 		os.Exit(0)
 	}
 
-	isLive, err := streamcatcher.GetLiveStatusv2(username, jobToUse.Provider)
+	isLive, err := streamcatcher.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
 	if err != nil {
-		fmt.Println("error: ", err)
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR"),
+			utils.WithStatusReason("cannot determine if channel is live"),
+		)
 	}
 
-	if !isLive {
-		fmt.Println("not live")
-
-		streamCatcher.AddStatusEvent(jobToUse, "was_not_live", []string{"user is not live"})
-
+	if isLive {
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("PREPARING"),
+			utils.WithStatusReason("Preparing to start recording"),
+		)
+	} else {
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR_OFFLINE"),
+			utils.WithStatusReason("Channel is offline"),
+		)
 		os.Exit(0)
 	}
 
-	//griffin start beta v2 request
-	if jobToUse.ReqID == "e3d035ac-fbe2-49e3-812e-327c6fb5f342" {
-		jobToUse.TryToCaptureAll = "yes"
-	}
+	cancelQueue = StartSystem(streamCatcher, &workerWaitGroup)
 
-	streamCatcher.AddJob(*jobToUse)
+	streamCatcher.AddJob(*jobInfo)
 
-	wg.Wait()
+	systemWaitGroup.Wait()
+	workerWaitGroup.Wait()
 
-	wgl.Wait()
 }

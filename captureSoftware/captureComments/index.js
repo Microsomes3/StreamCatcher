@@ -1,12 +1,8 @@
 const {
-
     scrapeComments,
-    stopCapturing
-
 } = require("./comments.js")
 
 const { manageUploadST } = require("./upload")
-
 
 const axios = require("axios");
 

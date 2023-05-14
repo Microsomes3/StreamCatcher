@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAsRecording = exports.checkWhichRequestsShouldTrigger = exports.getRecordRequestById = void 0;
+exports.deleteAutoV3ScheduleMarker = exports.deleteMarkerAutoV3 = exports.markAsRecording = exports.checkWhichRequestsShouldTrigger = exports.getRecordRequestById = void 0;
 const aws = __importStar(require("aws-sdk"));
 const databasehelperv2_1 = require("./databasehelperv2");
 const submitRecordingsRequest_1 = require("./submitRecordingsRequest");
@@ -234,3 +234,54 @@ function markAsRecording(username, livelink, request) {
     });
 }
 exports.markAsRecording = markAsRecording;
+function deleteMarkerAutoV3({ recordrequestid }) {
+    return new Promise((resolve, reject) => {
+        const params = {
+            TableName: process.env.AUTO_SCHEDULE_TABLEV3 || "griffin-autoscheduler-service-dev-AutoScheduleV3Table-SDFUN2OI5LO5",
+            Key: {
+                recordrequestid
+            }
+        };
+        documentClient.delete(params, (err, data) => {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            else {
+                resolve(data);
+            }
+        });
+    });
+}
+exports.deleteMarkerAutoV3 = deleteMarkerAutoV3;
+function deleteAutoV3ScheduleMarker({ username }) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const params = {
+                TableName: process.env.AUTO_SCHEDULE_TABLEV3 || "griffin-autoscheduler-service-dev-AutoScheduleV3Table-SDFUN2OI5LO5",
+            };
+            const data = await documentClient.scan(params).promise();
+            const itemsToDelete = [];
+            if (data.Items) {
+                data.Items.forEach(async (item) => {
+                    const c = item.channel;
+                    if (c == username) {
+                        itemsToDelete.push(item.recordrequestid);
+                    }
+                });
+            }
+            for (var i = 0; i < itemsToDelete.length; i++) {
+                const recordrequestid = itemsToDelete[i];
+                await deleteMarkerAutoV3({
+                    recordrequestid
+                });
+            }
+            resolve(true);
+        }
+        catch (e) {
+            console.log(e);
+            resolve(false);
+        }
+    });
+}
+exports.deleteAutoV3ScheduleMarker = deleteAutoV3ScheduleMarker;

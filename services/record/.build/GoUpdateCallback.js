@@ -33,7 +33,8 @@ function handleIsStartLogic({ jobId, reqId, results, state }) {
 }
 function handleFunc({ data }) {
     return new Promise(async (resolve, reject) => {
-        const { Job, Status } = data;
+        const { Job, Status, ReasonForEnd = null } = data;
+        console.log(">", ReasonForEnd);
         const { jobId, reqId, youtubeLink, channelName, type = "normal", isStart = false } = Job;
         const { result, state } = Status;
         var stateToUse = state;

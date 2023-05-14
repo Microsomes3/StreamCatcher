@@ -5,7 +5,8 @@
   "main": "callbackReceivedLive.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"tsc"
+    "dev":"tsc",
+    "watch":"tsc -w"
   },
   "author": "",
   "license": "ISC",

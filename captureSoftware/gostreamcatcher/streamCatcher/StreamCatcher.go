@@ -16,6 +16,7 @@ import (
 )
 
 type StreamCatcher struct {
+	ReferenceJob              utils.SteamJob
 	JobQueue                  chan utils.SteamJob
 	WorkQueue                 chan utils.SteamJob
 	ConcurrentLimit           int
@@ -48,8 +49,9 @@ func (s *StreamCatcher) GetAllStatusesByJobID(id string) []utils.JobStatus {
 	return s.JobStatusEvents[id]
 }
 
-func NewStreamCatcher(scsocket *StreamCatcherSocketServer, callback func(utils.SteamJob)) *StreamCatcher {
+func NewStreamCatcher(refJob utils.SteamJob, scsocket *StreamCatcherSocketServer, callback func(utils.SteamJob)) *StreamCatcher {
 	return &StreamCatcher{
+		ReferenceJob:              refJob,
 		JobQueue:                  make(chan utils.SteamJob, 10),
 		WorkQueue:                 make(chan utils.SteamJob, 100),
 		ConcurrentLimit:           1,
@@ -63,8 +65,40 @@ func NewStreamCatcher(scsocket *StreamCatcherSocketServer, callback func(utils.S
 }
 
 type ToSendStatusHook struct {
-	Job    utils.SteamJob
-	Status utils.JobStatus
+	Job          utils.SteamJob
+	Status       utils.JobStatus
+	ReasonForEnd utils.ReasonToSend
+}
+
+func (s *StreamCatcher) sendStatusToMissionControl(statusToSend utils.JobStatusV2) bool {
+
+	httpCliemt := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	statusBytes, err := json.Marshal(statusToSend)
+
+	if err != nil {
+		return false
+	}
+
+	req, err := http.NewRequest("POST", s.ReferenceJob.UpdateHook, bytes.NewBuffer(statusBytes))
+
+	if err != nil {
+		return false
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpCliemt.Do(req)
+
+	if err != nil {
+		return false
+	}
+
+	defer resp.Body.Close()
+
+	return true
 }
 
 func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.JobStatus) {
@@ -73,8 +107,9 @@ func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.J
 	}
 
 	statusToSend := ToSendStatusHook{
-		Job:    *job,
-		Status: status,
+		Job:          *job,
+		Status:       status,
+		ReasonForEnd: utils.ReasonToSend{},
 	}
 
 	if status.State == "done" {
@@ -120,6 +155,18 @@ func (s *StreamCatcher) sendStatusToCallback(job *utils.SteamJob, status utils.J
 
 	fmt.Println("Response: ", string(datab))
 
+}
+
+func (s *StreamCatcher) AddStatusEventV2(opts ...utils.StatusOptions) {
+	defaultOpts := utils.JobStatusV2{
+		DateTime:   time.Now().Unix(),
+		JobDetails: s.ReferenceJob,
+	}
+	for _, opt := range opts {
+		opt(&defaultOpts)
+	}
+
+	s.sendStatusToMissionControl(defaultOpts)
 }
 
 func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, result []string) {
@@ -188,8 +235,7 @@ func (s *StreamCatcher) AddStatusEvent(job *utils.SteamJob, status string, resul
 }
 
 func (s *StreamCatcher) AddJob(job utils.SteamJob) {
-	fmt.Println("Adding job to job queue: ", job.JobID)
-	s.AddStatusEvent(&job, "queued", []string{})
+	s.AddStatusEventV2(utils.WithStatusCode("QUEUED"), utils.WithStatusReason("Job is Queued for recording"))
 	s.JobQueue <- job
 }
 
@@ -219,9 +265,9 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 
 	for Job := range s.WorkQueue {
 
-		s.AddStatusEvent(&Job, "recording", []string{})
+		s.AddStatusEventV2(utils.WithStatusCode("RECORDING"), utils.WithStatusReason("Job is being recorded"))
 
-		_, uploadLinks, err := streamutil.ProcessDownload(Job, s.SendProgressionData)
+		_, uploadLinks, err := streamutil.ProcessDownload(s.AddStatusEventV2, Job, s.SendProgressionData)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			s.AddStatusEvent(&Job, "error", []string{err.Error()})
@@ -235,7 +281,7 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 
 		fmt.Println("Upload done: ", uploadLinks)
 
-		s.AddStatusEvent(&Job, "done", uploadLinks)
+		s.AddStatusEventV2(utils.WithStatusCode("DONE"), utils.WithStatusReason("Job is done"))
 
 		if s.Callback != nil {
 

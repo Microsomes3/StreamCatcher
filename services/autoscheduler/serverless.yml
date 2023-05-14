@@ -19,7 +19,6 @@ provider:
     RECORD_RECORD_USERNAME_INDEX: !ImportValue RecordRequestUsernameIndexName
     RECORD_STATUS_TABLE: !ImportValue RecordStatusesTable
     RECORD_STATUS_TABLEArn: !ImportValue RecordStatusesTableArn
-    EC2_TASK_DEFINITION: !Ref EC2Task
     EC2_CONTAINER_NAME: !Sub ${AWS::StackName}-EC2Task
     AUTO_SCHEDULE_QUEUE_URL: !GetAtt AutoScheduleQueue.QueueUrl
     CONTAINER_NAME: griffin-autoscheduler-service-dev-EC2Task
@@ -30,6 +29,8 @@ provider:
     CHECK_SCHEDULE_QUEUE_URL: !GetAtt CheckScheduleQueue.QueueUrl
     GOECS_CONTAINER_NAME: !Sub ${AWS::StackName}-GOEcsContainer
     GOECS_TASK_DEFINITION: !Sub ${AWS::StackName}-GoECSTask
+    COMMENTVIDEO_V2_CONTAINER_NAME: GoCommentCaptureVideoContainerV2
+    COMMENTVIDEO_V2_FAMILY: GoCommentCaptureVideoFamilyV2
 
   
   iamRoleStatements:
@@ -152,6 +153,10 @@ resources:
           Version: '2012-10-17'
           Statement:
           - Effect: Allow
+            Action: ssmmessages:*
+            Principal:
+              Service: "*"
+          - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
@@ -174,42 +179,15 @@ resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::574134043875:policy/CFFULL
-    SlipTask:
+    
+  
+    GOEcsTask:
       Type: AWS::ECS::TaskDefinition
       Properties:
         RuntimePlatform:
           OperatingSystemFamily: LINUX
           CpuArchitecture: ARM64
-        Family: !Sub ${AWS::StackName}-SlipTaskARM
-        Cpu: 256
-        Memory: 512
-        EphemeralStorage:
-          SizeInGiB: 50
-        RequiresCompatibilities:
-          - FARGATE
-        NetworkMode: awsvpc
-        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
-        TaskRoleArn: !GetAtt TaskRole.Arn
-        ContainerDefinitions:
-          - Name: !Sub ${AWS::StackName}-SlipTask
-            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
- 
-            LogConfiguration:
-              LogDriver: awslogs
-              Options:
-                awslogs-group: !Ref LogsGroup
-                awslogs-region: !Ref AWS::Region
-                awslogs-stream-prefix: ecs
-            Essential: true
-            Environment:
-              - Name: AWS_REGION_T
-                Value: !Ref AWS::Region
-              - Name: completionCallbackUrl
-                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
-    EC2Task:
-      Type: AWS::ECS::TaskDefinition
-      Properties:
-        Family: !Sub ${AWS::StackName}-EC2Task2
+        Family: !Sub ${AWS::StackName}-GOEcsTask
         Cpu: 512
         Memory: 1024
         EphemeralStorage:
@@ -220,71 +198,10 @@ resources:
         ExecutionRoleArn: !GetAtt ExecutionRole.Arn
         TaskRoleArn: !GetAtt TaskRole.Arn
         ContainerDefinitions:
-          - Name: !Sub ${AWS::StackName}-EC2Task
-            Image: public.ecr.aws/m8l7i2c5/streamcatcher:latest
-            LogConfiguration:
-              LogDriver: awslogs
-              Options:
-                awslogs-group: !Ref LogsGroup
-                awslogs-region: !Ref AWS::Region
-                awslogs-stream-prefix: ecs
-            Essential: true
-            Environment:
-              - Name: AWS_REGION_T
-                Value: !Ref AWS::Region
-              - Name: completionCallbackUrl
-                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/RecordCompleteCallback"
-    GOEcsTaskNotFromStart:
-      Type: AWS::ECS::TaskDefinition
-      Properties:
-        RuntimePlatform:
-          OperatingSystemFamily: LINUX
-          CpuArchitecture: ARM64
-        Family: !Sub ${AWS::StackName}-GOEcsTaskNotFromStart
-        Cpu: 1024
-        Memory: 2048
-
-        EphemeralStorage:
-          SizeInGiB: 50
-        RequiresCompatibilities:
-          - FARGATE
-        NetworkMode: awsvpc
-        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
-        TaskRoleArn: !GetAtt TaskRole.Arn
-        ContainerDefinitions:
-          - Name: !Sub ${AWS::StackName}-GOEcsContainerNotFromStart
-            Image: public.ecr.aws/m8l7i2c5/gostreamcatcher:latest
-            LogConfiguration:
-              LogDriver: awslogs
-              Options:
-                awslogs-group: !Ref LogsGroup
-                awslogs-region: !Ref AWS::Region
-                awslogs-stream-prefix: ecs
-            Essential: true
-            Environment:
-              - Name: AWS_REGION_T
-                Value: !Ref AWS::Region
-              - Name: updatehook
-                Value: "https://kxb72rqaei.execute-api.us-east-1.amazonaws.com/dev/GoOnUpdateRecordCallback"
-    GOEcsTask:
-      Type: AWS::ECS::TaskDefinition
-      Properties:
-        RuntimePlatform:
-          OperatingSystemFamily: LINUX
-          CpuArchitecture: ARM64
-        Family: !Sub ${AWS::StackName}-GOEcsTask
-        Cpu: 256
-        Memory: 512
-        EphemeralStorage:
-          SizeInGiB: 50
-        RequiresCompatibilities:
-          - FARGATE
-        NetworkMode: awsvpc
-        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
-        TaskRoleArn: !GetAtt TaskRole.Arn
-        ContainerDefinitions:
           - Name: !Sub ${AWS::StackName}-GOEcsContainer
             Image: public.ecr.aws/m8l7i2c5/gostreamcatcher:latest
+            LinuxParameters:
+              InitProcessEnabled: true
             LogConfiguration:
               LogDriver: awslogs
               Options:
@@ -353,7 +270,32 @@ resources:
                 Value: !Ref AWS::Region
               - Name: timeout
                 Value: "45000"
-    
+    GoCommentCaptureVideoV2:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: GoCommentCaptureVideoV2
+        Cpu: 1024
+        Memory: 3072
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: GoCommentCaptureVideoContainerV2
+            Image: public.ecr.aws/m8l7i2c5/gocommentvideov2:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
     
     AutoScheduleQueue:
       Type: AWS::SQS::Queue
@@ -377,6 +319,14 @@ resources:
     
 
 functions:
+  DeleteAutoMarkerByUsername:
+    handler: .build/deleteAutoMarker.handler
+    timeout: 30
+    events:
+      - http:
+          path: DeleteAutoMarkerByUsername/{username}
+          method: delete
+          cors: true
   checkSchedule:
     handler: .build/checkSchedule.handler
     timeout: 45
@@ -427,3 +377,5 @@ custom:
   prune:
     automatic: true
     number: 3
+
+    

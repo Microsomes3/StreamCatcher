@@ -252,8 +252,6 @@ export function checkWhichRequestsShouldTrigger(requests:any) {
     })
 }
 
-
-
 export function markAsRecording(
     username:string,
     livelink:string,
@@ -292,4 +290,62 @@ export function markAsRecording(
     })
 }
 
+export function deleteMarkerAutoV3({
+    recordrequestid
+}:{recordrequestid:string}):Promise<any>{
+    return new Promise((resolve,reject)=>{
+        const params = {
+            TableName: process.env.AUTO_SCHEDULE_TABLEV3 || "griffin-autoscheduler-service-dev-AutoScheduleV3Table-SDFUN2OI5LO5",
+            Key:{
+                recordrequestid
+            }
+        }
+
+        documentClient.delete(params,(err,data)=>{
+            if(err){
+                console.log(err);
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        })
+    })
+}
+
+export function deleteAutoV3ScheduleMarker({
+    username
+}:{username:string}):Promise<any>{
+    return new Promise(async (resolve,reject)=>{
+        try{
+        const params:any = {
+            TableName: process.env.AUTO_SCHEDULE_TABLEV3 || "griffin-autoscheduler-service-dev-AutoScheduleV3Table-SDFUN2OI5LO5",
+        }
+
+        const data = await documentClient.scan(params).promise();
+
+        const itemsToDelete:Array<any> = []
+
+        if(data.Items){
+            data.Items.forEach(async (item:any)=>{
+                const c = item.channel;
+                if(c == username){
+                    itemsToDelete.push(item.recordrequestid);
+                }
+            })
+        }
+
+        for(var i = 0; i < itemsToDelete.length; i++){
+            const recordrequestid = itemsToDelete[i];
+            await deleteMarkerAutoV3({
+                recordrequestid
+            })
+        }
+    resolve(true);
+    }catch(e){
+        console.log(e);
+        resolve(false);
+    }
+
+    })
+}
 

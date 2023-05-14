@@ -13,6 +13,126 @@ function uuidv4() {
     );
 }
 
+export function captureCommentRunTask({
+    username,
+    duration
+}:{
+    username:string,
+    duration:any
+}){
+    return new Promise((resolve,reject)=>{
+        const taskDef = "GoCommentCaptureTask"
+        const containerName = "GoCommentCaptureContainer"
+
+        const ecsparams = {
+            cluster: "griffin-record-cluster",
+            taskDefinition: taskDef,
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: containerName,
+                        environment: [
+                            {
+                                name:'username',
+                                value:username
+                            },
+                            {
+                                name:'timeout',
+                                value:duration.toString()
+                            }
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                {
+                    key: "username",
+                    value: username
+                }
+            ]
+        };
+
+        ecs.runTask(ecsparams, function(err, data) {
+            if (err) {
+                console.log("Error", err);
+                reject(err);
+            } else {
+                console.log("Success", data);
+                resolve(data);
+            }
+        })
+
+    })
+}
+
+export function captureCommentVideoV2Task({
+    jobId,
+    username,
+    timeout
+}:{jobId:string,username:string,timeout:any}):Promise<any>{
+    return new Promise((resolve,reject)=>{
+        const ecsparams:any = {
+            cluster: "griffin-record-cluster",
+            taskDefinition: "GoCommentCaptureVideoV2",
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: "GoCommentCaptureVideoContainerV2",
+                        environment: [
+                            {
+                                name:'username',
+                                value:username
+                            },
+                            {
+                                name:'timeout',
+                                value:timeout.toString()
+                            },
+                            {
+                                name:'jobId',
+                                value: jobId
+                            }
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                {
+                    key: "username",
+                    value: username
+                }
+            ]
+        };
+
+        ecs.runTask(ecsparams,(err,data)=>{
+            if(err){
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        })
+    })
+}
+
 function submitJobToEcs(
     username: string,
     requestId: string,
@@ -24,6 +144,7 @@ function submitJobToEcs(
 ): Promise<string> {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
+            enableExecuteCommand: true,
             cluster: "griffin-record-cluster",
             taskDefinition: "griffin-autoscheduler-service-dev-GOEcsTask",
             launchType: "FARGATE",
@@ -193,6 +314,21 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
                 tryToCaptureAll
             )
 
+            console.log(sid,data.Item);
+
+            if(isComments){
+                await captureCommentRunTask({
+                    username:username,
+                    duration:duration,
+                })
+
+                await captureCommentVideoV2Task({
+                    jobId: uniqueRecordId,
+                    username:username,
+                    timeout: duration.toString()
+                })
+            }
+
             const paramsStatuses = {
                 TableName: process.env.RECORD_STATUS_TABLE || 'RecordStatuses',
                 Item: {
@@ -246,16 +382,4 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
         }
 
     })
-}
-
-
-// makeRecordRequest({
-//     requestId: "d2fd2c46-cd94-4e09-88a3-b9f025811a50",
-//     auto:"",
-//     provider:"youtube"
-// })
-
-
-module.exports = {
-    makeRecordRequest
 }

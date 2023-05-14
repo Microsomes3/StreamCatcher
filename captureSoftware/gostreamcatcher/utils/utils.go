@@ -1,6 +1,16 @@
 package utils
 
-import "encore.dev/types/uuid"
+import (
+	"fmt"
+
+	"encore.dev/types/uuid"
+)
+
+type ReasonToSend struct {
+	Reason           string `json:"reason"`
+	IsTimeoutTrigger bool   `json:"isTimeoutTrigger"`
+	IsEndStream      bool   `json:"isEndStream"`
+}
 
 type SteamJob struct {
 	JobID           string `json:"jobId"`
@@ -14,6 +24,65 @@ type SteamJob struct {
 	ChannelName     string `json:"channelName"`
 	ShouldUpload    string `json:"shouldUpload"`
 	TryToCaptureAll string `json:"tryToCaptureAll"`
+}
+
+type FileStatus struct {
+	Name    string `json:"name"`
+	Size    int64  `json:"size"`
+	RunTime int64  `json:"runTime"`
+}
+
+type JobStatusV2 struct {
+	JobDetails   SteamJob
+	DateTime     int64
+	StatusCode   string
+	StatusReason string
+	Result       []string
+	AllFiles     []FileStatus
+}
+
+type StatusOptions func(*JobStatusV2)
+
+var ACCEPTABLEStatusCodes []string = []string{
+	"ERR",
+	"ERR_OFFLINE",
+	"PREPARING",
+	"QUEUED",
+	"RECORDING",
+	"UPLOADING",
+	"DONE",
+}
+
+func WithStatusCode(code string) StatusOptions {
+
+	var shouldUse bool = false
+
+	for _, v := range ACCEPTABLEStatusCodes {
+		if v == code {
+			shouldUse = true
+			break
+		}
+	}
+
+	return func(j *JobStatusV2) {
+		if shouldUse {
+			j.StatusCode = code
+		} else {
+			fmt.Println("warning: invalid status code: ", code)
+		}
+	}
+}
+
+func WithStatusReason(reason string) StatusOptions {
+	return func(j *JobStatusV2) {
+		j.StatusReason = reason
+	}
+}
+
+func WithResult(result []string) StatusOptions {
+	return func(j *JobStatusV2) {
+		j.Result = result
+	}
 }
 
 type JobStatus struct {

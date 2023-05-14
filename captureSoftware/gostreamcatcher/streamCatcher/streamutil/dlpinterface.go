@@ -36,7 +36,7 @@ func ManageUploadOfPath(resultChan chan []string, paths []string, job utils.Stea
 
 }
 
-func ProcessDownload(Job utils.SteamJob, progressUpdateCallback func(output string, done chan bool)) (utils.JobResponse, []string, error) {
+func ProcessDownload(sendUpdateProxy func(opts ...utils.StatusOptions), Job utils.SteamJob, progressUpdateCallback func(output string, done chan bool)) (utils.JobResponse, []string, error) {
 	fmt.Println("Processing download for job: ", Job.JobID)
 	fmt.Println("URL: ", Job.YoutubeLink)
 	fmt.Println("Timeout: ", Job.TimeoutSeconds)
@@ -65,6 +65,8 @@ func ProcessDownload(Job utils.SteamJob, progressUpdateCallback func(output stri
 	var allLinks []string
 
 	fmt.Println("attempting to upload")
+
+	sendUpdateProxy(utils.WithStatusCode("UPLOADING"), utils.WithStatusReason("Job is being uploaded"))
 
 	time.Sleep(5 * time.Second)
 

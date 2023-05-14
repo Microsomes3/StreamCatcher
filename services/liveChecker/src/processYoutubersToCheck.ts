@@ -35,6 +35,14 @@ module.exports.handler = async (event:any) => {
 
     var status = result == true ? true : false
 
+    try{
+        if(status == false){
+            await axios.delete("https://c3z399rsmd.execute-api.us-east-1.amazonaws.com/dev/DeleteAutoMarkerByUsername/"+youtubeusername);
+        }
+    }catch(err){
+        console.log(err);
+    }
+
     const params:InsertLiveCheckerItem = {
         TableName: process.env.LIVE_CHECKER_TABLE || "",
         Item: {

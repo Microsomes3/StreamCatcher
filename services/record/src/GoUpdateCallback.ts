@@ -9,6 +9,8 @@ import {
     scheduleMuxJobECS
 } from './helpers/recordHelper'
 
+
+
 function handleIsStartLogic({
     jobId,
     reqId,
@@ -44,7 +46,10 @@ function handleIsStartLogic({
 
 function handleFunc({data}:{data:any}){
     return new Promise(async (resolve,reject)=>{
-        const { Job, Status } = data
+        const { Job, Status,ReasonForEnd=null } = data
+
+        console.log(">",ReasonForEnd);
+
         const { jobId, reqId, youtubeLink, channelName, type = "normal", isStart = false } = Job;
         const { result, state } = Status;
 

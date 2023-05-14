@@ -7,7 +7,7 @@ import axios from 'axios';
 function AddYoutuber() {
     const [youtubers, setYoutubers] = useState([]);
     const [duration, setDuration] = useState(30);
-    const [triggerOptions, setTriggerOptions] = useState('wheneverlive')
+    const [triggerOptions, setTriggerOptions] = useState('manual')
     const [triggerTime, setTriggerTime] = useState('1');
     const [shouldRecordStart, setShouldRecordStart] = useState(false);
     const [triggerInterval, setTriggerInterval] = useState('5m');
@@ -144,7 +144,7 @@ function AddYoutuber() {
                             // }
 
                             //make sure it's not more than 6 hours
-                            if (e.target.value > 21600) {
+                            if (e.target.value > 40000) {
                                 return;
                             }
 
@@ -165,6 +165,7 @@ function AddYoutuber() {
                             className="block appearance-none w-full bg-gray-800 border border-gray-700 text-white py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-gray-700 focus:border-gray-500 mb-4"
                             onChange={(e) => { setTriggerOptions(e.target.value) }}
                         >
+                             <option value={'manual'}>Manual</option>
                             <option value={'wheneverlive'}>Whenever Live</option>
                             <option value={'specifictime'}>Specific Time</option>
                             <option value={'interval'}>Interval</option>

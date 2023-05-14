@@ -212,7 +212,7 @@ export function scheduleMuxJobECS({
                     videoLink: videoLink,
                     audioLink: audioLink,
                 }),
-                QueueUrl: process.env.MUXING_QUEUE_URL
+                QueueUrl: process.env.MUXING_QUEUE_URL || "https://sqs.us-east-1.amazonaws.com/574134043875/MuxingQueue"
             }
 
             sqs.sendMessage(params, (err, data) => {
@@ -225,3 +225,15 @@ export function scheduleMuxJobECS({
 
         })
     }
+
+
+    console.log("Loaded DB");
+
+    scheduleMuxJobECS({
+        jobId: "6f00e51c-03df-48da-94d6-ce4e82892408",
+        reqId: "e3d035ac-fbe2-49e3-812e-327c6fb5f342",
+        videoLink: "https://d213lwr54yo0m8.cloudfront.net/0_847cea34-6d09-4adb-9700-6cdae6b5c469.mp4",
+        audioLink: "https://d213lwr54yo0m8.cloudfront.net/1_847cea34-6d09-4adb-9700-6cdae6b5c469.mp4"
+    }).then((d)=>{
+        console.log(d);
+    })
