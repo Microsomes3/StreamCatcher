@@ -535,6 +535,7 @@ func run() int {
 	}
 
 	if len(gvVideoUrl) > 0 {
+
 		info.URL = gvVideoUrl
 		info.SetDownloadUrl(DtypeVideo, gvVideoUrl)
 	}
