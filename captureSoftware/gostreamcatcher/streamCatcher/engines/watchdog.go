@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"sync"
 	"time"
+
+	"microsomes.com/stgo/utils"
 )
 
 type WatchDog struct {
@@ -57,13 +59,83 @@ func (w *WatchDog) StartDownload(wg *sync.WaitGroup) bool {
 	return true
 }
 
-func (w *WatchDog) MonitorDownload() bool {
-	time.Sleep(time.Second * time.Duration(w.Duration))
+func (w *WatchDog) KeepTrackOfTimeout(stopCn chan bool, wg *sync.WaitGroup) {
+	var elaspedSeconds int64 = 0
 
-	doesKill := w.EndDownloadFriendly()
-	if doesKill {
-		fmt.Println("killed process")
+	var isTriggered bool = false
+
+	for {
+		select {
+		case <-stopCn:
+			fmt.Println("stopCn")
+			return
+		default:
+			time.Sleep(time.Second)
+
+			elaspedSeconds += 1
+
+			if elaspedSeconds >= w.Duration {
+				if !isTriggered {
+					fmt.Println("triggered")
+					doesKill := w.EndDownloadFriendly()
+					if doesKill {
+						fmt.Println("killed process")
+						isTriggered = true
+						wg.Done()
+					}
+				}
+
+				return
+			}
+
+			fmt.Println("checking", elaspedSeconds, w.Duration)
+		}
 	}
+}
+func (w *WatchDog) KeepTrackOfOnlineStatus(stopCn chan bool, wg *sync.WaitGroup) {
+
+	ticker := time.NewTicker(time.Minute * 1)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-stopCn:
+			return
+		case <-ticker.C:
+
+			job := utils.GetJob()
+
+			isOnline, _ := utils.GetLiveStatusv2(job.ChannelName, job.Provider)
+
+			if !isOnline {
+				fmt.Println("channel is offline")
+				doesKill := w.EndDownloadFriendly()
+				if doesKill {
+					fmt.Println("killed process")
+					wg.Done()
+				}
+				return
+			} else {
+				fmt.Println("channel is online")
+			}
+
+		}
+	}
+
+}
+
+func (w *WatchDog) MonitorDownload() bool {
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	doneC := make(chan bool, 1)
+
+	go w.KeepTrackOfTimeout(doneC, &wg)
+	go w.KeepTrackOfOnlineStatus(doneC, &wg)
+
+	wg.Wait()
+	fmt.Println("doneC")
+	close(doneC)
 
 	return true
 }

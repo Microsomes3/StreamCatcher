@@ -16,7 +16,7 @@ func ManageUploadOfPath(resultChan chan []string, paths []string, job utils.Stea
 	var toReturn []string = []string{}
 
 	for index, path := range paths {
-		f, err := os.Open("tmp/" + path)
+		f, err := os.Open("./" + path)
 		defer f.Close()
 
 		if err != nil {
@@ -46,6 +46,8 @@ func ProcessDownload(sendUpdateProxy func(opts ...utils.StatusOptions), Job util
 
 	go func() {
 		data, err := TryDownload(Job, "")
+
+		fmt.Println(">>", len(data.Paths))
 
 		if err != nil {
 			fmt.Println("Error: ", err)

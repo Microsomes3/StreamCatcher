@@ -15,16 +15,18 @@ ADD ffmpegb /APP
 RUN cp ffmpeg /bin/ffmpeg
 RUN cp ffprobe /bin/ffprobe
 
-COPY ytarchive /APP/
+# COPY ytarchive /APP/
 
-COPY ytarchive /bin/ytarchive
+COPY /bin/ytarchive /bin/ytarchive
 
 COPY . .
 
 # RUN go mod download
 # RUN go mod verify
-RUN go build -o mathapp
+# RUN go build -o mathapp
+
+COPY ./stgo /APP/stgo
 
 ENV DISPLAY=:99
 
-CMD ["./mathapp"]
+CMD ["./stgo"]

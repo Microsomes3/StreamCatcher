@@ -20,4 +20,7 @@
 # jobid="jobid" reqid="reqid" url="https://www.twitch.tv/abbyinu/live" updatehook="https://5a94-77-102-234-41.ngrok-free.app" timeout=20 isstart="false" provider="twitch"  go run ecs.go
 
 
-jobid="jobid10" reqid="reqid10" url="https://www.youtube.com/@LIFEHACKEX/live" updatehook="https://3fa8-77-102-234-41.ngrok-free.app" timeout=120 isstart="false" engine="ytarchive" tryToCaptureAll="false"  go run main.go
+# jobid="jobid10" reqid="reqid10" url="https://www.youtube.com/@LIFEHACKEX/live" updatehook="https://3fa8-77-102-234-41.ngrok-free.app" timeout=30 isstart="false" engine="ytarchive" tryToCaptureAll="false"  go run main.go
+
+
+jobid="jobid10" reqid="reqid10" url="https://www.youtube.com/@LIFEHACKEX/live" updatehook="https://eosvanmmomenyxi.m.pipedream.net" timeout=30 isstart="true" engine="yt-dlp" tryToCaptureAll="false"  go run main.go

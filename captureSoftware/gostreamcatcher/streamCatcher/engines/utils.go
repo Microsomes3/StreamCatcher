@@ -2,6 +2,8 @@ package engines
 
 import (
 	"sync"
+
+	"microsomes.com/stgo/utils"
 )
 
 type Engine interface {
@@ -11,6 +13,7 @@ type Engine interface {
 }
 
 type EngineJob struct {
+	Job     utils.SteamJob
 	JobID   string
 	Timeout int64
 	Link    string

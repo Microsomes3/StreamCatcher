@@ -2,7 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"encore.dev/types/uuid"
 )
@@ -146,4 +150,104 @@ func GetChannelNameFromUrl(job *SteamJob, url string, provider string) string {
 	}
 
 	return username
+}
+
+func GetJob() *SteamJob {
+	fmt.Println("ecs adapater module...")
+	jobid := os.Getenv("jobid")
+	reqid := os.Getenv("reqid")
+	url := os.Getenv("url")
+	timeout := os.Getenv("timeout")
+	isstart := os.Getenv("isstart")
+	updatehook := os.Getenv("updatehook")
+	provider := os.Getenv("provider")
+	shouldUpload := os.Getenv("shouldUpload")
+
+	tryCaptureAll := os.Getenv("tryToCaptureAll")
+
+	if tryCaptureAll == "" {
+		tryCaptureAll = "no"
+	}
+
+	if provider == "" {
+		provider = "youtube" //
+	}
+
+	if shouldUpload == "" {
+		shouldUpload = "yes"
+	}
+
+	var isS bool = false
+
+	if isstart == "true" {
+		isS = true
+	} else {
+		isS = false
+	}
+
+	timeoutInt, _ := strconv.ParseInt(timeout, 10, 64)
+
+	var engine string = ""
+
+	if os.Getenv("engine") != "" {
+		engine = os.Getenv("engine")
+	} else {
+		engine = "yt-dlp"
+	}
+
+	job := SteamJob{
+		JobID:           jobid,
+		ReqID:           reqid,
+		TimeoutSeconds:  int(timeoutInt),
+		YoutubeLink:     url,
+		IsStart:         isS,
+		UpdateHook:      updatehook,
+		Provider:        provider,
+		ShouldUpload:    shouldUpload,
+		TryToCaptureAll: tryCaptureAll,
+		Engine:          engine,
+	}
+
+	job.ChannelName = GetChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)
+
+	fmt.Println("job:", job)
+
+	return &job
+
+}
+
+func GetLiveStatusv2(username string, provider string) (bool, error) {
+	var formattedUrl = ""
+
+	if provider == "twitch" {
+		formattedUrl = "https://twitch.tv/" + username + "/live"
+	} else if provider == "youtube" {
+		formattedUrl = "https://youtube.com/" + username + "/live"
+	} else if provider == "facebook" {
+		formattedUrl = "https://facebook.com/" + username + "/live"
+	} else if provider == "instagram" {
+		formattedUrl = "https://instagram.com/" + username + "/live"
+	} else if provider == "twitter" {
+		formattedUrl = "https://twitter.com/" + username + "/live"
+	} else if provider == "mixer" {
+		formattedUrl = "https://mixer.com/" + username + "/live"
+	}
+
+	cmd := exec.Command("yt-dlp", "-f", "bestvideo[height<=?1080][vcodec^=avc1]+bestaudio/best", "-g", formattedUrl)
+
+	err := cmd.Start()
+	if err != nil {
+		return false, err
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		if strings.Contains(err.Error(), "exit status 1") {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
 }

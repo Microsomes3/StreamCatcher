@@ -281,7 +281,9 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 
 		fmt.Println("Upload done: ", uploadLinks)
 
-		s.AddStatusEventV2(utils.WithStatusCode("DONE"), utils.WithStatusReason("Job is done"))
+		s.AddStatusEventV2(utils.WithStatusCode("DONE"), utils.WithStatusReason("Job is done"),
+			utils.WithResult(uploadLinks),
+		)
 
 		if s.Callback != nil {
 
