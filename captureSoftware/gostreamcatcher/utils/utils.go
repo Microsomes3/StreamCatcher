@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 
 	"encore.dev/types/uuid"
 )
@@ -118,4 +119,31 @@ func GenerateJobID(tag string) string {
 	uid, _ := uuid.NewV4()
 
 	return tag + "_" + uid.String()
+}
+
+func GetChannelNameFromUrl(job *SteamJob, url string, provider string) string {
+	var username string
+	if provider == "youtube" {
+
+		re := regexp.MustCompile(`@(\w+)`)
+		match := re.FindStringSubmatch(url)
+		if len(match) > 1 {
+			username = "@" + match[1]
+			job.ChannelName = username
+		} else {
+			fmt.Println("No match found")
+		}
+	} else {
+		re := regexp.MustCompile(`https://www.twitch.tv/(\w+)/live`)
+		match := re.FindStringSubmatch(url)
+
+		// The first submatch contains the username
+		fmt.Println(match[1])
+		username = match[1]
+
+		job.ChannelName = username
+
+	}
+
+	return username
 }

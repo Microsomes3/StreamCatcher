@@ -4,40 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 	"sync"
 
 	streamcatcher "microsomes.com/stgo/streamCatcher"
+	"microsomes.com/stgo/streamCatcher/engines"
 	"microsomes.com/stgo/utils"
 )
-
-func getChannelNameFromUrl(job *utils.SteamJob, url string, provider string) string {
-	var username string
-	if provider == "youtube" {
-
-		re := regexp.MustCompile(`@(\w+)`)
-		match := re.FindStringSubmatch(url)
-		if len(match) > 1 {
-			username = "@" + match[1]
-			job.ChannelName = username
-		} else {
-			fmt.Println("No match found")
-		}
-	} else {
-		re := regexp.MustCompile(`https://www.twitch.tv/(\w+)/live`)
-		match := re.FindStringSubmatch(url)
-
-		// The first submatch contains the username
-		fmt.Println(match[1])
-		username = match[1]
-
-		job.ChannelName = username
-
-	}
-
-	return username
-}
 
 func getJob() *utils.SteamJob {
 	fmt.Println("ecs adapater module...")
@@ -95,7 +68,7 @@ func getJob() *utils.SteamJob {
 		Engine:          engine,
 	}
 
-	job.ChannelName = getChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)
+	job.ChannelName = utils.GetChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)
 
 	fmt.Println("job:", job)
 
@@ -123,49 +96,67 @@ func SystemCallback(systemWaitGroup *sync.WaitGroup, cancelQueue context.CancelF
 
 func main() {
 
-	systemWaitGroup := sync.WaitGroup{}
-	workerWaitGroup := sync.WaitGroup{}
-	systemWaitGroup.Add(1)
-	_, cancelQueue := context.WithCancel(context.Background())
+	ytarchive := engines.NewEngine(&engines.YTEngine{})
 
-	jobInfo := getJob()
-	streamCatcher := streamcatcher.NewStreamCatcher(*jobInfo, nil, SystemCallback(&systemWaitGroup, cancelQueue))
+	ytarchive.Download(engines.EngineJob{
+		JobID:   "123",
+		Link:    "https://www.youtube.com/@CreepsMcPasta/live",
+		Timeout: 30,
+	})
 
-	if jobInfo.ChannelName == "" {
-		fmt.Println("Channel name could not be determined")
-		streamCatcher.AddStatusEventV2(
-			utils.WithStatusCode("ERR"),
-			utils.WithStatusReason("Channel name could not be determined"),
-		)
-		os.Exit(0)
-	}
+	ytarchive.PrintJob()
 
-	isLive, err := streamcatcher.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
-	if err != nil {
-		streamCatcher.AddStatusEventV2(
-			utils.WithStatusCode("ERR"),
-			utils.WithStatusReason("cannot determine if channel is live"),
-		)
-	}
+	wg := sync.WaitGroup{}
 
-	if isLive {
-		streamCatcher.AddStatusEventV2(
-			utils.WithStatusCode("PREPARING"),
-			utils.WithStatusReason("Preparing to start recording"),
-		)
-	} else {
-		streamCatcher.AddStatusEventV2(
-			utils.WithStatusCode("ERR_OFFLINE"),
-			utils.WithStatusReason("Channel is offline"),
-		)
-		os.Exit(0)
-	}
+	ytarchive.Run(&wg)
 
-	cancelQueue = StartSystem(streamCatcher, &workerWaitGroup)
+	wg.Wait()
 
-	streamCatcher.AddJob(*jobInfo)
+	fmt.Println("done")
 
-	systemWaitGroup.Wait()
-	workerWaitGroup.Wait()
+	// systemWaitGroup := sync.WaitGroup{}
+	// workerWaitGroup := sync.WaitGroup{}
+	// systemWaitGroup.Add(1)
+	// _, cancelQueue := context.WithCancel(context.Background())
+
+	// jobInfo := getJob()
+	// streamCatcher := streamcatcher.NewStreamCatcher(*jobInfo, nil, SystemCallback(&systemWaitGroup, cancelQueue))
+
+	// if jobInfo.ChannelName == "" {
+	// 	fmt.Println("Channel name could not be determined")
+	// 	streamCatcher.AddStatusEventV2(
+	// 		utils.WithStatusCode("ERR"),
+	// 		utils.WithStatusReason("Channel name could not be determined"),
+	// 	)
+	// 	os.Exit(0)
+	// }
+
+	// isLive, err := streamcatcher.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
+	// if err != nil {
+	// 	streamCatcher.AddStatusEventV2(
+	// 		utils.WithStatusCode("ERR"),
+	// 		utils.WithStatusReason("cannot determine if channel is live"),
+	// 	)
+	// }
+
+	// if isLive {
+	// 	streamCatcher.AddStatusEventV2(
+	// 		utils.WithStatusCode("PREPARING"),
+	// 		utils.WithStatusReason("Preparing to start recording"),
+	// 	)
+	// } else {
+	// 	streamCatcher.AddStatusEventV2(
+	// 		utils.WithStatusCode("ERR_OFFLINE"),
+	// 		utils.WithStatusReason("Channel is offline"),
+	// 	)
+	// 	os.Exit(0)
+	// }
+
+	// cancelQueue = StartSystem(streamCatcher, &workerWaitGroup)
+
+	// streamCatcher.AddJob(*jobInfo)
+
+	// systemWaitGroup.Wait()
+	// workerWaitGroup.Wait()
 
 }

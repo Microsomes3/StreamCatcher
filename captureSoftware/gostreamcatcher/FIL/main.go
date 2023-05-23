@@ -2,25 +2,25 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"os"
+	"os/exec"
+	"time"
 )
 
 func main() {
+	//ytarchive https://www.youtube.com/@CreepsMcPasta/live 1080p/best
 
-	var files []string = []string{
-		"What's Up GAMERS...Xbox's Biggest L! Redfall is Only 30FPS on Xbox Series X. Fanboys are in DENIAL.f140.mp4",
-		"What's Up GAMERS...Xbox's Biggest L! Redfall is Only 30FPS on Xbox Series X. Fanboys are in DENIAL.f299.mp4",
-		"What's Up GAMERS...Xbox's Biggest L! Redfall is Only 30FPS on Xbox Series X. Fanboys are in DENIAL.mp4",
+	child := exec.Command("ytarchive", "-o", "tmp/%(channel)s/%(upload_date)s_%(title)s", "https://www.youtube.com/@CreepsMcPasta/live", "1080p/best")
+
+	if err := child.Start(); err != nil {
+		panic(err)
 	}
 
-	var filteredFiles []string
+	time.Sleep(10 * time.Second)
 
-	for _, file := range files {
-		if strings.Count(file, ".") == 3 {
-			filteredFiles = append(filteredFiles, file)
-		}
-	}
+	fmt.Println("killing")
+	child.Process.Signal(os.Interrupt)
 
-	fmt.Println(filteredFiles)
+	time.Sleep(10 * time.Second)
 
 }

@@ -135,6 +135,9 @@ func startCommand(Job utils.SteamJob, mode string, args []string) *exec.Cmd {
 		toReturn = exec.Command(Job.Engine, args...)
 	}
 
+	fmt.Println("args:", args)
+	fmt.Println("toReturn:", toReturn)
+
 	return toReturn
 }
 
