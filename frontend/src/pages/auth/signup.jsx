@@ -2,7 +2,6 @@ import React, { useEffect, useState, useContext } from "react";
 
 import { AuthContext } from "../auth/authwatch";
 
-import { app } from "../../assets/fb.js";
 import axios from 'axios';
 
 import {
@@ -13,7 +12,6 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 
-const auth = getAuth(app);
 
 function SignUp() {
   const [isSignUp, setIsSignUp] = useState(false);

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { app } from '../../assets/fb'
 import axios from 'axios';
 
 const onAuthStateChanged = (auth, cb) => {

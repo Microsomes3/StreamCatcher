@@ -124,7 +124,6 @@ resources:
           - AttributeName: recordrequestid
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
-
     AutoScheduleV2Table:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -138,8 +137,7 @@ resources:
             KeyType: HASH
           - AttributeName: date
             KeyType: RANGE
-        BillingMode: PAY_PER_REQUEST
-    
+        BillingMode: PAY_PER_REQUEST   
     LogsGroup:
       Type: AWS::Logs::LogGroup
       Properties:
@@ -153,17 +151,15 @@ resources:
           Version: '2012-10-17'
           Statement:
           - Effect: Allow
-            Action: ssmmessages:*
-            Principal:
-              Service: "*"
-          - Effect: Allow
             Principal:
               Service: ecs-tasks.amazonaws.com
             Action: sts:AssumeRole
-      # Add policies as needed for your specific use case
         ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::574134043875:policy/CFFULL
+        
     ExecutionRole:
       Type: AWS::IAM::Role
       Properties:
@@ -180,7 +176,36 @@ resources:
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::574134043875:policy/CFFULL
     
-  
+    GOEcsTaskv2:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: !Sub ${AWS::StackName}-GOEcsTaskv2
+        Cpu: 256
+        Memory: 1024
+        EphemeralStorage:
+          SizeInGiB: 50
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub ${AWS::StackName}-GOEcsContainerv2
+            Image: public.ecr.aws/m8l7i2c5/govideocapturev5:latest
+            LinuxParameters:
+              InitProcessEnabled: true
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
+              - Name: updatehook
+                Value: "https://new.liveclipper.com/api/injest/recording"
     GOEcsTask:
       Type: AWS::ECS::TaskDefinition
       Properties:

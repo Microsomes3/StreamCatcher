@@ -40,3 +40,6 @@ services/record/kubeconfig-k8s-zealous-moore.yaml
 services/liveChecker/.build/*
 services/muxing/.build/processMuxTask.js
 microservices/api
+
+
+captureSoftware/gostreamcatcher/*

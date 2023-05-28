@@ -3,11 +3,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../../pages/auth/authwatch";
 
 
-import { app } from '../../assets/fb'
 
-import { getAuth, signOut } from 'firebase/auth'
-
-const auth = getAuth(app);
 
 function handleLogout() {
   localStorage.removeItem("token");

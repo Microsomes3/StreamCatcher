@@ -224,14 +224,108 @@ function submitJobToEcs(
 }
 
 
+export function submitJobToEcsv2(
+    username: string,
+    requestId: string,
+    uniqueRecordId: string,
+    duration: string,
+    isRecordStart: boolean,
+    provider: string,
+    tryToCaptureAll:string,
+    engine: string
+): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+        const ecsparams = {
+            enableExecuteCommand: true,
+            cluster: "griffin-record-cluster",
+            taskDefinition: "griffin-autoscheduler-service-dev-GOEcsTaskv2",
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: 'griffin-autoscheduler-service-dev-GOEcsContainerv2',
+                        environment: [
+                            {
+                                name:"engine",
+                                value: engine
+                            },
+                            {
+                                name: 'reqid',
+                                value: requestId
+                            },
+                            {
+                                name: 'updatehook',
+                                value: 'https://new.liveclipper.com/api/injest/recording'
+                            },
+                            {
+                                name: 'url',
+                                value: provider == "youtube" ? `https://www.youtube.com/${username}/live` : `https://www.twitch.tv/${username}/live`
+                            },
+                            {
+                                name: 'provider',
+                                value: provider
+                            },
+                            {
+                                name: "RECORD_REQUEST_ID",
+                                value: requestId
+                            },
+                            {
+                                name: "jobid",
+                                value: uniqueRecordId
+                            },
+                            {
+                                name: "isstart",
+                                value: provider == "twitch" ? "false" : isRecordStart == true ? "true" : "false"
+                            },
+                            {
+                                name: "timeout",
+                                value: duration.toString()
+                            },
+                            {
+                                name:"tryToCaptureAll",
+                                value:tryToCaptureAll
+                            }
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                {
+                    key: "recordid",
+                    value: uniqueRecordId
+                }
+            ]
+        };
+
+        const ecsdata = await ecs.runTask(ecsparams).promise();
+
+        var taskArn: any = null;
+
+        if (ecsdata.tasks) {
+            taskArn = ecsdata.tasks[0].taskArn;
+        }
+
+        resolve(taskArn)
+
+    })
+}
+
+
 interface RecordRequestItem {
     captureSystem?: string
 }
 
 export function makeRecordRequest(requestId: string, auto: boolean, provider: string = "youtube") {
     return new Promise(async (resolve, reject) => {
-
-        console.log(">>", provider);
 
 
         try {

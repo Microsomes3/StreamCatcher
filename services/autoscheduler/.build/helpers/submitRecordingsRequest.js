@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeRecordRequest = exports.captureCommentVideoV2Task = exports.captureCommentRunTask = void 0;
+exports.makeRecordRequest = exports.submitJobToEcsv2 = exports.captureCommentVideoV2Task = exports.captureCommentRunTask = void 0;
 const aws = __importStar(require("aws-sdk"));
 const moment_1 = __importDefault(require("moment"));
 const ecs = new aws.ECS({
@@ -222,9 +222,89 @@ function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordS
         resolve(taskArn);
     });
 }
+function submitJobToEcsv2(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll, engine) {
+    return new Promise(async (resolve, reject) => {
+        const ecsparams = {
+            enableExecuteCommand: true,
+            cluster: "griffin-record-cluster",
+            taskDefinition: "griffin-autoscheduler-service-dev-GOEcsTaskv2",
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: 'griffin-autoscheduler-service-dev-GOEcsContainerv2',
+                        environment: [
+                            {
+                                name: "engine",
+                                value: engine
+                            },
+                            {
+                                name: 'reqid',
+                                value: requestId
+                            },
+                            {
+                                name: 'updatehook',
+                                value: 'https://new.liveclipper.com/api/injest/recording'
+                            },
+                            {
+                                name: 'url',
+                                value: provider == "youtube" ? `https://www.youtube.com/${username}/live` : `https://www.twitch.tv/${username}/live`
+                            },
+                            {
+                                name: 'provider',
+                                value: provider
+                            },
+                            {
+                                name: "RECORD_REQUEST_ID",
+                                value: requestId
+                            },
+                            {
+                                name: "jobid",
+                                value: uniqueRecordId
+                            },
+                            {
+                                name: "isstart",
+                                value: provider == "twitch" ? "false" : isRecordStart == true ? "true" : "false"
+                            },
+                            {
+                                name: "timeout",
+                                value: duration.toString()
+                            },
+                            {
+                                name: "tryToCaptureAll",
+                                value: tryToCaptureAll
+                            }
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                {
+                    key: "recordid",
+                    value: uniqueRecordId
+                }
+            ]
+        };
+        const ecsdata = await ecs.runTask(ecsparams).promise();
+        var taskArn = null;
+        if (ecsdata.tasks) {
+            taskArn = ecsdata.tasks[0].taskArn;
+        }
+        resolve(taskArn);
+    });
+}
+exports.submitJobToEcsv2 = submitJobToEcsv2;
 function makeRecordRequest(requestId, auto, provider = "youtube") {
     return new Promise(async (resolve, reject) => {
-        console.log(">>", provider);
         try {
             console.log(">>", requestId);
             const documentWriter = new aws.DynamoDB.DocumentClient({

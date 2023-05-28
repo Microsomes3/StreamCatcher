@@ -9,7 +9,6 @@ import './App.css'
 import NavigationComp from './comps/Nav/defaultnav'
 import Home from './pages/home/home'
 import SignUp from './pages/auth/signup'
-import DashboardHome from './pages/dashboard/home'
 
 import ViewRecordRequests from './pages/admin/viewRecordRequests/viewRequests'
 import AddYoutuber from './pages/admin/addYoutuberToTrack/addyoutuber'
@@ -22,7 +21,6 @@ import ViewAllRecordingsByUsername from './pages/admin/viewAllRecordingsUsername
 
 import LandingPage from './pages/landing/landing'
 
-import BillingAddForm from './pages/dashboard/billingpage/addonForm';
 
 import { AuthProvider } from './pages/auth/authwatch'
 
@@ -54,7 +52,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path='/status/:date' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/status' element={<ViewGlobalStatuses></ViewGlobalStatuses>} />
       <Route path='/recordings/:username/:filter' element={<ViewAllRecordingsByUsername></ViewAllRecordingsByUsername>} />
-      <Route path='/billing/addon' element={<BillingAddForm></BillingAddForm>} />
       </Route>
 
       <Route path='/auth' element={<SignUp />} />

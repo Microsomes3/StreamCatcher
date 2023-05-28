@@ -1,0 +1,19 @@
+{
+  "name": "0microservices",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1372.0",
+    "axios": "^1.4.0",
+    "moment": "^2.29.4",
+    "pupeteer": "^0.0.1",
+    "puppeteer-screen-recorder": "^2.1.2"
+  }
+}

@@ -25,7 +25,7 @@ func NewWatchDog(duration int64, child *exec.Cmd) *WatchDog {
 func (w *WatchDog) KillDownload() bool {
 	err := w.Spawned.Process.Kill()
 	if err != nil {
-		fmt.Println("error killing process")
+		fmt.Println("error killing process  mm")
 		return false
 	}
 	return true
@@ -44,6 +44,7 @@ func (w *WatchDog) EndDownloadFriendly() bool {
 
 func (w *WatchDog) StartDownload(wg *sync.WaitGroup) bool {
 	if err := w.Spawned.Start(); err != nil {
+		panic(err)
 		fmt.Println("error starting process")
 		return false
 	}
@@ -82,6 +83,8 @@ func (w *WatchDog) KeepTrackOfTimeout(stopCn chan bool, wg *sync.WaitGroup) {
 						fmt.Println("killed process")
 						isTriggered = true
 						wg.Done()
+					} else {
+						fmt.Println("failed to kill process")
 					}
 				}
 
