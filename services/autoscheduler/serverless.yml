@@ -180,8 +180,8 @@ resources:
       Type: AWS::ECS::TaskDefinition
       Properties:
         Family: !Sub ${AWS::StackName}-GOEcsTaskv2
-        Cpu: 256
-        Memory: 1024
+        Cpu: 1024
+        Memory: 2048
         EphemeralStorage:
           SizeInGiB: 50
         RequiresCompatibilities:
@@ -191,7 +191,7 @@ resources:
         TaskRoleArn: !GetAtt TaskRole.Arn
         ContainerDefinitions:
           - Name: !Sub ${AWS::StackName}-GOEcsContainerv2
-            Image: public.ecr.aws/m8l7i2c5/govideocapturev5:latest
+            Image: public.ecr.aws/m8l7i2c5/govideocapturev8:latest
             LinuxParameters:
               InitProcessEnabled: true
             LogConfiguration:

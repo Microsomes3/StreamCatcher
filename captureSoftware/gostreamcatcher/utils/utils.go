@@ -18,18 +18,19 @@ type ReasonToSend struct {
 }
 
 type SteamJob struct {
-	JobID           string `json:"jobId"`
-	ReqID           string `json:"reqId"`
-	YoutubeLink     string `json:"youtubeLink"`
-	Provider        string `json:"provider"`
-	TimeoutSeconds  int    `json:"timeout"`
-	IsStart         bool   `json:"isStart"`
-	UpdateHook      string `json:"updateHook"`
-	Groupid         string `json:"groupid"`
-	ChannelName     string `json:"channelName"`
-	ShouldUpload    string `json:"shouldUpload"`
-	TryToCaptureAll string `json:"tryToCaptureAll"`
-	Engine          string `json:"engine"` //yt-dlp or ytarchive
+	JobID               string `json:"jobId"`
+	ReqID               string `json:"reqId"`
+	YoutubeLink         string `json:"youtubeLink"`
+	Provider            string `json:"provider"`
+	TimeoutSeconds      int    `json:"timeout"`
+	IsStart             bool   `json:"isStart"`
+	UpdateHook          string `json:"updateHook"`
+	Groupid             string `json:"groupid"`
+	ChannelName         string `json:"channelName"`
+	ShouldUpload        string `json:"shouldUpload"`
+	TryToCaptureAll     string `json:"tryToCaptureAll"`
+	Engine              string `json:"engine"` //yt-dlp or ytarchive
+	ResolutionRequested string `json:"resolutionRequested"`
 }
 
 type FileStatus struct {
@@ -165,6 +166,12 @@ func GetJob() *SteamJob {
 
 	tryCaptureAll := os.Getenv("tryToCaptureAll")
 
+	res := os.Getenv("res")
+
+	if res == "" {
+		res = "720p/best"
+	}
+
 	if tryCaptureAll == "" {
 		tryCaptureAll = "no"
 	}
@@ -196,16 +203,17 @@ func GetJob() *SteamJob {
 	}
 
 	job := SteamJob{
-		JobID:           jobid,
-		ReqID:           reqid,
-		TimeoutSeconds:  int(timeoutInt),
-		YoutubeLink:     url,
-		IsStart:         isS,
-		UpdateHook:      updatehook,
-		Provider:        provider,
-		ShouldUpload:    shouldUpload,
-		TryToCaptureAll: tryCaptureAll,
-		Engine:          engine,
+		JobID:               jobid,
+		ReqID:               reqid,
+		TimeoutSeconds:      int(timeoutInt),
+		YoutubeLink:         url,
+		IsStart:             isS,
+		UpdateHook:          updatehook,
+		Provider:            provider,
+		ShouldUpload:        shouldUpload,
+		TryToCaptureAll:     tryCaptureAll,
+		Engine:              engine,
+		ResolutionRequested: res,
 	}
 
 	job.ChannelName = GetChannelNameFromUrl(&job, job.YoutubeLink, job.Provider)

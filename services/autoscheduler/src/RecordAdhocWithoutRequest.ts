@@ -14,23 +14,51 @@ function uuidv4(){
 
 module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-    const {
+    var {
         channel,
-        duration
-    }:{channel:string, duration:Number} = JSON.parse(event.body || '{}')
+        duration,
+        reqid,
+        res,
+        engine
+    }:{channel:string, duration:Number, reqid: string, res:string, engine:string} = JSON.parse(event.body || '{}')
+
+
+    var error = false;
+
+    if(reqid == ""){
+        error = true;
+    }
+
+
+    if (res == ""){
+        res= "720p/best";
+    }
+    
+    if(engine == ""){
+        engine="ytarchive"
+    }
+
+    var c = null;
+
+    if(error== false){
 
     const recordId = uuidv4()
 
     const provider = channel[0] == '@' ? 'youtube' : 'twitch'
 
-    const c =await submitJobToEcsv2(channel, "reqid", recordId, duration.toString(), false, provider, "no", "ytarchive");
-
+     c =await submitJobToEcsv2(channel, reqid, recordId, duration.toString(), false, provider, "no", engine, res);
+    }
         
     return {
         statusCode: 200,
         body:JSON.stringify({
             msg:"Hello World",
-            c
+            c,
+            reqid,
+            channel,
+            duration,
+            engine,
+            res
         })
     }
 }

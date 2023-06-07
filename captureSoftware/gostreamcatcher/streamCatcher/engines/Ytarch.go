@@ -23,7 +23,7 @@ func (en *YTEngine) Run(wg *sync.WaitGroup) bool {
 		en.Link,
 		"-o",
 		"tmp/%(channel)s/%(upload_date)s_%(title)s",
-		"1080p/best",
+		en.Job.ResolutionRequested,
 	}
 
 	child := exec.Command("ytarchive", args...)

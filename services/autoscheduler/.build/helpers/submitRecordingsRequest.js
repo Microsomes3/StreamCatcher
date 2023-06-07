@@ -222,7 +222,7 @@ function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordS
         resolve(taskArn);
     });
 }
-function submitJobToEcsv2(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll, engine) {
+function submitJobToEcsv2(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll, engine, resolution) {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
             enableExecuteCommand: true,
@@ -236,12 +236,16 @@ function submitJobToEcsv2(username, requestId, uniqueRecordId, duration, isRecor
                         name: 'griffin-autoscheduler-service-dev-GOEcsContainerv2',
                         environment: [
                             {
+                                name: "res",
+                                value: resolution.toString()
+                            },
+                            {
                                 name: "engine",
-                                value: engine
+                                value: engine.toString()
                             },
                             {
                                 name: 'reqid',
-                                value: requestId
+                                value: requestId.toString()
                             },
                             {
                                 name: 'updatehook',

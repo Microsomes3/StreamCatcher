@@ -232,7 +232,8 @@ export function submitJobToEcsv2(
     isRecordStart: boolean,
     provider: string,
     tryToCaptureAll:string,
-    engine: string
+    engine: string,
+    resolution: string
 ): Promise<string> {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
@@ -247,12 +248,16 @@ export function submitJobToEcsv2(
                         name: 'griffin-autoscheduler-service-dev-GOEcsContainerv2',
                         environment: [
                             {
+                                name:"res",
+                                value:resolution.toString()
+                            },
+                            {
                                 name:"engine",
-                                value: engine
+                                value: engine.toString()
                             },
                             {
                                 name: 'reqid',
-                                value: requestId
+                                value: requestId.toString()
                             },
                             {
                                 name: 'updatehook',

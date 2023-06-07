@@ -61,7 +61,7 @@ module.exports.handler = async (event:any) => {
     await documentWriter.put(params).promise();
 
     try {
-        await axios.post("https://streamcatcher.herokuapp.com/tracker/callbackLiveChecker", {
+        await axios.post("https://new.liveclipper.com/api/injest/live-event", {
             params: params,
         }, {
             timeout: 10000 // 10 seconds

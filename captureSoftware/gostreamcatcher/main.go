@@ -48,6 +48,9 @@ func main() {
 	}
 
 	isLive, err := utils.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
+
+	fmt.Println("Channel is live:", isLive)
+
 	if err != nil {
 		streamCatcher.AddStatusEventV2(
 			utils.WithStatusCode("ERR"),
@@ -65,6 +68,9 @@ func main() {
 			utils.WithStatusCode("ERR_OFFLINE"),
 			utils.WithStatusReason("Channel is offline"),
 		)
+
+		fmt.Println("Channel is offline:" + jobInfo.ChannelName)
+
 		os.Exit(0)
 	}
 
