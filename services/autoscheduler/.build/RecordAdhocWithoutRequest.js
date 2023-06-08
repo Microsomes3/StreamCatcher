@@ -9,7 +9,7 @@ function uuidv4() {
     });
 }
 module.exports.handler = async (event) => {
-    var { channel, duration, reqid, res, engine } = JSON.parse(event.body || '{}');
+    var { channel, duration, reqid, jobid, res, engine } = JSON.parse(event.body || '{}');
     var error = false;
     if (reqid == "") {
         error = true;
@@ -22,7 +22,7 @@ module.exports.handler = async (event) => {
     }
     var c = null;
     if (error == false) {
-        const recordId = uuidv4();
+        const recordId = jobid;
         const provider = channel[0] == '@' ? 'youtube' : 'twitch';
         c = await (0, submitRecordingsRequest_1.submitJobToEcsv2)(channel, reqid, recordId, duration.toString(), false, provider, "no", engine, res);
     }

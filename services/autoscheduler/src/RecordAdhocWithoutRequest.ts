@@ -18,9 +18,10 @@ module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGateway
         channel,
         duration,
         reqid,
+        jobid,
         res,
         engine
-    }:{channel:string, duration:Number, reqid: string, res:string, engine:string} = JSON.parse(event.body || '{}')
+    }:{channel:string, duration:Number, reqid: string, res:string, engine:string, jobid:string} = JSON.parse(event.body || '{}')
 
 
     var error = false;
@@ -42,7 +43,7 @@ module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGateway
 
     if(error== false){
 
-    const recordId = uuidv4()
+    const recordId = jobid;
 
     const provider = channel[0] == '@' ? 'youtube' : 'twitch'
 
