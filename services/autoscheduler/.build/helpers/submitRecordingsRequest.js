@@ -105,6 +105,10 @@ function captureCommentVideoV2Task({ jobId, username, timeout }) {
                         name: "GoCommentCaptureVideoContainerV2",
                         environment: [
                             {
+                                name: 'updateApi',
+                                value: 'https://new.liveclipper.com/api/injest/comment-event'
+                            },
+                            {
                                 name: 'username',
                                 value: username
                             },

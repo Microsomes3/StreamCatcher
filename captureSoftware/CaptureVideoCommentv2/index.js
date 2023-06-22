@@ -92,7 +92,6 @@ async function init(username,timeout, jobId){
 
     await page.goto('https://www.youtube.com/live_chat?is_popout=1&v='+vidId,{waitUntil: 'networkidle2'});
 
-
     try{
         page.evaluate(()=>{
             document.querySelector("#label-text").click()
@@ -129,9 +128,32 @@ async function init(username,timeout, jobId){
     };
 
     const res = await s3.upload(params).promise();
+    
+    await sendStatusUpdate("uploaded",{
+        jobId:jobId,
+        username:username,
+        url:res.Location
+    })
+
+    console.log("send uploaded status")
 
     return res.Location;
 
+}
+
+async function sendStatusUpdate(event, data){
+    return new Promise((resolve,reject)=>{
+        try{
+            axios.post(process.env.updateApi, {
+                data:{
+                    event:event,
+                    data:data
+                }
+            });
+        }catch(err){
+            console.log(err);
+        }
+    })
 }
 
 

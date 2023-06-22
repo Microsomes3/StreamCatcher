@@ -367,6 +367,14 @@ functions:
               - AutoScheduleQueue
               - Arn
           batchSize: 1
+  TriggerCommentRecordRequest:
+    handler: .build/RecordCommentsAdhoc.handler
+    timeout: 30
+    events:
+      - http:
+          path: RecordCommentsAdhoc
+          method: post
+          cors: true
   TriggerAdhocWithoutRequest:
     handler: .build/RecordAdhocWithoutRequest.handler
     timeout: 30

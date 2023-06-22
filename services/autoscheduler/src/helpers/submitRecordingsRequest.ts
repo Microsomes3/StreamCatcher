@@ -92,6 +92,10 @@ export function captureCommentVideoV2Task({
                         name: "GoCommentCaptureVideoContainerV2",
                         environment: [
                             {
+                                name:'updateApi',
+                                value:'https://new.liveclipper.com/api/injest/comment-event'
+                            },
+                            {
                                 name:'username',
                                 value:username
                             },
