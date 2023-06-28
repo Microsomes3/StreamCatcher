@@ -267,7 +267,7 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 
 		s.AddStatusEventV2(utils.WithStatusCode("RECORDING"), utils.WithStatusReason("Job is being recorded"))
 
-		_, uploadLinks, err := streamutil.ProcessDownload(s.AddStatusEventV2, Job, s.SendProgressionData)
+		_, uploadLinks, paths, err := streamutil.ProcessDownload(s.AddStatusEventV2, Job, s.SendProgressionData)
 		if err != nil {
 			fmt.Println("Error: ", err)
 			s.AddStatusEvent(&Job, "error", []string{err.Error()})
@@ -281,8 +281,17 @@ func (s *StreamCatcher) StartWork(wg *sync.WaitGroup) {
 
 		fmt.Println("Upload done: ", uploadLinks)
 
+		dlpInfo := streamutil.NewDLPInfo(paths[0])
+
+		dura, _ := dlpInfo.GetVideoDuration()
+		size, _ := dlpInfo.GetVideoSizeBytes()
+
+		fmt.Println(dura, size)
+
 		s.AddStatusEventV2(utils.WithStatusCode("DONE"), utils.WithStatusReason("Job is done"),
 			utils.WithResult(uploadLinks),
+			utils.WithVideoBytes(size),
+			utils.WithVideoDuration(dura),
 		)
 
 		if s.Callback != nil {

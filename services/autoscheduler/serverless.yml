@@ -295,6 +295,32 @@ resources:
                 Value: !Ref AWS::Region
               - Name: timeout
                 Value: "45000"
+    GoCommentOverlay:
+      Type: AWS::ECS::TaskDefinition
+      Properties:
+        Family: GoCommentOverlay
+        Cpu: 1024
+        Memory: 3072
+        EphemeralStorage:
+          SizeInGiB: 21
+        RequiresCompatibilities:
+          - FARGATE
+        NetworkMode: awsvpc
+        ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+        TaskRoleArn: !GetAtt TaskRole.Arn
+        ContainerDefinitions:
+          - Name: GoCommentOverlayContainer
+            Image: public.ecr.aws/m8l7i2c5/gocommentoverlay:latest
+            LogConfiguration:
+              LogDriver: awslogs
+              Options:
+                awslogs-group: !Ref LogsGroup
+                awslogs-region: !Ref AWS::Region
+                awslogs-stream-prefix: ecs
+            Essential: true
+            Environment:
+              - Name: AWS_REGION_T
+                Value: !Ref AWS::Region
     GoCommentCaptureVideoV2:
       Type: AWS::ECS::TaskDefinition
       Properties:
@@ -367,6 +393,14 @@ functions:
               - AutoScheduleQueue
               - Arn
           batchSize: 1
+  TriggerOverlayComment:
+    handler: .build/ProcessOverlayComment.handler
+    timeout: 30
+    events:
+      - http:
+          path: OverlayComment
+          method: post
+          cors: true
   TriggerCommentRecordRequest:
     handler: .build/RecordCommentsAdhoc.handler
     timeout: 30

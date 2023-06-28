@@ -23,4 +23,4 @@
 # jobid="jobid10" reqid="reqid10" url="https://www.youtube.com/@LIFEHACKEX/live" updatehook="https://3fa8-77-102-234-41.ngrok-free.app" timeout=30 isstart="false" engine="ytarchive" tryToCaptureAll="false"  go run main.go
 
 
-jobid=20 reqid="reqid11" url="https://www.youtube.com/@CreepsMcPasta/live" updatehook="https://4dd3-77-102-234-41.eu.ngrok.io/api/injest/recording" timeout=30 isstart="false" engine="ytarchive" tryToCaptureAll="false"  go run main.go
+jobid=22 reqid=2 url="https://www.youtube.com/@CreepsMcPasta/live" updatehook="https://54c1-90-243-154-1.ngrok-free.app/api/injest/recording" timeout=30 isstart="false" engine="ytarchive" tryToCaptureAll="false"  go run main.go

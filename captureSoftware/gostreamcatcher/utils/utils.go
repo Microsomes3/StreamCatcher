@@ -40,12 +40,14 @@ type FileStatus struct {
 }
 
 type JobStatusV2 struct {
-	JobDetails   SteamJob
-	DateTime     int64
-	StatusCode   string
-	StatusReason string
-	Result       []string
-	AllFiles     []FileStatus
+	JobDetails    SteamJob
+	DateTime      int64
+	StatusCode    string
+	StatusReason  string
+	Result        []string
+	AllFiles      []FileStatus
+	VideoDuration float64
+	VideoBytes    int
 }
 
 type StatusOptions func(*JobStatusV2)
@@ -58,6 +60,22 @@ var ACCEPTABLEStatusCodes []string = []string{
 	"RECORDING",
 	"UPLOADING",
 	"DONE",
+}
+
+func WithVideoDuration(duration float64) StatusOptions {
+
+	return func(j *JobStatusV2) {
+		j.VideoDuration = float64(duration)
+	}
+
+}
+
+func WithVideoBytes(bytes int) StatusOptions {
+
+	return func(j *JobStatusV2) {
+		j.VideoBytes = bytes
+	}
+
 }
 
 func WithStatusCode(code string) StatusOptions {

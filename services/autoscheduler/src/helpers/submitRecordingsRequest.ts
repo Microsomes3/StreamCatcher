@@ -78,8 +78,9 @@ export function captureCommentRunTask({
 export function captureCommentVideoV2Task({
     jobId,
     username,
-    timeout
-}:{jobId:string,username:string,timeout:any}):Promise<any>{
+    timeout,
+    callbackurl
+}:{jobId:string,username:string,timeout:any,callbackurl:string}):Promise<any>{
     return new Promise((resolve,reject)=>{
         const ecsparams:any = {
             cluster: "griffin-record-cluster",
@@ -93,7 +94,7 @@ export function captureCommentVideoV2Task({
                         environment: [
                             {
                                 name:'updateApi',
-                                value:'https://new.liveclipper.com/api/injest/comment-event'
+                                value: callbackurl
                             },
                             {
                                 name:'username',
@@ -124,6 +125,57 @@ export function captureCommentVideoV2Task({
                     key: "username",
                     value: username
                 }
+            ]
+        };
+
+        ecs.runTask(ecsparams,(err,data)=>{
+            if(err){
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        })
+    })
+}
+
+export function overlayCommentTask({
+   video,
+   comment
+}:{video:string,comment:string}):Promise<any>{
+    return new Promise((resolve,reject)=>{
+        const ecsparams:any = {
+            cluster: "griffin-record-cluster",
+            taskDefinition: "GoCommentOverlay",
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: "GoCommentOverlayContainer",
+                        environment: [
+                            {
+                                name:'COMMENT_VIDEO_URL',
+                                value: comment
+                            },
+                            {
+                                name:'VIDEO_URL',
+                                value:video
+                            },
+                           
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: [
+                
             ]
         };
 
@@ -428,7 +480,8 @@ export function makeRecordRequest(requestId: string, auto: boolean, provider: st
                 await captureCommentVideoV2Task({
                     jobId: uniqueRecordId,
                     username:username,
-                    timeout: duration.toString()
+                    timeout: duration.toString(),
+                    callbackurl:'https://new.liveclipper.com/api/injest/comment-event'
                 })
             }
 

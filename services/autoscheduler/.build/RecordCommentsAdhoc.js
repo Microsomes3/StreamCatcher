@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const submitRecordingsRequest_1 = require("./helpers/submitRecordingsRequest");
 module.exports.handler = async (event) => {
-    const { username, timeout, jobId } = JSON.parse(event.body || '{}');
+    const { username, timeout, jobId, callbackurl = "" } = JSON.parse(event.body || '{}');
     //error checking username
     if (username == "") {
         return {
@@ -33,7 +33,8 @@ module.exports.handler = async (event) => {
     var commentVideoRequest = await (0, submitRecordingsRequest_1.captureCommentVideoV2Task)({
         jobId: jobId,
         username: username,
-        timeout: timeout
+        timeout: timeout,
+        callbackurl: callbackurl
     });
     return {
         statusCode: 200,

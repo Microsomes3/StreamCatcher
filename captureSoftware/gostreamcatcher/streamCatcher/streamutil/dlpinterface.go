@@ -36,7 +36,7 @@ func ManageUploadOfPath(resultChan chan []string, paths []string, job utils.Stea
 
 }
 
-func ProcessDownload(sendUpdateProxy func(opts ...utils.StatusOptions), Job utils.SteamJob, progressUpdateCallback func(output string, done chan bool)) (utils.JobResponse, []string, error) {
+func ProcessDownload(sendUpdateProxy func(opts ...utils.StatusOptions), Job utils.SteamJob, progressUpdateCallback func(output string, done chan bool)) (utils.JobResponse, []string, []string, error) {
 	fmt.Println("Processing download for job: ", Job.JobID)
 	fmt.Println("URL: ", Job.YoutubeLink)
 	fmt.Println("Timeout: ", Job.TimeoutSeconds)
@@ -78,6 +78,6 @@ func ProcessDownload(sendUpdateProxy func(opts ...utils.StatusOptions), Job util
 
 	allLinks = <-resultC
 
-	return utils.JobResponse{}, allLinks, nil
+	return utils.JobResponse{}, allLinks, data.Paths, nil
 
 }

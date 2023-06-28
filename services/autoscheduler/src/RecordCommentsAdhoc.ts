@@ -6,8 +6,9 @@ module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGateway
     const {
         username,
         timeout,
-        jobId
-    }:{ jobId:string, username:string, timeout:string } = JSON.parse(event.body || '{}');
+        jobId,
+        callbackurl=""
+    }:{ jobId:string, username:string, timeout:string , callbackurl:string} = JSON.parse(event.body || '{}');
 
     //error checking username
     if(username == ""){
@@ -45,7 +46,8 @@ module.exports.handler = async (event: APIGatewayProxyEvent): Promise<APIGateway
     var commentVideoRequest = await captureCommentVideoV2Task({
         jobId: jobId,
         username:username,
-        timeout:timeout
+        timeout:timeout,
+        callbackurl:callbackurl
     })
     
     return {

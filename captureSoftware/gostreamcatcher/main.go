@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	streamcatcher "microsomes.com/stgo/streamCatcher"
+	"microsomes.com/stgo/streamCatcher/streamutil"
 	"microsomes.com/stgo/utils"
 )
 
@@ -36,57 +37,62 @@ func Perform() {
 
 func main() {
 
-	Perform()
+	r := streamutil.NewDLPInfo("creepy.mp4")
 
-	// systemWaitGroup := sync.WaitGroup{}
-	// workerWaitGroup := sync.WaitGroup{}
-	// systemWaitGroup.Add(1)
-	// _, cancelQueue := context.WithCancel(context.Background())
+	r.GetVideoDuration()
+	r.GetVideoSizeBytes()
 
-	// jobInfo := utils.GetJob()
-	// streamCatcher := streamcatcher.NewStreamCatcher(*jobInfo, nil, SystemCallback(&systemWaitGroup, cancelQueue))
+	// fmt.Println(info)
 
-	// if jobInfo.ChannelName == "" {
-	// 	fmt.Println("Channel name could not be determined")
-	// 	streamCatcher.AddStatusEventV2(
-	// 		utils.WithStatusCode("ERR"),
-	// 		utils.WithStatusReason("Channel name could not be determined"),
-	// 	)
-	// 	os.Exit(0)
-	// }
+	systemWaitGroup := sync.WaitGroup{}
+	workerWaitGroup := sync.WaitGroup{}
+	systemWaitGroup.Add(1)
+	_, cancelQueue := context.WithCancel(context.Background())
 
-	// isLive, err := utils.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
+	jobInfo := utils.GetJob()
+	streamCatcher := streamcatcher.NewStreamCatcher(*jobInfo, nil, SystemCallback(&systemWaitGroup, cancelQueue))
 
-	// fmt.Println("Channel is live:", isLive)
+	if jobInfo.ChannelName == "" {
+		fmt.Println("Channel name could not be determined")
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR"),
+			utils.WithStatusReason("Channel name could not be determined"),
+		)
+		os.Exit(0)
+	}
 
-	// if err != nil {
-	// 	streamCatcher.AddStatusEventV2(
-	// 		utils.WithStatusCode("ERR"),
-	// 		utils.WithStatusReason("cannot determine if channel is live"),
-	// 	)
-	// }
+	isLive, err := utils.GetLiveStatusv2(jobInfo.ChannelName, jobInfo.Provider)
 
-	// if isLive {
-	// 	streamCatcher.AddStatusEventV2(
-	// 		utils.WithStatusCode("PREPARING"),
-	// 		utils.WithStatusReason("Preparing to start recording"),
-	// 	)
-	// } else {
-	// 	streamCatcher.AddStatusEventV2(
-	// 		utils.WithStatusCode("ERR_OFFLINE"),
-	// 		utils.WithStatusReason("Channel is offline"),
-	// 	)
+	fmt.Println("Channel is live:", isLive)
 
-	// 	fmt.Println("Channel is offline:" + jobInfo.ChannelName)
+	if err != nil {
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR"),
+			utils.WithStatusReason("cannot determine if channel is live"),
+		)
+	}
 
-	// 	os.Exit(0)
-	// }
+	if isLive {
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("PREPARING"),
+			utils.WithStatusReason("Preparing to start recording"),
+		)
+	} else {
+		streamCatcher.AddStatusEventV2(
+			utils.WithStatusCode("ERR_OFFLINE"),
+			utils.WithStatusReason("Channel is offline"),
+		)
 
-	// cancelQueue = StartSystem(streamCatcher, &workerWaitGroup)
+		fmt.Println("Channel is offline:" + jobInfo.ChannelName)
 
-	// streamCatcher.AddJob(*jobInfo)
+		os.Exit(0)
+	}
 
-	// systemWaitGroup.Wait()
-	// workerWaitGroup.Wait()
+	cancelQueue = StartSystem(streamCatcher, &workerWaitGroup)
+
+	streamCatcher.AddJob(*jobInfo)
+
+	systemWaitGroup.Wait()
+	workerWaitGroup.Wait()
 
 }

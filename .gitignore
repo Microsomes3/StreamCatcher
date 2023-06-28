@@ -43,3 +43,5 @@ microservices/api
 
 
 captureSoftware/gostreamcatcher/*
+
+captureSoftware/goCommentOverlay/ffmpegb/*

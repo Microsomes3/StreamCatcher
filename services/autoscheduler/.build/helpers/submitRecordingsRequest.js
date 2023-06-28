@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeRecordRequest = exports.submitJobToEcsv2 = exports.captureCommentVideoV2Task = exports.captureCommentRunTask = void 0;
+exports.makeRecordRequest = exports.submitJobToEcsv2 = exports.overlayCommentTask = exports.captureCommentVideoV2Task = exports.captureCommentRunTask = void 0;
 const aws = __importStar(require("aws-sdk"));
 const moment_1 = __importDefault(require("moment"));
 const ecs = new aws.ECS({
@@ -92,7 +92,7 @@ function captureCommentRunTask({ username, duration }) {
     });
 }
 exports.captureCommentRunTask = captureCommentRunTask;
-function captureCommentVideoV2Task({ jobId, username, timeout }) {
+function captureCommentVideoV2Task({ jobId, username, timeout, callbackurl }) {
     return new Promise((resolve, reject) => {
         const ecsparams = {
             cluster: "griffin-record-cluster",
@@ -106,7 +106,7 @@ function captureCommentVideoV2Task({ jobId, username, timeout }) {
                         environment: [
                             {
                                 name: 'updateApi',
-                                value: 'https://new.liveclipper.com/api/injest/comment-event'
+                                value: callbackurl
                             },
                             {
                                 name: 'username',
@@ -150,6 +150,51 @@ function captureCommentVideoV2Task({ jobId, username, timeout }) {
     });
 }
 exports.captureCommentVideoV2Task = captureCommentVideoV2Task;
+function overlayCommentTask({ video, comment }) {
+    return new Promise((resolve, reject) => {
+        const ecsparams = {
+            cluster: "griffin-record-cluster",
+            taskDefinition: "GoCommentOverlay",
+            launchType: "FARGATE",
+            //extra env vars
+            overrides: {
+                containerOverrides: [
+                    {
+                        name: "GoCommentOverlayContainer",
+                        environment: [
+                            {
+                                name: 'COMMENT_VIDEO_URL',
+                                value: comment
+                            },
+                            {
+                                name: 'VIDEO_URL',
+                                value: video
+                            },
+                        ],
+                    },
+                ],
+            },
+            networkConfiguration: {
+                awsvpcConfiguration: {
+                    subnets: [
+                        "subnet-035b7122",
+                    ],
+                    assignPublicIp: "ENABLED",
+                }
+            },
+            tags: []
+        };
+        ecs.runTask(ecsparams, (err, data) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(data);
+            }
+        });
+    });
+}
+exports.overlayCommentTask = overlayCommentTask;
 function submitJobToEcs(username, requestId, uniqueRecordId, duration, isRecordStart, provider, tryToCaptureAll) {
     return new Promise(async (resolve, reject) => {
         const ecsparams = {
@@ -370,7 +415,8 @@ function makeRecordRequest(requestId, auto, provider = "youtube") {
                 await captureCommentVideoV2Task({
                     jobId: uniqueRecordId,
                     username: username,
-                    timeout: duration.toString()
+                    timeout: duration.toString(),
+                    callbackurl: 'https://new.liveclipper.com/api/injest/comment-event'
                 });
             }
             const paramsStatuses = {

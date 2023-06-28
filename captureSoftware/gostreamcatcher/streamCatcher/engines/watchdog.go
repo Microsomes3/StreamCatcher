@@ -45,8 +45,6 @@ func (w *WatchDog) EndDownloadFriendly() bool {
 func (w *WatchDog) StartDownload(wg *sync.WaitGroup) bool {
 	if err := w.Spawned.Start(); err != nil {
 		panic(err)
-		fmt.Println("error starting process")
-		return false
 	}
 
 	err := w.Spawned.Wait()
