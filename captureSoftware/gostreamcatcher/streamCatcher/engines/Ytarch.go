@@ -24,6 +24,8 @@ func (en *YTEngine) Run(wg *sync.WaitGroup) bool {
 		"-o",
 		"tmp/%(channel)s/%(upload_date)s_%(title)s",
 		en.Job.ResolutionRequested,
+		"-c",
+		"cookies.txt",
 	}
 
 	child := exec.Command("ytarchive", args...)

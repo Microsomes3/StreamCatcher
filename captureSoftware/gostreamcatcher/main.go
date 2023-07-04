@@ -42,8 +42,6 @@ func main() {
 	r.GetVideoDuration()
 	r.GetVideoSizeBytes()
 
-	// fmt.Println(info)
-
 	systemWaitGroup := sync.WaitGroup{}
 	workerWaitGroup := sync.WaitGroup{}
 	systemWaitGroup.Add(1)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"net/http"
@@ -69,34 +70,51 @@ func (j *Job) DownloadVideos() {
 }
 
 func (j *Job) CropCommentVideo() bool {
-	//ffmpeg -i input.mp4 -filter:v "crop=600:400:0:0" -c:a copy out.mp4
+	cmd := exec.Command("ffmpeg", "-i", "comment.mp4", "-filter:v", "crop=600:400:0:0", "-c:a", "copy", "comment_cropped.mp4")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	c := exec.Command("ffmpeg", "-i", "comment.mp4", "-filter:v", "crop=600:400:0:0", "-c:a", "copy", "comment_cropped.mp4")
-
-	err := c.Run()
-
+	err := cmd.Start()
 	if err != nil {
+		fmt.Println("Error starting command:", err)
+		return false
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		fmt.Println("Error waiting for command:", err)
 		return false
 	}
 
 	return true
-
 }
 
 func (j *Job) PerformProcessing() {
-	//ffmpeg -i video.mp4 -i overlay.mp4 -filter_complex "[1]format=rgba,colorchannelmixer=aa=0.5[ovrl];[0][ovrl]overlay=x=(W-w)+20:y=100" output.mp4
+	cmd := exec.Command("ffmpeg", "-i", "video.mp4", "-i", "comment_cropped.mp4", "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.5[ovrl];[0][ovrl]overlay=x=(W-w)+20:y=100", "-preset", "ultrafast", "output.mp4")
 
-	c := exec.Command("ffmpeg", "-i", "video.mp4", "-i", "comment_cropped.mp4", "-filter_complex", "[1]format=rgba,colorchannelmixer=aa=0.5[ovrl];[0][ovrl]overlay=x=(W-w)+20:y=100", "output.mp4")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	err := c.Run()
+	cmd.Start()
 
+	err := cmd.Wait()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error waiting for command:", err)
 		return
 	}
 
 	fmt.Println("Processing done")
+}
 
+func printOutput(stdout io.Reader) {
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading output:", err)
+	}
 }
 
 func (*Job) UploadVideo() {
@@ -127,11 +145,11 @@ func main() {
 	job := getJob()
 
 	fmt.Println("downloading video")
-	job.DownloadVideos()
+	// job.DownloadVideos()
 	fmt.Println("downloaded video")
 
 	fmt.Println("cropping comment video")
-	job.CropCommentVideo()
+	// job.CropCommentVideo()
 	fmt.Println("cropped comment video")
 
 	fmt.Println("performing processing")

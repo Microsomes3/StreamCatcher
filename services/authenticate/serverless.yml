@@ -39,30 +39,30 @@ resources:
         BillingMode: PAY_PER_REQUEST
 
 functions:
-  verify-token:
-    handler: src/authorize.handler
-  me:
-    handler: src/me.handler
-    events:
-      - http:
-          path: me
-          method: get
-          cors: true
-          authorizer: 
-            name: verify-token
-            identitySource: method.request.header.Authorization
-            resultTtlInSeconds: 0
-  login:
-    handler: src/login.handler
-    events:
-      - http:
-          path: login
-          method: post
-          cors: true
-  register:
-    handler: src/register.handler
-    events:
-      - http:
-          path: register
-          method: post
-          cors: true
+  # verify-token:
+  #   handler: src/authorize.handler
+  # me:
+  #   handler: src/me.handler
+  #   events:
+  #     - http:
+  #         path: me
+  #         method: get
+  #         cors: true
+  #         authorizer: 
+  #           name: verify-token
+  #           identitySource: method.request.header.Authorization
+  #           resultTtlInSeconds: 0
+  # login:
+  #   handler: src/login.handler
+  #   events:
+  #     - http:
+  #         path: login
+  #         method: post
+  #         cors: true
+  # register:
+  #   handler: src/register.handler
+  #   events:
+  #     - http:
+  #         path: register
+  #         method: post
+  #         cors: true

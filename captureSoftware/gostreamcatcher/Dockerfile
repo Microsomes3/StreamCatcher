@@ -19,6 +19,8 @@ RUN cp ffprobe /bin/ffprobe
 
 COPY ytarchive /bin/ytarchive
 
+COPY cookies.txt /bin/cookies.txt
+
 COPY . .
 
 # RUN go mod download
